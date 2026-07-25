@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Secrets — never commit. Keys come from the environment / /root/.secrets/signal.env on the VPS.
+.env
+*.env
+!.env.example
+signal.env
+google_token.json
+google_credentials.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local logs / scratch
+*.log
+scratch/
+
+# NOTE: brain-memory/ is intentionally TRACKED (git-as-memory). Do not ignore it.

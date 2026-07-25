@@ -1,0 +1,10 @@
+{
+  "cash": 10000.0,
+  "starting_cash": 10000.0,
+  "positions": {},
+  "closed_trades": [],
+  "sector_fails": {},
+  "week_trades": {},
+  "equity_curve": [],
+  "updated": null
+}

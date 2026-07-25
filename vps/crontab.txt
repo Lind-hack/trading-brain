@@ -1,0 +1,33 @@
+# ── Market Brain (paper-trading analysis engine) ────────────────────────────────
+# Append to the ROOT crontab (additive — leaves stock/futures engines untouched):
+#   crontab -l | cat - /root/trading-brain/vps/crontab.txt | crontab -
+#
+# Times are UTC (summer/EDT mapping in comments). The stock engine runs at :07/:22/:37/:52;
+# the brain deliberately uses :03/:33 to avoid flock/CPU collisions. Each job:
+#   - flock -n so a slow run never overlaps the next tick
+#   - sources /root/.secrets/signal.env for keys
+#   - uses the repo venv python
+#   - logs to /root/signal-deck-logs/brain-*.log
+BRAIN=/root/trading-brain
+PY=/root/trading-brain/.venv/bin/python
+ENVF=/root/.secrets/signal.env
+LOGD=/root/signal-deck-logs
+
+# Intraday screen every 30 min, 7:00–17:30 ET (Mon–Fri) — pre-market open through the
+# post-close hour, since gaps and after-hours reactions are where the news pipeline earns its
+# keep. Deep run only if the screener or the Haiku news pass fires.
+3,33 11-21 * * 1-5   flock -n /tmp/brain-cycle.lock  bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --cycle    >> $LOGD/brain-cycle.log 2>&1'
+
+# Three scheduled deep anchors (always run Opus): pre-market, midday, close.
+35 12 * * 1-5        flock -n /tmp/brain-anchor.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --anchor pre   >> $LOGD/brain-anchor.log 2>&1'
+33 16 * * 1-5        flock -n /tmp/brain-anchor.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --anchor mid   >> $LOGD/brain-anchor.log 2>&1'
+15 20 * * 1-5        flock -n /tmp/brain-anchor.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --anchor close >> $LOGD/brain-anchor.log 2>&1'
+
+# Overnight watch (news + calendar + futures) — slow cadence, every 3h.
+3 0,3,6,9 * * *      flock -n /tmp/brain-cycle.lock  bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --cycle    >> $LOGD/brain-overnight.log 2>&1'
+
+# Weekly review — Friday 16:45 ET.
+45 20 * * 5          flock -n /tmp/brain-weekly.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --weekly-review >> $LOGD/brain-weekly.log 2>&1'
+
+# Weekend week-ahead digest — Sunday 11:00 ET.
+0 15 * * 0           flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest        >> $LOGD/brain-digest.log 2>&1'

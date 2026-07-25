@@ -1,0 +1,105 @@
+"""Deterministic 30-minute screener — the free gate before any Claude deep run.
+
+Scores the collected market snapshot against fixed thresholds. If nothing crosses a
+threshold the cycle exits QUIET (logs the tick, spends no subscription quota). If
+anything fires — or the caller forces it (an anchor run, an imminent calendar event) —
+the screener returns a ranked trigger list and the orchestrator escalates to `deep.py`.
+"""
+from __future__ import annotations
+
+from . import config
+
+
+def _score_ticker(snap):
+    """Return (score, [reasons]) for one ticker snapshot from collect.collect_ticker."""
+    score, reasons = 0, []
+    ind = snap.get("indicators", {}) or {}
+    patterns = snap.get("patterns", []) or []
+
+    for p in patterns:
+        w = p.get("strength", 1)
+        score += w
+        reasons.append(f"{p['name']} ({p['detail']})")
+
+    rsi = ind.get("rsi14_d")
+    if rsi is not None:
+        if rsi >= config.SCREEN_RSI_HOT:
+            score += 1
+            reasons.append(f"RSI hot {rsi}")
+        elif rsi <= config.SCREEN_RSI_COLD:
+            score += 1
+            reasons.append(f"RSI cold {rsi}")
+
+    vol = ind.get("vol_vs_avg")
+    if vol is not None and vol >= config.SCREEN_VOL_MULT:
+        score += 1
+        reasons.append(f"volume {vol}x average")
+
+    return score, reasons
+
+
+def _when(hours_away):
+    """Render a calendar event's timing in words.
+
+    `hours_away` is deliberately allowed to go slightly negative upstream (collect.py keeps a
+    just-released print and an in-progress speech in the window, because that is exactly when the
+    tape reprices). Formatting it as "in -1.5h" made those reads look like a bug in the escalation
+    reason, so say plainly which side of now the event sits on.
+    """
+    if hours_away is None:
+        return "time unknown"
+    if hours_away < 0:
+        return f"{abs(hours_away)}h ago, still repricing"
+    if hours_away < 0.5:
+        return "now"
+    return f"in {hours_away}h"
+
+
+def screen(market, calendar=None, held_tickers=None, force=False, threshold=3):
+    """Evaluate a full market snapshot.
+
+    market        : dict ticker -> snapshot (from collect.collect_market)
+    calendar      : forexfactory_calendar() output, or None
+    held_tickers  : tickers currently in the paper portfolio (lower their trigger bar)
+    force         : anchor run — always escalate (still returns the ranked context)
+    threshold     : per-ticker score needed to flag when not forced
+
+    Returns dict: {escalate: bool, why: [...], triggers: [{ticker, score, reasons}], calendar_flags: [...]}.
+    """
+    held = set(held_tickers or [])
+    calendar = calendar or {}
+    triggers, why, calendar_flags = [], [], []
+
+    # Calendar pressure — imminent high-impact events / Trump speeches force a deep run.
+    for e in calendar.get("imminent", []):
+        calendar_flags.append(f"{e['title']} ({e['impact']}) {_when(e.get('hours_away'))}")
+    for s in calendar.get("trump_soon", []):
+        calendar_flags.append(f"SPEECH: {s['title']} {_when(s.get('hours_away'))}")
+    calendar_pressure = bool(calendar_flags)
+
+    for ticker, snap in market.items():
+        if ticker in config.MARKET_CONTEXT:
+            continue  # context, not a trade candidate on its own
+        score, reasons = _score_ticker(snap)
+        bar = threshold - 1 if ticker in held else threshold  # held names trip a step sooner
+        if score >= bar and reasons:
+            triggers.append({"ticker": ticker, "score": score, "reasons": reasons,
+                             "held": ticker in held})
+
+    triggers.sort(key=lambda t: t["score"], reverse=True)
+
+    escalate = force or calendar_pressure or bool(triggers)
+    if force:
+        why.append("scheduled anchor run")
+    if calendar_pressure:
+        why.append("calendar pressure: " + "; ".join(calendar_flags))
+    if triggers:
+        top = triggers[0]
+        why.append(f"{len(triggers)} ticker(s) flagged, top {top['ticker']} score {top['score']}")
+
+    return {
+        "escalate": escalate,
+        "why": why,
+        "triggers": triggers,
+        "calendar_flags": calendar_flags,
+    }

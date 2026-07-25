@@ -1,0 +1,6 @@
+# Market Brain — Python dependencies (Python 3.10+).
+# Deliberately minimal: everything else is stdlib. The AI deep-run uses the `claude` CLI
+# (Claude Code subscription), NOT an Anthropic SDK — there is no API key in this project.
+yfinance>=0.2.40
+pandas>=2.0
+requests>=2.31
