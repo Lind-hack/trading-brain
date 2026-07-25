@@ -9,12 +9,31 @@ breaks a cycle.
 """
 from __future__ import annotations
 
+import math
 import sys
 from datetime import datetime
 
 import requests
 
 from . import config
+
+
+def _jsonable(v):
+    """Recursively replace NaN/Infinity with None.
+
+    Python's json encoder emits bare `NaN`, which requests rejects outright
+    ("Out of range float values are not JSON compliant") — and that aborts the entire push,
+    heartbeat and portfolio row included, over one bad float deep in a payload. Callers should
+    still keep NaN out of their data (portfolio.usable_price); this is the last line so a
+    dashboard write never fails for a reason the dashboard doesn't care about.
+    """
+    if isinstance(v, float):
+        return v if math.isfinite(v) else None
+    if isinstance(v, dict):
+        return {k: _jsonable(x) for k, x in v.items()}
+    if isinstance(v, (list, tuple)):
+        return [_jsonable(x) for x in v]
+    return v
 
 
 def _headers():
@@ -43,16 +62,32 @@ def _post_signals(headers, rows):
     the SQL. Retry once without those columns so the old dashboard keeps working.
     """
     url = f"{config.SUPABASE_URL}/rest/v1/sd_brain_signals"
-    r = requests.post(url, headers=headers, timeout=15, json=rows)
+    r = requests.post(url, headers=headers, timeout=15, json=_jsonable(rows))
     if r.status_code < 400:
         return
     if any(c in r.text for c in _NEW_SIGNAL_COLS):
         print("[warn] sd_brain_signals is missing the newer columns — run vps/brain.sql. "
               "Pushing without them for now.", file=sys.stderr)
         trimmed = [{k: v for k, v in row.items() if k not in _NEW_SIGNAL_COLS} for row in rows]
-        requests.post(url, headers=headers, timeout=15, json=trimmed).raise_for_status()
+        requests.post(url, headers=headers, timeout=15, json=_jsonable(trimmed)).raise_for_status()
         return
     r.raise_for_status()
+
+
+def _insert(table, payload, headers, label):
+    """One table, one try. Never raises.
+
+    Each table gets its own attempt on purpose: these three writes used to share a try block,
+    so a rejected signals batch also swallowed the portfolio snapshot and left the dashboard
+    showing stale equity. A failure here is only ever a missing dashboard row.
+    """
+    try:
+        requests.post(f"{config.SUPABASE_URL}/rest/v1/{table}", headers=headers, timeout=15,
+                      json=_jsonable(payload)).raise_for_status()
+        return True
+    except Exception as e:  # pragma: no cover - network
+        print(f"[warn] dashboard {label} push failed: {e}", file=sys.stderr)
+        return False
 
 
 def push(analysis, screen_result, portfolio_summary, mode, now_et, escalated):
@@ -61,13 +96,12 @@ def push(analysis, screen_result, portfolio_summary, mode, now_et, escalated):
     ts = now_et.astimezone(config.UTC).isoformat()
     h = _headers()
     signals = (analysis or {}).get("signals", []) or []
+    ok = _insert("sd_brain_scans",
+                 {"ts": ts, "mode": mode, "escalated": escalated, "n_signals": len(signals),
+                  "outlook": (analysis or {}).get("market_outlook"),
+                  "screen_why": screen_result.get("why", []),
+                  "degraded": bool((analysis or {}).get("degraded"))}, h, "scan")
     try:
-        requests.post(f"{config.SUPABASE_URL}/rest/v1/sd_brain_scans", headers=h, timeout=15,
-                      json={"ts": ts, "mode": mode, "escalated": escalated,
-                            "n_signals": len(signals),
-                            "outlook": (analysis or {}).get("market_outlook"),
-                            "screen_why": screen_result.get("why", []),
-                            "degraded": bool((analysis or {}).get("degraded"))}).raise_for_status()
         if signals:
             rows = []
             for s in signals:
@@ -86,19 +120,21 @@ def push(analysis, screen_result, portfolio_summary, mode, now_et, escalated):
                     "news_read": s.get("news_read"),
                 })
             _post_signals(h, rows)
-        if portfolio_summary:
-            requests.post(f"{config.SUPABASE_URL}/rest/v1/sd_portfolio", headers=h, timeout=15,
-                          json={"ts": ts, "equity": portfolio_summary.get("equity"),
-                                "cash": portfolio_summary.get("cash"),
-                                "total_return_pct": portfolio_summary.get("total_return_pct"),
-                                "n_open": portfolio_summary.get("n_open"),
-                                "win_rate": portfolio_summary.get("win_rate"),
-                                "positions": portfolio_summary.get("open_positions", [])}).raise_for_status()
-        print(f"[dashboard] pushed brain {mode} run ({len(signals)} signal(s))")
-        return True
     except Exception as e:  # pragma: no cover - network
-        print(f"[warn] dashboard push failed: {e}", file=sys.stderr)
-        return False
+        print(f"[warn] dashboard signals push failed: {e}", file=sys.stderr)
+        ok = False
+    if portfolio_summary:
+        ok = _insert("sd_portfolio",
+                     {"ts": ts, "equity": portfolio_summary.get("equity"),
+                      "cash": portfolio_summary.get("cash"),
+                      "total_return_pct": portfolio_summary.get("total_return_pct"),
+                      "n_open": portfolio_summary.get("n_open"),
+                      "win_rate": portfolio_summary.get("win_rate"),
+                      "positions": portfolio_summary.get("open_positions", [])},
+                     h, "portfolio") and ok
+    if ok:
+        print(f"[dashboard] pushed brain {mode} run ({len(signals)} signal(s))")
+    return ok
 
 
 # ── Live trade tape ─────────────────────────────────────────────────────────────
@@ -108,7 +144,7 @@ def _post_trade(row):
         return False
     try:
         requests.post(f"{config.SUPABASE_URL}/rest/v1/sd_trades", headers=_headers(),
-                      timeout=15, json=row).raise_for_status()
+                      timeout=15, json=_jsonable(row)).raise_for_status()
         print(f"[dashboard] live trade: {row['event']} {row['ticker']}")
         return True
     except Exception as e:  # pragma: no cover - network

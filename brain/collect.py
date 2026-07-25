@@ -88,10 +88,24 @@ def session_vwap(bars):
 
 # ── Price bars ──────────────────────────────────────────────────────────────────
 
+def _drop_blank_bars(df):
+    """Remove rows with no close.
+
+    yfinance intermittently returns a placeholder row for the current session (and sometimes
+    for a halt) with NaN OHLC. One such row at the tail is enough to make every rolling mean
+    NaN, which turned into an invented "MA20/50 death cross (MA20 nan vs MA50 nan)" on MU and
+    escalated a paid deep run on garbage. A bar with no close is not a bar.
+    """
+    if df is None or df.empty or "Close" not in df:
+        return df
+    return df.dropna(subset=["Close"])
+
+
 def fetch_daily(ticker, period="1y", attempts=2):
     for i in range(attempts):
         try:
-            df = yf.Ticker(ticker).history(interval="1d", period=period, auto_adjust=False)
+            df = _drop_blank_bars(
+                yf.Ticker(ticker).history(interval="1d", period=period, auto_adjust=False))
             if not df.empty:
                 return df
         except Exception as e:  # pragma: no cover - network
@@ -103,7 +117,8 @@ def fetch_daily(ticker, period="1y", attempts=2):
 def fetch_intraday(ticker, interval="15m", period="5d", attempts=2):
     for i in range(attempts):
         try:
-            df = yf.Ticker(ticker).history(interval=interval, period=period, prepost=False)
+            df = _drop_blank_bars(
+                yf.Ticker(ticker).history(interval=interval, period=period, prepost=False))
             if not df.empty:
                 # drop the in-progress bar
                 step = {"15m": 15, "30m": 30, "60m": 60, "1h": 60}.get(interval, 15)
@@ -160,6 +175,8 @@ def detect_patterns(ticker, daily, intraday):
 
     close = daily["Close"]
     price = float(close.iloc[-1])
+    if not math.isfinite(price):
+        return patterns   # no usable last close — every "pattern" here would be NaN theatre
     vol = daily["Volume"]
     avg_vol = float(vol.tail(20).mean()) if vol.tail(20).sum() > 0 else 0.0
     last_vol = float(vol.iloc[-1])
@@ -199,9 +216,14 @@ def detect_patterns(ticker, daily, intraday):
     # 3. MA(20/50) cross
     if len(close) >= 55:
         ma20, ma50 = close.rolling(20).mean(), close.rolling(50).mean()
-        above = ma20 > ma50
-        age = _last_cross_age(above.dropna())
-        if age is not None and age <= 3:
+        # `ma20 > ma50` is False (not NaN) when either side is NaN, so a blank bar reads as a
+        # flip and reports a cross "0 days ago" between two NaN averages. Compare only where
+        # both averages exist.
+        both = ma20.notna() & ma50.notna()
+        above = (ma20 > ma50)[both]
+        age = _last_cross_age(above)
+        if age is not None and age <= 3 and math.isfinite(ma20.iloc[-1]) \
+                and math.isfinite(ma50.iloc[-1]):
             patterns.append({
                 "name": f"MA20/50 {'golden' if above.iloc[-1] else 'death'} cross",
                 "detail": f"{age} day(s) ago; MA20 {ma20.iloc[-1]:.2f} vs MA50 {ma50.iloc[-1]:.2f}",
@@ -270,27 +292,42 @@ def detect_patterns(ticker, daily, intraday):
     return patterns
 
 
+def _num(v, digits=2):
+    """Round to a plain float, or None when the value isn't a real number.
+
+    A NaN reaches here whenever yfinance serves a halted symbol or a gappy session, and
+    round(nan) is still nan. Letting that through puts "nan" in the model's packet and, via
+    indicators.price, into the portfolio's mark-to-market. None is the honest answer.
+    """
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return round(f, digits) if math.isfinite(f) else None
+
+
 def indicator_snapshot(daily, intraday):
     """Named indicator values for the email + deep-run packet."""
     snap = {}
     if daily is not None and len(daily) >= 30:
         close = daily["Close"]
-        snap["price"] = round(float(close.iloc[-1]), 2)
-        snap["rsi14_d"] = round(float(rsi(close).iloc[-1]), 1)
+        snap["price"] = _num(close.iloc[-1])
+        snap["rsi14_d"] = _num(rsi(close).iloc[-1], 1)
         line, sigl, hist = macd(close)
         snap["macd_d"] = f"{'bullish' if line.iloc[-1] > sigl.iloc[-1] else 'bearish'}, hist {hist.iloc[-1]:+.2f}"
-        snap["ma20"] = round(float(close.rolling(20).mean().iloc[-1]), 2)
-        snap["ma50"] = round(float(close.rolling(50).mean().iloc[-1]), 2) if len(close) >= 50 else None
-        snap["atr14"] = round(float(atr(daily).iloc[-1]), 2)
+        snap["ma20"] = _num(close.rolling(20).mean().iloc[-1])
+        snap["ma50"] = _num(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else None
+        snap["atr14"] = _num(atr(daily).iloc[-1])
         vol = daily["Volume"]
         avg = float(vol.tail(20).mean()) if vol.tail(20).sum() else 0.0
-        snap["vol_vs_avg"] = round(float(vol.iloc[-1]) / avg, 2) if avg else None
+        snap["vol_vs_avg"] = _num(float(vol.iloc[-1]) / avg) if avg else None
     if intraday is not None and not intraday.empty:
-        vwap = session_vwap(intraday)
-        snap["vwap_intraday"] = round(vwap, 2)
-        px = float(intraday["Close"].iloc[-1])
-        snap["price_vs_vwap"] = "above" if px > vwap else "below"
-        snap["rsi14_intraday"] = round(float(rsi(intraday["Close"]).iloc[-1]), 1)
+        vwap = _num(session_vwap(intraday))
+        snap["vwap_intraday"] = vwap
+        px = _num(intraday["Close"].iloc[-1])
+        if px is not None and vwap:
+            snap["price_vs_vwap"] = "above" if px > vwap else "below"
+        snap["rsi14_intraday"] = _num(rsi(intraday["Close"]).iloc[-1], 1)
     return snap
 
 

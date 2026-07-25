@@ -28,14 +28,14 @@ from datetime import datetime, timedelta
 
 from brain import (config, collect, screen as screener, deep, journal, memory, news_intel,
                    notify, obsidian, supabase)
-from brain.portfolio import Portfolio
+from brain.portfolio import Portfolio, usable_price
 
 
 def _price_lookup(market):
     out = {}
     for t, snap in market.items():
         px = snap.get("indicators", {}).get("price")
-        if px is not None:
+        if usable_price(px):   # a NaN quote is not a quote — see portfolio.usable_price
             out[t] = px
     return out
 
@@ -298,7 +298,9 @@ def do_weekly_review(args):
     prices = {}
     for t in portfolio.held_tickers():
         try:
-            prices[t] = collect.collect_ticker(t)["indicators"]["price"]
+            px = collect.collect_ticker(t)["indicators"]["price"]
+            if usable_price(px):
+                prices[t] = px
         except Exception as e:
             print(f"[warn] weekly review price for {t}: {e}", file=sys.stderr)
 

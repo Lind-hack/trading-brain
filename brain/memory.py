@@ -235,12 +235,16 @@ def commit_memory(message):
         if not status:
             return False  # nothing changed
         _git("commit", "-m", message)
-        # pull --rebase then push; tolerate no-remote / offline gracefully
+        # Push only when a remote actually exists. The VPS clone deliberately has none — it is
+        # the live copy, synced by file transfer, not by git — so an unconditional push logged a
+        # "No configured push destination" warning on every single cycle for no reason.
         try:
-            _git("pull", "--rebase", check=False)
-            push = _git("push", check=False)
-            if push.returncode != 0:
-                print(f"[warn] commit_memory push: {push.stderr.strip()[:200]}", file=sys.stderr)
+            if _git("remote", check=False).stdout.strip():
+                _git("pull", "--rebase", check=False)
+                push = _git("push", check=False)
+                if push.returncode != 0:
+                    print(f"[warn] commit_memory push: {push.stderr.strip()[:200]}",
+                          file=sys.stderr)
         except Exception as e:
             print(f"[warn] commit_memory push: {e}", file=sys.stderr)
         return True

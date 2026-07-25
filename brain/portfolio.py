@@ -14,10 +14,26 @@ recorded and ignored; it never changes the ledger or breaks a cycle.
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime
 from pathlib import Path
 
 from . import broker, config
+
+
+def usable_price(px):
+    """True only for a real, positive, finite quote.
+
+    yfinance hands back NaN for a halted name, a bad session, or a symbol it briefly cannot
+    resolve. NaN is poisonous here: `NaN is None` is False so it slips past a null check,
+    every comparison against it is False so a stop silently never fires, and it propagates
+    through equity into PORTFOLIO.json as a bare `NaN` token that is not valid JSON. Treat a
+    non-finite price as no price at all and leave the position marked at its last good quote.
+    """
+    try:
+        return px is not None and math.isfinite(float(px)) and float(px) > 0
+    except (TypeError, ValueError):
+        return False
 
 # Minimal sector map for the focus list; anything unmapped is "Other".
 SECTORS = {
@@ -80,7 +96,9 @@ class Portfolio:
         prices = prices or {}
         total = self.state["cash"]
         for t, pos in self.state["positions"].items():
-            px = prices.get(t, pos.get("last", pos["entry"]))
+            px = prices.get(t)
+            if not usable_price(px):
+                px = pos.get("last") if usable_price(pos.get("last")) else pos["entry"]
             total += pos["shares"] * px
         return round(total, 2)
 
@@ -105,8 +123,8 @@ class Portfolio:
         for t in list(self.state["positions"].keys()):
             pos = self.state["positions"][t]
             px = prices.get(t)
-            if px is None:
-                continue
+            if not usable_price(px):
+                continue  # no fresh quote (or a NaN one) — never mark or stop on it
             pos["last"] = px
             pos["high_water"] = max(pos.get("high_water", pos["entry"]), px)
             gain = (px - pos["entry"]) / pos["entry"] * 100
@@ -290,7 +308,9 @@ class Portfolio:
         eq = self.equity(prices)
         positions = []
         for t, pos in self.state["positions"].items():
-            px = prices.get(t, pos.get("last", pos["entry"]))
+            px = prices.get(t)
+            if not usable_price(px):
+                px = pos.get("last") if usable_price(pos.get("last")) else pos["entry"]
             positions.append({
                 "ticker": t, "shares": pos["shares"], "entry": pos["entry"],
                 "last": px, "pnl_pct": round((px - pos["entry"]) / pos["entry"] * 100, 2),
