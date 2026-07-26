@@ -18,9 +18,12 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from . import config
+from .jsonio import dumps as _dumps
 
 EVENT_LOG = config.MEMORY_DIR / "EVENT-LOG.jsonl"
+SIGNALS_LOG = config.MEMORY_DIR / "SIGNALS-LOG.jsonl"
 STRATEGY = config.MEMORY_DIR / "STRATEGY.md"
+BACKLOG = config.MEMORY_DIR / "PIPELINE-BACKLOG.md"
 _HORIZONS = {"1h": 1, "4h": 4, "1d": 24, "5d": 120}  # hours
 
 
@@ -68,12 +71,55 @@ def append_strategy(changes, now_et, stats=None):
         return False
 
 
+def append_pipeline_backlog(items, now_et, stats=None):
+    """Append the week's *engineering* requests — deliberately not into STRATEGY.md.
+
+    STRATEGY.md is read back into every deep run, so anything written there becomes a rule the
+    analyst tries to trade by. "Add an options-flow source" is not a rule the analyst can apply;
+    it is work for whoever maintains the harness. Mixing the two would waste packet budget every
+    cycle on instructions no model can act on.
+    """
+    if not items:
+        return False
+    try:
+        BACKLOG.parent.mkdir(parents=True, exist_ok=True)
+        head = ""
+        if not BACKLOG.exists():
+            head = ("# Pipeline backlog\n\n"
+                    "Engineering changes the weekly review asked for, newest at the bottom. Read "
+                    "by humans, **not** loaded into any run's packet — unlike STRATEGY.md. Each "
+                    "item cites the measurement that motivated it.\n")
+        block = [f"\n## Week of {now_et.strftime('%Y-%m-%d')}\n"]
+        if stats:
+            block.append(f"\n_Week {stats.get('week_return_pct', 0):+.2f}% · "
+                         f"{stats.get('n_closed', 0)} closed_\n\n")
+        for it in items:
+            if isinstance(it, dict):
+                effort = it.get("effort")
+                block.append(f"- [ ] **{it.get('change')}**"
+                             + (f" _({effort})_" if effort else "")
+                             + (f"\n      - why: {it.get('why')}\n" if it.get("why") else "\n"))
+            else:
+                block.append(f"- [ ] {it}\n")
+        with open(BACKLOG, "a", encoding="utf-8") as f:
+            f.write(head + "".join(block))
+        print(f"[memory] appended {len(items)} pipeline item(s) -> {BACKLOG.name}")
+        return True
+    except Exception as e:  # pragma: no cover - fs
+        print(f"[warn] append_pipeline_backlog: {e}", file=sys.stderr)
+        return False
+
+
 # ── logging events ────────────────────────────────────────────────────────────
 
+def _append_to(path, record):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(_dumps(record) + "\n")
+
+
 def _append(record):
-    EVENT_LOG.parent.mkdir(parents=True, exist_ok=True)
-    with open(EVENT_LOG, "a", encoding="utf-8") as f:
-        f.write(json.dumps(record) + "\n")
+    _append_to(EVENT_LOG, record)
 
 
 def log_events(market, calendar, spy_price=None):
@@ -110,13 +156,141 @@ def log_events(market, calendar, spy_price=None):
     return n
 
 
+# ── the signal ledger (every idea, executed or not) ─────────────────────────────
+
+def log_signals(analysis, outcomes, mode, prices=None):
+    """Record every signal the model published and what the harness did with it.
+
+    A signal used to leave a trace only if it became a fill. A rejection printed one line to a
+    log nobody reads and then ceased to exist, and a signal the model raised without proposing
+    an action left nothing at all. That makes two of Lind's questions structurally unanswerable
+    — "what did you recommend?" and "what did the gates cost me?" — because the answer was
+    never written down.
+
+    Each record carries ref_price and an empty `forward` block, so backfill_returns() prices
+    these exactly like chart patterns. After a few weeks that turns the rejections into a real
+    counterfactual: the weekly review can compare what the gates blocked against what it would
+    have made, instead of assuming every block was correct.
+
+    `outcomes` maps TICKER -> {"action", "ok", "msg"} as returned by the gate.
+    """
+    signals = (analysis or {}).get("signals") or []
+    actions = (analysis or {}).get("portfolio_actions") or []
+    if not (signals or actions):
+        return 0
+    prices = prices or {}
+    ts = datetime.now(config.UTC).isoformat()
+    seen, n = set(), 0
+    for sig in signals:
+        ticker = (sig.get("ticker") or "").upper()
+        seen.add(ticker)
+        res = (outcomes or {}).get(ticker) or {}
+        if not res:
+            # The model published the idea but proposed no action on it — a recommendation
+            # rather than a trade. Worth keeping: these are the ones it talked itself out of.
+            outcome, gate_reason = "advisory", "no portfolio action proposed"
+        else:
+            outcome = "executed" if res.get("ok") else "rejected"
+            gate_reason = res.get("msg") or ""
+        ref = sig.get("entry") or prices.get(ticker)
+        _append_to(SIGNALS_LOG, {
+            "id": uuid.uuid4().hex[:12], "ts": ts, "mode": mode, "ticker": ticker,
+            "outcome": outcome, "proposed_action": (res.get("action") or "").upper() or None,
+            "gate_reason": gate_reason,
+            "direction": sig.get("direction"), "trade_type": sig.get("trade_type"),
+            "holding_period": sig.get("holding_period"), "confidence": sig.get("confidence"),
+            "confidence_rationale": sig.get("confidence_rationale"),
+            "entry": sig.get("entry"), "stop": sig.get("stop"),
+            "target1": sig.get("target1"), "target2": sig.get("target2"),
+            "why": sig.get("why"), "indicators_used": sig.get("indicators_used") or [],
+            "news_read": sig.get("news_read"), "historical_analog": sig.get("historical_analog"),
+            "ref_ticker": ticker, "ref_price": ref,
+            "forward": {h: None for h in _HORIZONS},
+        })
+        n += 1
+    for act in actions:
+        ticker = (act.get("ticker") or "").upper()
+        if ticker in seen:
+            continue        # already logged above, with its full signal attached
+        res = (outcomes or {}).get(ticker) or {}
+        # A managed action with no signal of its own — a risk trim, an ADD, a HOLD. It still
+        # went through the gates, so it still belongs in the ledger.
+        _append_to(SIGNALS_LOG, {
+            "id": uuid.uuid4().hex[:12], "ts": ts, "mode": mode, "ticker": ticker,
+            "outcome": "executed" if res.get("ok") else "rejected",
+            "proposed_action": (act.get("action") or "").upper() or None,
+            "gate_reason": res.get("msg") or "", "direction": None,
+            "trade_type": act.get("trade_type"), "holding_period": None,
+            "confidence": act.get("confidence"), "confidence_rationale": None,
+            "entry": act.get("entry"), "stop": act.get("stop"),
+            "target1": None, "target2": None,
+            "why": act.get("reason") or act.get("why"),
+            "indicators_used": act.get("indicators_used") or [],
+            "news_read": None, "historical_analog": None,
+            "ref_ticker": ticker, "ref_price": act.get("entry") or prices.get(ticker),
+            "forward": {h: None for h in _HORIZONS},
+        })
+        n += 1
+    return n
+
+
+def log_suppressed(suppressed, mode, prices=None):
+    """Record ideas the de-duplicator held back, so the recap can count the repetition.
+
+    These never reach Lind's inbox, but they are still things the analyst said. Written with
+    outcome `duplicate` and the same `forward` block as everything else: if the brain keeps
+    suppressing a call that then runs 8%, that is a cooldown that is too long, and the only way
+    to find out is to have priced the ones nobody saw.
+    """
+    if not suppressed:
+        return 0
+    prices = prices or {}
+    ts = datetime.now(config.UTC).isoformat()
+    n = 0
+    for sig in suppressed:
+        ticker = (sig.get("ticker") or "").upper()
+        _append_to(SIGNALS_LOG, {
+            "id": uuid.uuid4().hex[:12], "ts": ts, "mode": mode, "ticker": ticker,
+            "outcome": "duplicate", "proposed_action": None,
+            "gate_reason": sig.get("suppressed_reason") or "suppressed as a repeat",
+            "direction": sig.get("direction"), "trade_type": sig.get("trade_type"),
+            "holding_period": sig.get("holding_period"), "confidence": sig.get("confidence"),
+            "confidence_rationale": sig.get("confidence_rationale"),
+            "entry": sig.get("entry"), "stop": sig.get("stop"),
+            "target1": sig.get("target1"), "target2": sig.get("target2"),
+            "why": sig.get("why"), "indicators_used": sig.get("indicators_used") or [],
+            "news_read": sig.get("news_read"), "historical_analog": sig.get("historical_analog"),
+            "ref_ticker": ticker, "ref_price": sig.get("entry") or prices.get(ticker),
+            "forward": {h: None for h in _HORIZONS},
+        })
+        n += 1
+    return n
+
+
+def signals_between(start_iso, end_iso=None):
+    """Every logged signal in a window — the weekly recap's answer to 'what did you recommend?'."""
+    end_iso = end_iso or datetime.now(config.UTC).isoformat()
+    return [r for r in _read_jsonl(SIGNALS_LOG)
+            if r.get("ts") and start_iso <= r["ts"] <= end_iso]
+
+
+def recent_signals(hours):
+    """Signals published in the last `hours`, newest last — the de-duplicator's memory.
+
+    Kept separate from signals_between() because the caller here has no calendar in hand, only
+    "how far back does a repeat still count as a repeat", and that is a per-trade-type number.
+    """
+    cutoff = (datetime.now(config.UTC) - timedelta(hours=float(hours))).isoformat()
+    return [r for r in _read_jsonl(SIGNALS_LOG) if (r.get("ts") or "") >= cutoff]
+
+
 # ── forward-return backfill ─────────────────────────────────────────────────────
 
-def _read_all():
-    if not EVENT_LOG.exists():
+def _read_jsonl(path):
+    if not path.exists():
         return []
     out = []
-    for line in EVENT_LOG.read_text(encoding="utf-8").splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line:
             try:
@@ -126,24 +300,26 @@ def _read_all():
     return out
 
 
-def _write_all(records):
-    tmp = EVENT_LOG.with_suffix(".jsonl.tmp")
+def _write_jsonl(path, records):
+    tmp = path.with_suffix(".jsonl.tmp")
     with open(tmp, "w", encoding="utf-8") as f:
         for r in records:
-            f.write(json.dumps(r) + "\n")
-    tmp.replace(EVENT_LOG)
+            f.write(_dumps(r) + "\n")
+    tmp.replace(path)
 
 
-def backfill_returns(price_lookup):
-    """Fill any elapsed-but-empty forward-return buckets using current prices.
+def _read_all():
+    return _read_jsonl(EVENT_LOG)
 
-    price_lookup: {ticker -> current price}. Approximate (uses the latest price for every
-    due bucket) but accumulates a usable analog dataset over weeks. Returns count filled.
-    """
-    records = _read_all()
+
+def _write_all(records):
+    _write_jsonl(EVENT_LOG, records)
+
+
+def _backfill_file(path, price_lookup, now):
+    records = _read_jsonl(path)
     if not records:
         return 0
-    now = datetime.now(config.UTC)
     filled = 0
     for r in records:
         ref_t, ref_p = r.get("ref_ticker"), r.get("ref_price")
@@ -156,12 +332,27 @@ def backfill_returns(price_lookup):
             continue
         elapsed_h = (now - ev_time).total_seconds() / 3600
         for h, hours in _HORIZONS.items():
-            if r["forward"].get(h) is None and elapsed_h >= hours:
+            if r.setdefault("forward", {}).get(h) is None and elapsed_h >= hours:
                 r["forward"][h] = round((cur - ref_p) / ref_p * 100, 2)
                 filled += 1
     if filled:
-        _write_all(records)
+        _write_jsonl(path, records)
     return filled
+
+
+def backfill_returns(price_lookup):
+    """Fill any elapsed-but-empty forward-return buckets using current prices.
+
+    price_lookup: {ticker -> current price}. Approximate (uses the latest price for every
+    due bucket) but accumulates a usable analog dataset over weeks. Returns count filled.
+
+    Runs over the signal ledger as well as the event log, which is what makes a rejected
+    signal answerable later: the price kept moving after the gate said no, and this records
+    where it went.
+    """
+    now = datetime.now(config.UTC)
+    return (_backfill_file(EVENT_LOG, price_lookup, now)
+            + _backfill_file(SIGNALS_LOG, price_lookup, now))
 
 
 # ── historical analogs ──────────────────────────────────────────────────────────

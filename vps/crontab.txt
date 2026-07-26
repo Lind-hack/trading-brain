@@ -2,8 +2,27 @@
 # Append to the ROOT crontab (additive — leaves stock/futures engines untouched):
 #   crontab -l | cat - /root/trading-brain/vps/crontab.txt | crontab -
 #
-# Times are UTC (summer/EDT mapping in comments). The stock engine runs at :07/:22/:37/:52;
-# the brain deliberately uses :03/:33 to avoid flock/CPU collisions. Each job:
+# TIMES ARE UTC. Not by preference — Debian's cron (3.0pl1) has no CRON_TZ; only cronie does.
+# Setting it here would be read as an ordinary environment variable and every job would still
+# fire on UTC, four or five hours off the session it was meant to track. Verified on this box:
+#   grep -ac CRON_TZ /usr/sbin/cron  ->  0
+#
+# So cron does not try to know when the market is open. It offers candidate times, wide enough
+# to cover both halves of the year, and brain/market_hours.py decides:
+#
+#   EDT (Mar–Nov)   session 13:30–20:00 UTC
+#   EST (Nov–Mar)   session 14:30–21:00 UTC
+#
+# A gated-out run prints "[gate] skipping ..." , writes a heartbeat and exits 0. Weekends,
+# holidays and 13:00 ET half-days are all handled there, not here.
+#
+# The anchors and the weekly recap are offered TWICE, an hour apart, because only one of the two
+# is inside the window in any given DST regime. In the other regime both are legal, so
+# brain/runlog.py records the first success and the second tick skips itself. That pair — gate
+# plus run-log — is what replaces CRON_TZ.
+#
+# The stock engine runs at :07/:22/:37/:52; the brain deliberately uses :03/:33/:15/:35/:45 to
+# avoid flock/CPU collisions. Each job:
 #   - flock -n so a slow run never overlaps the next tick
 #   - sources /root/.secrets/signal.env for keys
 #   - uses the repo venv python
@@ -13,21 +32,43 @@ PY=/root/trading-brain/.venv/bin/python
 ENVF=/root/.secrets/signal.env
 LOGD=/root/signal-deck-logs
 
-# Intraday screen every 30 min, 7:00–17:30 ET (Mon–Fri) — pre-market open through the
-# post-close hour, since gaps and after-hours reactions are where the news pipeline earns its
-# keep. Deep run only if the screener or the Haiku news pass fires.
-3,33 11-21 * * 1-5   flock -n /tmp/brain-cycle.lock  bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --cycle    >> $LOGD/brain-cycle.log 2>&1'
+# Intraday screen every 30 min. 12:00–21:59 UTC spans the session in both regimes (08:03–17:33 ET
+# in summer, 07:03–16:33 ET in winter); the gate keeps only the ticks between the real open and
+# the real close, so roughly thirteen of the twenty offered ticks run on a normal day and none
+# run on a half-day afternoon. Deep run only if the screener or the Haiku news pass fires.
+3,33 12-21 * * 1-5   flock -n /tmp/brain-cycle.lock  bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --cycle    >> $LOGD/brain-cycle.log 2>&1'
 
-# Three scheduled deep anchors (always run Opus): pre-market, midday, close.
+# Pre-market anchor — 08:35 ET summer / 08:35 ET winter, whichever of the two lands in the gate's
+# 3.5h pre-open window without the session already being open.
 35 12 * * 1-5        flock -n /tmp/brain-anchor.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --anchor pre   >> $LOGD/brain-anchor.log 2>&1'
+35 13 * * 1-5        flock -n /tmp/brain-anchor.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --anchor pre   >> $LOGD/brain-anchor.log 2>&1'
+
+# Midday anchor — one tick is enough: 16:33 UTC is 12:33 ET in summer and 11:33 ET in winter, and
+# both are inside regular trading hours.
 33 16 * * 1-5        flock -n /tmp/brain-anchor.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --anchor mid   >> $LOGD/brain-anchor.log 2>&1'
+
+# Close anchor — 20:15 UTC is 16:15 ET in summer (after the close, runs) and 15:15 ET in winter
+# (still trading, gated out); 21:15 UTC is the reverse. On a half-day both are inside the 4h
+# post-close window, and the run-log lets only the first through.
 15 20 * * 1-5        flock -n /tmp/brain-anchor.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --anchor close >> $LOGD/brain-anchor.log 2>&1'
+15 21 * * 1-5        flock -n /tmp/brain-anchor.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --anchor close >> $LOGD/brain-anchor.log 2>&1'
 
-# Overnight watch (news + calendar + futures) — slow cadence, every 3h.
-3 0,3,6,9 * * *      flock -n /tmp/brain-cycle.lock  bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --cycle    >> $LOGD/brain-overnight.log 2>&1'
+# Weekly recap — after the week's last close. Offered every weekday afternoon; the gate accepts
+# exactly one day, the last trading day of the week. That is normally Friday, but in Good Friday
+# week it is Thursday and the recap moves with it on its own.
+45 20 * * 1-5        flock -n /tmp/brain-weekly.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --weekly-review >> $LOGD/brain-weekly.log 2>&1'
+45 21 * * 1-5        flock -n /tmp/brain-weekly.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --weekly-review >> $LOGD/brain-weekly.log 2>&1'
 
-# Weekly review — Friday 16:45 ET.
-45 20 * * 5          flock -n /tmp/brain-weekly.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --weekly-review >> $LOGD/brain-weekly.log 2>&1'
+# Week-ahead digest — the one email that arrives before the week starts, and the first of the two
+# weekly re-scores of the long-term thesis board. Offered every weekday morning; the gate accepts
+# only the week's FIRST trading day, which is Monday normally and Tuesday when MLK Day, Presidents'
+# Day, Memorial Day or Labor Day takes the Monday. On that morning the pre-market anchor stands
+# aside, so Lind gets one email rather than two.
+#
+# 12:05 UTC is 08:05 ET in summer and 07:05 ET in winter — inside the gate's 5h pre-open window in
+# both regimes, so one tick would do. The 13:05 tick is a retry, not a DST pair: if the first run
+# dies the run-log has recorded nothing and the second gets its turn.
+5 12 * * 1-5         flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest >> $LOGD/brain-digest.log 2>&1'
+5 13 * * 1-5         flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest >> $LOGD/brain-digest.log 2>&1'
 
-# Weekend week-ahead digest — Sunday 11:00 ET.
-0 15 * * 0           flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest        >> $LOGD/brain-digest.log 2>&1'
+# No overnight job and nothing on Saturday or Sunday. The market is shut, so the brain is too.

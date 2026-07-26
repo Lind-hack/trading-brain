@@ -4,3 +4,8 @@
 yfinance>=0.2.40
 pandas>=2.0
 requests>=2.31
+
+# Optional. brain/market_hours.py carries the full NYSE holiday rules itself and runs fine
+# without this; when it is installed it additionally catches ad-hoc closures no rule predicts
+# (a national day of mourning, a hurricane).
+exchange_calendars>=4.5

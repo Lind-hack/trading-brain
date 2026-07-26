@@ -19,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import broker, config
+from .jsonio import dumps as _dumps
 
 
 def usable_price(px):
@@ -52,6 +53,22 @@ def sector_of(ticker):
     return SECTORS.get(ticker, "Other")
 
 
+# The reasoning the model attached to an entry, carried whole from proposal to exit.
+#
+# This list used to be five fields, and everything downstream paid for it. The rulebook tells
+# the model that `confidence_rationale` is graded on exit and that `holding_period` is checked
+# against the actual hold — but neither survived past the fill, so the grader was grading fields
+# that no longer existed and the weekly recap could not explain a single number it printed.
+# A field dropped at entry is unrecoverable at exit: the packet that produced it is long gone.
+# So the rule now is to persist the whole signal and let the readers choose, rather than to
+# guess at write time which fields a future reader will want.
+ENTRY_META_FIELDS = (
+    "trade_type", "holding_period", "direction", "confidence", "confidence_rationale",
+    "indicators_used", "news_at_entry", "news_read", "news_edge", "chart_read",
+    "historical_analog", "analysis_done", "data_sources", "target1", "target2",
+)
+
+
 def _default_state():
     return {
         "cash": config.STARTING_CASH,
@@ -73,6 +90,12 @@ class Portfolio:
         # for tests, so the gate suite never needs network access.
         self.mirror = bool(mirror) and broker.enabled()
         self.broker_events = []   # per-run mirror results, for the email + journal
+        # Every position closed during this run, whatever closed it. mark_to_market() returns
+        # its own stops directly, but a model-proposed SELL goes through apply_action(), whose
+        # (ok, msg) contract has nowhere to put an exit record — so those closes used to reach
+        # neither the live trade tape nor the journal's exit grading. Collecting them here means
+        # the caller sees every exit through one list instead of two code paths.
+        self.exits_this_run = []
 
     # ── persistence ──────────────────────────────────────────────────────────
     def _load(self):
@@ -89,7 +112,7 @@ class Portfolio:
     def save(self):
         self.state["updated"] = datetime.now(config.UTC).isoformat()
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(self.state, indent=2), encoding="utf-8")
+        self.path.write_text(_dumps(self.state, indent=2), encoding="utf-8")
 
     # ── valuation ────────────────────────────────────────────────────────────
     def equity(self, prices=None):
@@ -140,13 +163,15 @@ class Portfolio:
             trail_level = pos["high_water"] * (1 - trail / 100)
             pos["stop_level"] = round(max(trail_level, pos.get("hard_stop", 0)), 2)
 
-            reason = None
+            reason = kind = None
             if gain <= config.HARD_STOP_PCT:
                 reason = f"hard stop hit ({gain:.1f}% ≤ {config.HARD_STOP_PCT}%)"
+                kind = "hard_stop"
             elif px <= trail_level:
                 reason = f"trailing stop hit ({trail:.0f}% from peak {pos['high_water']:.2f})"
+                kind = "trailing_stop"
             if reason:
-                exits.append(self._close(t, px, reason))
+                exits.append(self._close(t, px, reason, kind=kind))
         self.state["equity_curve"].append(
             {"ts": datetime.now(config.UTC).isoformat(), "equity": self.equity(prices)})
         self.state["equity_curve"] = self.state["equity_curve"][-500:]
@@ -168,7 +193,13 @@ class Portfolio:
         self.broker_events.append(ev)
         return res
 
-    def _close(self, ticker, price, reason):
+    def _close(self, ticker, price, reason, kind="model_sell"):
+        """Close a position and hand back one record that carries the whole trade.
+
+        `kind` is the machine-readable counterpart to `reason`: "hard_stop", "trailing_stop" or
+        "model_sell". The weekly recap counts the exit mix, and counting it by substring-matching
+        a human sentence would silently miscount the first time someone rewords a message.
+        """
         pos = self.state["positions"].pop(ticker)
         proceeds = pos["shares"] * price
         pnl_usd = proceeds - pos["shares"] * pos["entry"]
@@ -181,24 +212,25 @@ class Portfolio:
         else:
             self.state["sector_fails"][sector] = 0
         mirror = self._mirror("close", ticker)
+        # The entry's whole reasoning snapshot, carried onto the exit so the journal grades what
+        # was actually claimed rather than reconstructing it.
+        carried = {k: pos.get(k) for k in ENTRY_META_FIELDS}
+        carried["thesis"] = pos.get("thesis")
         rec = {
             "ticker": ticker, "sector": sector, "shares": pos["shares"],
-            "entry": pos["entry"], "exit": price, "reason": reason,
+            "entry": pos["entry"], "exit": price, "reason": reason, "exit_kind": kind,
             "pnl_usd": round(pnl_usd, 2), "pnl_pct": round(pnl_pct, 2),
             "opened": pos.get("opened"), "closed": datetime.now(config.UTC).isoformat(),
-            # Carried from the entry so the journal can grade the original reasoning
-            # against the outcome instead of guessing why the trade was taken.
-            "trade_type": pos.get("trade_type"), "thesis": pos.get("thesis"),
-            "confidence": pos.get("confidence"), "indicators_used": pos.get("indicators_used"),
-            "news_at_entry": pos.get("news_at_entry"),
-            "broker": mirror,
+            "broker": mirror, **carried,
         }
         self.state["closed_trades"].append(rec)
-        return {"ticker": ticker, "reason": reason, "exit": price,
-                "pnl_pct": round(pnl_pct, 2), "pnl_usd": round(pnl_usd, 2),
-                "trade_type": pos.get("trade_type"), "thesis": pos.get("thesis"),
-                "confidence": pos.get("confidence"), "opened": pos.get("opened"),
-                "broker": mirror}
+        out = {"ticker": ticker, "sector": sector, "reason": reason, "exit_kind": kind,
+               "entry": pos["entry"], "exit": price,
+               "pnl_pct": round(pnl_pct, 2), "pnl_usd": round(pnl_usd, 2),
+               "opened": pos.get("opened"), "closed": rec["closed"],
+               "broker": mirror, **carried}
+        self.exits_this_run.append(out)
+        return out
 
     # ── proposed-action gates ────────────────────────────────────────────────
     def validate_action(self, action, prices):
@@ -269,13 +301,8 @@ class Portfolio:
         hard_stop = action.get("stop") or round(price * (1 + config.HARD_STOP_PCT / 100), 2)
         now = datetime.now(config.UTC).isoformat()
         # Reasoning snapshot taken at entry — the journal grades this against the exit.
-        entry_meta = {
-            "trade_type": action.get("trade_type"),
-            "thesis": action.get("reason") or action.get("why"),
-            "confidence": action.get("confidence"),
-            "indicators_used": action.get("indicators_used"),
-            "news_at_entry": action.get("news_at_entry"),
-        }
+        entry_meta = {k: action.get(k) for k in ENTRY_META_FIELDS}
+        entry_meta["thesis"] = action.get("reason") or action.get("why")
         mirror = self._mirror("buy", ticker, shares=shares)
         if kind == "ADD" and ticker in self.state["positions"]:
             pos = self.state["positions"][ticker]
@@ -311,11 +338,27 @@ class Portfolio:
             px = prices.get(t)
             if not usable_price(px):
                 px = pos.get("last") if usable_price(pos.get("last")) else pos["entry"]
+            opened = pos.get("opened")
+            held_days = None
+            if opened:
+                try:
+                    held_days = round(
+                        (datetime.now(config.UTC)
+                         - datetime.fromisoformat(str(opened).replace("Z", "+00:00"))
+                         ).total_seconds() / 86400, 2)
+                except ValueError:
+                    held_days = None
             positions.append({
                 "ticker": t, "shares": pos["shares"], "entry": pos["entry"],
                 "last": px, "pnl_pct": round((px - pos["entry"]) / pos["entry"] * 100, 2),
                 "value": round(pos["shares"] * px, 2), "stop_level": pos.get("stop_level"),
                 "sector": pos.get("sector"),
+                # Carried so a reader can tell a scalp from an investment without opening the
+                # ledger. The weekly recap needs the horizon to flag a SCALP still open on
+                # Friday, and the dashboard row was showing a blank type for every open name.
+                "trade_type": pos.get("trade_type"), "confidence": pos.get("confidence"),
+                "holding_period": pos.get("holding_period"),
+                "opened": opened, "held_days": held_days,
             })
         closed = self.state["closed_trades"]
         wins = [c for c in closed if c["pnl_usd"] > 0]

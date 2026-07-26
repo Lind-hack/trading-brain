@@ -1,0 +1,3032 @@
+{
+ "stories": {
+  "2026 crude july market peace slip": {
+   "first_seen": "2026-07-25T01:12:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "wsj": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stock Market News, July 24, 2026: Crude Oil Slips on New Hopes for Peace Talks - WSJ",
+   "tokens": [
+    "market",
+    "crude",
+    "peace",
+    "2026",
+    "july",
+    "slip",
+    "talk",
+    "hop"
+   ]
+  },
+  "2028 bold marvell micron prediction price": {
+   "first_seen": "2026-07-24T14:30:13+00:00",
+   "last_seen": "2026-07-26T22:15:16.322260+00:00",
+   "sources": {
+    "24/7 wall st.": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "AMD"
+   ],
+   "title": "Price Prediction: Micron, AMD & Marvell- Our Bold Price Predictions for 2028 - 24/7 Wall St.",
+   "tokens": [
+    "prediction",
+    "marvell",
+    "micron",
+    "price",
+    "2028",
+    "bold",
+    "wall",
+    "amd"
+   ]
+  },
+  "500 cautiously forecast forex selloff tech": {
+   "first_seen": "2026-07-25T01:15:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "forex.com": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "S&P 500 Forecast: SPX rises cautiously after tech selloff - FOREX.com",
+   "tokens": [
+    "cautiously",
+    "forecast",
+    "selloff",
+    "forex",
+    "tech",
+    "500",
+    "ris",
+    "spx"
+   ]
+  },
+  "550 how microsoft ris trefi": {
+   "first_seen": "2026-06-30T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.306773+00:00",
+   "sources": {
+    "trefis": "2026-07-26T22:15:16.306773+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "How Microsoft Stock Rises 50% To $550? - Trefis",
+   "tokens": [
+    "microsoft",
+    "trefi",
+    "550",
+    "how",
+    "ris"
+   ]
+  },
+  "aapl analyst finally modest nasdaq stocktwit": {
+   "first_seen": "2026-07-26T09:12:18+00:00",
+   "last_seen": "2026-07-26T18:37:12.325139+00:00",
+   "sources": {
+    "stocktwits": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "AAPL Stock Tops Nasdaq\u2019s Modest Gains: Analyst Says Siri Finally Shows \u2018AI Chops\u2019 In iOS 27 Beta - Stocktwits",
+   "tokens": [
+    "stocktwit",
+    "analyst",
+    "finally",
+    "modest",
+    "nasdaq",
+    "aapl",
+    "beta",
+    "chop"
+   ]
+  },
+  "aapl apple finance today why yahoo": {
+   "first_seen": "2026-07-15T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.296560+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "AAPL",
+    "GOOGL"
+   ],
+   "title": "Why Apple (AAPL) Stock Is Up Today - Yahoo Finance",
+   "tokens": [
+    "finance",
+    "apple",
+    "today",
+    "yahoo",
+    "aapl",
+    "why"
+   ]
+  },
+  "about cent cramer giv netflix thestreet": {
+   "first_seen": "2026-07-24T00:17:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.377811+00:00",
+   "sources": {
+    "thestreet.com": "2026-07-26T18:32:50.620648+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "Jim Cramer gives his two cents about Netflix stock - thestreet.com",
+   "tokens": [
+    "thestreet",
+    "netflix",
+    "cramer",
+    "about",
+    "cent",
+    "giv",
+    "his",
+    "jim"
+   ]
+  },
+  "about doozy investor smci tiprank top": {
+   "first_seen": "2026-07-23T11:42:09+00:00",
+   "last_seen": "2026-07-26T22:15:16.395585+00:00",
+   "sources": {
+    "tipranks": "2026-07-26T18:32:50.626404+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "\u2018That Was a Doozy,\u2019 Says Top Investor About SMCI Stock - TipRanks",
+   "tokens": [
+    "investor",
+    "tiprank",
+    "about",
+    "doozy",
+    "smci",
+    "top"
+   ]
+  },
+  "accord ahead analyst attractive earning tiprank": {
+   "first_seen": "2026-07-26T15:27:31+00:00",
+   "last_seen": "2026-07-26T22:15:16.362987+00:00",
+   "sources": {
+    "tipranks": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "AMZN",
+    "MSFT"
+   ],
+   "title": "MSFT vs. AMZN: Which AI Stock Looks More Attractive Ahead of Earnings, According to Analysts? - TipRanks",
+   "tokens": [
+    "attractive",
+    "analyst",
+    "earning",
+    "tiprank",
+    "accord",
+    "ahead",
+    "which",
+    "amzn"
+   ]
+  },
+  "actually beat number revenue tesla trefi": {
+   "first_seen": "2026-07-25T14:51:36+00:00",
+   "last_seen": "2026-07-26T18:37:12.332275+00:00",
+   "sources": {
+    "trefis": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Tesla\u2019s Revenue Beat Hid The Number That Actually Sank The Stock - Trefis",
+   "tokens": [
+    "actually",
+    "revenue",
+    "number",
+    "tesla",
+    "trefi",
+    "beat",
+    "sank",
+    "hid"
+   ]
+  },
+  "ahead amazon earning finance jitter senate": {
+   "first_seen": "2026-07-23T16:25:49+00:00",
+   "last_seen": "2026-07-26T22:15:16.362987+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:37:12.333439+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "Amazon Falls 4% as Senate China Probe and AI-Spending Jitters Weigh Ahead of Earnings - Yahoo Finance",
+   "tokens": [
+    "earning",
+    "finance",
+    "amazon",
+    "jitter",
+    "senate",
+    "ahead",
+    "china",
+    "probe"
+   ]
+  },
+  "ahead amazon earning reveal shopper thestreet": {
+   "first_seen": "2026-07-24T20:57:55+00:00",
+   "last_seen": "2026-07-26T22:15:16.362987+00:00",
+   "sources": {
+    "thestreet.com": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "Amazon stock slides as Prime Day data reveals shopper shift ahead of earnings - thestreet.com",
+   "tokens": [
+    "thestreet",
+    "earning",
+    "shopper",
+    "amazon",
+    "reveal",
+    "ahead",
+    "prime",
+    "shift"
+   ]
+  },
+  "ahead august earning here palantir tiprank": {
+   "first_seen": "2026-07-23T18:23:14+00:00",
+   "last_seen": "2026-07-26T22:15:16.398587+00:00",
+   "sources": {
+    "tipranks": "2026-07-26T18:32:50.628411+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Here\u2019s Who Owns Palantir Stock (PLTR) Ahead of Q2 Earnings on August 3 - TipRanks",
+   "tokens": [
+    "palantir",
+    "earning",
+    "tiprank",
+    "august",
+    "ahead",
+    "here",
+    "pltr",
+    "own"
+   ]
+  },
+  "ahead barron earning google micron soar": {
+   "first_seen": "2026-07-21T20:25:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.391064+00:00",
+   "sources": {
+    "barron's": "2026-07-26T18:32:50.624395+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Why Micron Stock Is Soaring Ahead of Google Earnings - Barron's",
+   "tokens": [
+    "earning",
+    "barron",
+    "google",
+    "micron",
+    "ahead",
+    "soar",
+    "why"
+   ]
+  },
+  "ahead earning futur nasdaq rally updat": {
+   "first_seen": "2026-07-26T22:04:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "cnbc": "2026-07-26T22:15:36.135266+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Nasdaq futures rally ahead of big week of earnings, Fed meeting: Live updates - CNBC",
+   "tokens": [
+    "earning",
+    "nasdaq",
+    "ahead",
+    "futur",
+    "rally",
+    "updat",
+    "cnbc",
+    "live"
+   ]
+  },
+  "ahead flight since spacex starship suffer": {
+   "first_seen": "2026-07-24T20:20:05+00:00",
+   "last_seen": "2026-07-26T22:15:16.349298+00:00",
+   "sources": {
+    "cnbc": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Musk's bad week: Tesla suffers worst slump since 2022, SpaceX drops ahead of Starship test flight - CNBC",
+   "tokens": [
+    "starship",
+    "flight",
+    "spacex",
+    "suffer",
+    "ahead",
+    "since",
+    "slump",
+    "tesla"
+   ]
+  },
+  "airlin alphabet amazon biggest midday southwest": {
+   "first_seen": "2026-07-23T17:04:07+00:00",
+   "last_seen": "2026-07-26T22:15:16.362987+00:00",
+   "sources": {
+    "cnbc": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "Stocks making the biggest moves midday: Alphabet, Tesla, Amazon, Southwest Airlines & more - CNBC",
+   "tokens": [
+    "southwest",
+    "alphabet",
+    "biggest",
+    "airlin",
+    "amazon",
+    "midday",
+    "tesla",
+    "cnbc"
+   ]
+  },
+  "alpha alphabet capex decade litigation upgrade": {
+   "first_seen": "2026-07-24T12:45:00+00:00",
+   "last_seen": "2026-07-26T18:32:50.618645+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Alphabet: A Decade Of EU Litigation, Cleared For 2 Weeks Of CapEx (Rating Upgrade) - Seeking Alpha",
+   "tokens": [
+    "litigation",
+    "alphabet",
+    "upgrade",
+    "decade",
+    "alpha",
+    "capex",
+    "clear",
+    "seek"
+   ]
+  },
+  "alpha alphabet elevat opportunity ridiculou street": {
+   "first_seen": "2026-07-26T11:30:00+00:00",
+   "last_seen": "2026-07-26T18:32:50.618645+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Alphabet: Wall Street Is Being Ridiculous - Elevated CapEx Is A Buying Opportunity (GOOGL) - Seeking Alpha",
+   "tokens": [
+    "opportunity",
+    "ridiculou",
+    "alphabet",
+    "elevat",
+    "street",
+    "alpha",
+    "capex",
+    "googl"
+   ]
+  },
+  "alpha amazon ecosystem expand nasdaq strong": {
+   "first_seen": "2026-07-24T14:01:51+00:00",
+   "last_seen": "2026-07-26T22:15:16.362987+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T22:15:16.362987+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "Amazon: Strong Buy On An Expanding Ecosystem (NASDAQ:AMZN) - Seeking Alpha",
+   "tokens": [
+    "ecosystem",
+    "amazon",
+    "expand",
+    "nasdaq",
+    "strong",
+    "alpha",
+    "amzn",
+    "seek"
+   ]
+  },
+  "alpha amd higher leg next seek": {
+   "first_seen": "2026-07-25T13:56:35+00:00",
+   "last_seen": "2026-07-26T22:15:16.322260+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "AMD"
+   ],
+   "title": "AMD: The Next Leg Higher - Seeking Alpha",
+   "tokens": [
+    "higher",
+    "alpha",
+    "next",
+    "seek",
+    "amd",
+    "leg"
+   ]
+  },
+  "alpha avgo broadcom keep load nasdaq": {
+   "first_seen": "2026-07-22T05:56:50+00:00",
+   "last_seen": "2026-07-26T22:15:16.382339+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "Broadcom: Why We Keep Loading Up At ATHs (NASDAQ:AVGO) - Seeking Alpha",
+   "tokens": [
+    "broadcom",
+    "nasdaq",
+    "alpha",
+    "avgo",
+    "keep",
+    "load",
+    "seek",
+    "ath"
+   ]
+  },
+  "alpha benefit nasdaq spacex strip tesla": {
+   "first_seen": "2026-07-25T12:41:13+00:00",
+   "last_seen": "2026-07-26T22:15:16.349298+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Tesla: Strip Out SpaceX And Tax Benefit, And You're Left With $77 Million (NASDAQ:TSLA) - Seeking Alpha",
+   "tokens": [
+    "benefit",
+    "nasdaq",
+    "spacex",
+    "alpha",
+    "strip",
+    "tesla",
+    "left",
+    "seek"
+   ]
+  },
+  "alpha best microsoft msft nasdaq opportuniti": {
+   "first_seen": "2026-07-22T16:54:27+00:00",
+   "last_seen": "2026-07-26T22:15:16.306773+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Microsoft: One Of The Best Buying Opportunities In Big Tech (NASDAQ:MSFT) - Seeking Alpha",
+   "tokens": [
+    "opportuniti",
+    "microsoft",
+    "nasdaq",
+    "alpha",
+    "best",
+    "msft",
+    "seek",
+    "tech"
+   ]
+  },
+  "alpha best nasdaq neocloud nvda right": {
+   "first_seen": "2026-07-25T17:58:29+00:00",
+   "last_seen": "2026-07-26T18:37:12.329096+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "SA Asks: What's the best neocloud stock play right now? (NVDA:NASDAQ) - Seeking Alpha",
+   "tokens": [
+    "neocloud",
+    "nasdaq",
+    "alpha",
+    "right",
+    "best",
+    "nvda",
+    "play",
+    "seek"
+   ]
+  },
+  "alpha computer downgrade margin matter nasdaq": {
+   "first_seen": "2026-07-23T18:13:48+00:00",
+   "last_seen": "2026-07-26T22:15:16.395585+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T22:15:16.395585+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "Super Micro Computer: The Margin Shock Matters (Rating Downgrade) (NASDAQ:SMCI) - Seeking Alpha",
+   "tokens": [
+    "downgrade",
+    "computer",
+    "margin",
+    "matter",
+    "nasdaq",
+    "alpha",
+    "micro",
+    "shock"
+   ]
+  },
+  "alpha computer exposure micro mispric underpric": {
+   "first_seen": "2026-07-23T11:15:00+00:00",
+   "last_seen": "2026-07-26T18:37:12.339537+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.626404+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "Super Micro Computer: Mispriced Risk, Underpriced AI Exposure - Seeking Alpha",
+   "tokens": [
+    "underpric",
+    "computer",
+    "exposure",
+    "mispric",
+    "alpha",
+    "micro",
+    "super",
+    "risk"
+   ]
+  },
+  "alpha continu nasdaq platform session straight": {
+   "first_seen": "2026-07-24T20:46:43+00:00",
+   "last_seen": "2026-07-26T22:15:16.368015+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Meta Platforms continues losses for seven straight sessions (META:NASDAQ) - Seeking Alpha",
+   "tokens": [
+    "platform",
+    "straight",
+    "continu",
+    "session",
+    "nasdaq",
+    "alpha",
+    "seven",
+    "loss"
+   ]
+  },
+  "alpha definitive earning microsoft nasdaq preview": {
+   "first_seen": "2026-07-24T13:35:42+00:00",
+   "last_seen": "2026-07-26T18:37:12.328060+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Microsoft Preview: The Definitive Guide To Azure, CapEx, And Earnings (NASDAQ:MSFT) - Seeking Alpha",
+   "tokens": [
+    "definitive",
+    "microsoft",
+    "earning",
+    "preview",
+    "nasdaq",
+    "alpha",
+    "azure",
+    "capex"
+   ]
+  },
+  "alpha downgrade fail palantir rule seek": {
+   "first_seen": "2026-07-25T04:55:55+00:00",
+   "last_seen": "2026-07-26T22:15:16.398587+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.628411+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Palantir: Rule Of 145% May Fail (Rating Downgrade) - Seeking Alpha",
+   "tokens": [
+    "downgrade",
+    "palantir",
+    "alpha",
+    "fail",
+    "rule",
+    "seek",
+    "145",
+    "rat"
+   ]
+  },
+  "alpha leader market outlook sector target": {
+   "first_seen": "2026-07-11T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "My Updated 2026 Market Outlook: Keeping The S&P 500 Target, But Changing Sector Leaders - Seeking Alpha",
+   "tokens": [
+    "outlook",
+    "leader",
+    "market",
+    "sector",
+    "target",
+    "alpha",
+    "chang",
+    "updat"
+   ]
+  },
+  "alpha nasdaq netflix nflx seek time": {
+   "first_seen": "2026-07-26T17:26:39+00:00",
+   "last_seen": "2026-07-26T22:15:16.377811+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T18:32:50.620648+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "SA Asks: Netflix hit a 52-week low this week. Is now the time to buy? (NFLX:NASDAQ) - Seeking Alpha",
+   "tokens": [
+    "netflix",
+    "nasdaq",
+    "alpha",
+    "nflx",
+    "seek",
+    "time",
+    "week",
+    "ask"
+   ]
+  },
+  "alpha nyse seek tsm tsmc wrong": {
+   "first_seen": "2026-07-25T13:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.385337+00:00",
+   "sources": {
+    "seeking alpha": "2026-07-26T22:15:16.385337+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "TSMC Stock: I Was Wrong (NYSE:TSM) - Seeking Alpha",
+   "tokens": [
+    "alpha",
+    "wrong",
+    "nyse",
+    "seek",
+    "tsmc",
+    "tsm"
+   ]
+  },
+  "alphabet ambitiou barchart don gett googl": {
+   "first_seen": "2026-07-25T17:30:02+00:00",
+   "last_seen": "2026-07-26T18:37:12.335526+00:00",
+   "sources": {
+    "barchart.com": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Alphabet Is Getting \u2018Ambitious\u2019 With AI. Don\u2019t Get Ambitious With GOOGL Stock. - Barchart.com",
+   "tokens": [
+    "alphabet",
+    "ambitiou",
+    "barchart",
+    "googl",
+    "gett",
+    "don",
+    "get"
+   ]
+  },
+  "alphabet announc capex market motley roughly": {
+   "first_seen": "2026-07-23T21:55:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "the motley fool": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stock Market Today, July 23: Alphabet Slides 7% After Announcing 2026 Capex of Roughly $200 Billion - The Motley Fool",
+   "tokens": [
+    "alphabet",
+    "announc",
+    "roughly",
+    "market",
+    "motley",
+    "capex",
+    "today",
+    "2026"
+   ]
+  },
+  "alphabet barclay googl opportunity service tiprank": {
+   "first_seen": "2026-07-24T20:50:56+00:00",
+   "last_seen": "2026-07-26T18:37:12.335526+00:00",
+   "sources": {
+    "tipranks": "2026-07-26T18:37:12.335526+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Barclays Says Buy Alphabet (GOOGL) Stock, Sees Solid TPU-as-a-Service Opportunity - TipRanks",
+   "tokens": [
+    "opportunity",
+    "alphabet",
+    "barclay",
+    "service",
+    "tiprank",
+    "googl",
+    "solid",
+    "buy"
+   ]
+  },
+  "alphabet better like look meta value": {
+   "first_seen": "2026-07-24T15:00:39+00:00",
+   "last_seen": "2026-07-26T22:15:16.368015+00:00",
+   "sources": {
+    "24/7 wall st.": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Meta vs. Alphabet: One AI Stock Looks Like the Better Value - 24/7 Wall St.",
+   "tokens": [
+    "alphabet",
+    "better",
+    "value",
+    "like",
+    "look",
+    "meta",
+    "wall",
+    "one"
+   ]
+  },
+  "alphabet biggest broadcom earning marketbeat winner": {
+   "first_seen": "2026-07-26T14:12:53+00:00",
+   "last_seen": "2026-07-26T22:15:16.382339+00:00",
+   "sources": {
+    "marketbeat": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "Broadcom May Be the Biggest Winner From Alphabet's Earnings - MarketBeat",
+   "tokens": [
+    "marketbeat",
+    "alphabet",
+    "broadcom",
+    "biggest",
+    "earning",
+    "winner"
+   ]
+  },
+  "alphabet capex earning googl revenue takeaway": {
+   "first_seen": "2026-07-22T23:21:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.373811+00:00",
+   "sources": {
+    "cnbc": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Alphabet earnings takeaways: Q2 revenue beats, GOOGL stock sinks on 2026 capex hike - CNBC",
+   "tokens": [
+    "alphabet",
+    "takeaway",
+    "earning",
+    "revenue",
+    "capex",
+    "googl",
+    "2026",
+    "beat"
+   ]
+  },
+  "alphabet cloud finance revenue surg yahoo": {
+   "first_seen": "2026-07-24T20:41:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.373811+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Alphabet: Is the Stock a Buy on the Dip as Cloud Revenue Surges? - Yahoo Finance",
+   "tokens": [
+    "alphabet",
+    "finance",
+    "revenue",
+    "cloud",
+    "yahoo",
+    "surg",
+    "buy",
+    "dip"
+   ]
+  },
+  "alphabet crush earning market marketbeat number": {
+   "first_seen": "2026-07-23T16:36:46+00:00",
+   "last_seen": "2026-07-26T22:15:16.373811+00:00",
+   "sources": {
+    "marketbeat": "2026-07-26T22:15:16.373811+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Alphabet Crushed Earnings, But One Number Spooked the Market - MarketBeat",
+   "tokens": [
+    "marketbeat",
+    "alphabet",
+    "earning",
+    "market",
+    "number",
+    "crush",
+    "spook",
+    "but"
+   ]
+  },
+  "alphabet fil": {
+   "first_seen": "2026-07-23T00:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.373811+00:00",
+   "sources": {
+    "sec edgar": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Alphabet Inc. filed 10-Q",
+   "tokens": [
+    "alphabet",
+    "fil"
+   ]
+  },
+  "alphabet google investopedia investor massive plung": {
+   "first_seen": "2026-07-23T15:23:32+00:00",
+   "last_seen": "2026-07-26T22:15:16.373811+00:00",
+   "sources": {
+    "investopedia": "2026-07-26T18:37:12.335526+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Alphabet Stock Plunges as Investors React to Google\u2019s Massive AI Spending Plans - Investopedia",
+   "tokens": [
+    "investopedia",
+    "alphabet",
+    "investor",
+    "massive",
+    "google",
+    "plung",
+    "react",
+    "spend"
+   ]
+  },
+  "amazon amzn barchart know layoff what": {
+   "first_seen": "2026-07-23T15:28:47+00:00",
+   "last_seen": "2026-07-26T22:15:16.362987+00:00",
+   "sources": {
+    "barchart.com": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "AMZN Stock Layoffs: What to Know as Amazon Cuts AI Jobs - Barchart.com",
+   "tokens": [
+    "barchart",
+    "amazon",
+    "layoff",
+    "amzn",
+    "know",
+    "what",
+    "cut",
+    "job"
+   ]
+  },
+  "amazon andy despite finance jassy yahoo": {
+   "first_seen": "2026-07-23T11:17:00+00:00",
+   "last_seen": "2026-07-26T18:32:50.616641+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "Andy Jassy's Amazon Trades at $244. The Stock Is Down 11% From Its 52-Week-High, Despite AWS Growing 28% in Q1. - Yahoo Finance",
+   "tokens": [
+    "despite",
+    "finance",
+    "amazon",
+    "jassy",
+    "yahoo",
+    "andy",
+    "down",
+    "grow"
+   ]
+  },
+  "amazon below business daily google investor": {
+   "first_seen": "2026-07-23T19:24:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.362987+00:00",
+   "sources": {
+    "investor's business daily": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "Amazon Stock Slips Below Key Level As Google Sets Tone For Hefty AI Spending - Investor's Business Daily",
+   "tokens": [
+    "business",
+    "investor",
+    "amazon",
+    "google",
+    "below",
+    "daily",
+    "hefty",
+    "level"
+   ]
+  },
+  "amazon earning fairly into morningstar sell": {
+   "first_seen": "2026-07-23T10:13:14+00:00",
+   "last_seen": "2026-07-26T22:15:16.377811+00:00",
+   "sources": {
+    "morningstar": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "AMZN",
+    "NFLX"
+   ],
+   "title": "Going Into Earnings, Is Amazon Stock a Buy, a Sell, or Fairly Valued? - Morningstar",
+   "tokens": [
+    "morningstar",
+    "earning",
+    "amazon",
+    "fairly",
+    "into",
+    "sell",
+    "valu",
+    "buy"
+   ]
+  },
+  "amd blueprint cerbra create hardware marketbeat": {
+   "first_seen": "2026-07-24T16:13:35+00:00",
+   "last_seen": "2026-07-26T22:15:16.322260+00:00",
+   "sources": {
+    "marketbeat": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "AMD"
+   ],
+   "title": "AMD and Cerbras Create A New Blueprint For Hardware - MarketBeat",
+   "tokens": [
+    "marketbeat",
+    "blueprint",
+    "hardware",
+    "cerbra",
+    "create",
+    "amd"
+   ]
+  },
+  "amd cerebra cnbc gain partnership": {
+   "first_seen": "2026-07-23T18:42:57+00:00",
+   "last_seen": "2026-07-26T22:15:16.322260+00:00",
+   "sources": {
+    "cnbc": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "AMD"
+   ],
+   "title": "Cerebras stock gains on AMD partnership - CNBC",
+   "tokens": [
+    "partnership",
+    "cerebra",
+    "cnbc",
+    "gain",
+    "amd"
+   ]
+  },
+  "amd despite push robotic slip tiprank": {
+   "first_seen": "2026-07-24T15:18:37+00:00",
+   "last_seen": "2026-07-26T22:15:16.322260+00:00",
+   "sources": {
+    "tipranks": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "AMD"
+   ],
+   "title": "AMD Stock Slips Despite a Robotics AI Push - TipRanks",
+   "tokens": [
+    "despite",
+    "robotic",
+    "tiprank",
+    "push",
+    "slip",
+    "amd"
+   ]
+  },
+  "analyst believe investment palantir research technologi": {
+   "first_seen": "2026-07-24T13:03:37+00:00",
+   "last_seen": "2026-07-26T22:15:16.398587+00:00",
+   "sources": {
+    "zacks investment research": "2026-07-26T18:32:50.628411+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Wall Street Analysts Believe Palantir Technologies (PLTR) Could Rally 56.83%: Here's is How to Trade - Zacks Investment Research",
+   "tokens": [
+    "investment",
+    "technologi",
+    "palantir",
+    "research",
+    "analyst",
+    "believe",
+    "street",
+    "could"
+   ]
+  },
+  "analyst coverage microsoft opinion quantitative stanley": {
+   "first_seen": "2026-07-24T17:33:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.306773+00:00",
+   "sources": {
+    "quiver quantitative": "2026-07-26T22:15:16.306773+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Microsoft Stock (MSFT) Opinions on Morgan Stanley Analyst Coverage - Quiver Quantitative",
+   "tokens": [
+    "quantitative",
+    "microsoft",
+    "coverage",
+    "analyst",
+    "opinion",
+    "stanley",
+    "morgan",
+    "quiver"
+   ]
+  },
+  "analyst growth potential street their these": {
+   "first_seen": "2026-07-26T11:33:11+00:00",
+   "last_seen": "2026-07-26T22:15:16.382339+00:00",
+   "sources": {
+    "cnbc": "2026-07-26T22:15:16.382339+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "Top Wall Street analysts back these 3 stocks for their long-term growth potential - CNBC",
+   "tokens": [
+    "potential",
+    "analyst",
+    "growth",
+    "street",
+    "their",
+    "these",
+    "back",
+    "cnbc"
+   ]
+  },
+  "analyst opinion product quantitative quiver upgrad": {
+   "first_seen": "2026-07-24T17:33:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.296560+00:00",
+   "sources": {
+    "quiver quantitative": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "Apple Stock (AAPL) Opinions on Analyst Upgrades and Upcoming Products - Quiver Quantitative",
+   "tokens": [
+    "quantitative",
+    "analyst",
+    "opinion",
+    "product",
+    "quiver",
+    "upgrad",
+    "apple",
+    "upcom"
+   ]
+  },
+  "another decision federal interest reserve yahoo": {
+   "first_seen": "2026-07-26T10:09:46+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "yahoo": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Federal Reserve due to make another decision on interest rates - Yahoo",
+   "tokens": [
+    "decision",
+    "interest",
+    "another",
+    "federal",
+    "reserve",
+    "yahoo",
+    "make",
+    "due"
+   ]
+  },
+  "anthropic barchart change could deal story": {
+   "first_seen": "2026-07-23T19:29:43+00:00",
+   "last_seen": "2026-07-26T22:15:16.368015+00:00",
+   "sources": {
+    "barchart.com": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Meta\u2019s $10 Billion Anthropic Deal Could Change the AI Story. How to Play META Stock Here. - Barchart.com",
+   "tokens": [
+    "anthropic",
+    "barchart",
+    "change",
+    "could",
+    "story",
+    "deal",
+    "here",
+    "meta"
+   ]
+  },
+  "anytime premarket reportedly shortage stocktwit today": {
+   "first_seen": "2026-07-24T06:04:18+00:00",
+   "last_seen": "2026-07-26T22:15:16.385337+00:00",
+   "sources": {
+    "stocktwits": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "TSM Stock Slips Premarket Today \u2014 CEO Reportedly Says AI Chip Shortage Isn\u2019t Ending Anytime Soon - Stocktwits",
+   "tokens": [
+    "reportedly",
+    "premarket",
+    "stocktwit",
+    "shortage",
+    "anytime",
+    "today",
+    "chip",
+    "slip"
+   ]
+  },
+  "apple associat cullinan marketbeat position trimm": {
+   "first_seen": "2026-07-26T07:51:09+00:00",
+   "last_seen": "2026-07-26T22:15:16.296560+00:00",
+   "sources": {
+    "marketbeat": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "Apple Inc. $AAPL Stock Position Trimmed by Cullinan Associates Inc. - MarketBeat",
+   "tokens": [
+    "marketbeat",
+    "associat",
+    "cullinan",
+    "position",
+    "apple",
+    "trimm",
+    "aapl"
+   ]
+  },
+  "apple benzinga go monday what": {
+   "first_seen": "2026-07-20T14:53:51+00:00",
+   "last_seen": "2026-07-26T22:15:16.395585+00:00",
+   "sources": {
+    "benzinga": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "AAPL",
+    "SMCI"
+   ],
+   "title": "What Is Going On With Apple Stock On Monday? - Benzinga",
+   "tokens": [
+    "benzinga",
+    "monday",
+    "apple",
+    "what",
+    "go"
+   ]
+  },
+  "apple capex nasdaq premium profile techstock": {
+   "first_seen": "2026-07-24T19:30:13+00:00",
+   "last_seen": "2026-07-26T22:15:16.296560+00:00",
+   "sources": {
+    "techstock\u00b2": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "Apple Inc. (NASDAQ:AAPL) stock rises 3.5% as low-capex AI profile draws a premium - TechStock\u00b2",
+   "tokens": [
+    "techstock",
+    "premium",
+    "profile",
+    "nasdaq",
+    "apple",
+    "capex",
+    "aapl",
+    "draw"
+   ]
+  },
+  "apple climb could keep trefi what": {
+   "first_seen": "2026-07-23T12:09:37+00:00",
+   "last_seen": "2026-07-26T22:15:16.296560+00:00",
+   "sources": {
+    "trefis": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "What Could Keep Apple Stock Climbing? - Trefis",
+   "tokens": [
+    "apple",
+    "climb",
+    "could",
+    "trefi",
+    "keep",
+    "what"
+   ]
+  },
+  "apple deadline investor launch retail stocktwit": {
+   "first_seen": "2026-07-25T21:01:24+00:00",
+   "last_seen": "2026-07-26T22:15:16.296560+00:00",
+   "sources": {
+    "stocktwits": "2026-07-26T22:15:16.296560+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "Apple WWDC 2026: AAPL Stock Slips As Lack Of Launch Deadline For Siri AI Spooks Retail Investors - Stocktwits",
+   "tokens": [
+    "stocktwit",
+    "deadline",
+    "investor",
+    "launch",
+    "retail",
+    "apple",
+    "spook",
+    "2026"
+   ]
+  },
+  "approach average below benzinga earning microsoft": {
+   "first_seen": "2026-07-23T13:40:19+00:00",
+   "last_seen": "2026-07-26T18:37:12.328060+00:00",
+   "sources": {
+    "benzinga": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Microsoft Stock Sits 11% Below Its 200-Day Average as Earnings Approach - Benzinga",
+   "tokens": [
+    "microsoft",
+    "approach",
+    "benzinga",
+    "average",
+    "earning",
+    "below",
+    "200",
+    "day"
+   ]
+  },
+  "artificial better globe intelligence micron nvidia": {
+   "first_seen": "2026-07-26T13:57:30+00:00",
+   "last_seen": "2026-07-26T22:15:16.391064+00:00",
+   "sources": {
+    "the globe and mail": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "NVDA",
+    "MU"
+   ],
+   "title": "Is Micron a Better Artificial Intelligence (AI) Stock Than Nvidia? - The Globe and Mail",
+   "tokens": [
+    "intelligence",
+    "artificial",
+    "better",
+    "micron",
+    "nvidia",
+    "globe",
+    "mail",
+    "than"
+   ]
+  },
+  "avgo back broadcom cramer finance yahoo": {
+   "first_seen": "2026-07-11T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.382339+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "Broadcom Inc. (AVGO) Is Going To Come Back, Says Jim Cramer - Yahoo Finance",
+   "tokens": [
+    "broadcom",
+    "finance",
+    "cramer",
+    "yahoo",
+    "avgo",
+    "back",
+    "come",
+    "jim"
+   ]
+  },
+  "avgo broadcom forecast story street tradingkey": {
+   "first_seen": "2026-07-26T13:05:09+00:00",
+   "last_seen": "2026-07-26T22:15:16.382339+00:00",
+   "sources": {
+    "tradingkey": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "Broadcom Stock Forecast: Why Did AVGO Drop 17% and Is Wall Street Missing the AI Story? - TradingKey",
+   "tokens": [
+    "tradingkey",
+    "broadcom",
+    "forecast",
+    "street",
+    "story",
+    "avgo",
+    "drop",
+    "miss"
+   ]
+  },
+  "avoid even fool motley netflix should": {
+   "first_seen": "2026-07-26T12:23:00+00:00",
+   "last_seen": "2026-07-26T18:37:12.335526+00:00",
+   "sources": {
+    "the motley fool": "2026-07-26T18:32:50.620648+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "Should You Avoid Netflix Stock, Even at a 52-Week Low? - The Motley Fool",
+   "tokens": [
+    "netflix",
+    "motley",
+    "should",
+    "avoid",
+    "even",
+    "fool",
+    "week",
+    "low"
+   ]
+  },
+  "backlog capital could finance require supermicro": {
+   "first_seen": "2026-07-23T17:23:15+00:00",
+   "last_seen": "2026-07-26T22:15:16.395585+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.626404+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "SMCI Stock Jumps Over 6% \u2014 But Supermicro's $60B Backlog Could Require Fresh Capital - Yahoo Finance",
+   "tokens": [
+    "supermicro",
+    "backlog",
+    "capital",
+    "finance",
+    "require",
+    "could",
+    "fresh",
+    "yahoo"
+   ]
+  },
+  "barchart before misfir remember rocket spacex": {
+   "first_seen": "2026-07-24T19:10:27+00:00",
+   "last_seen": "2026-07-26T22:15:16.395585+00:00",
+   "sources": {
+    "barchart.com": "2026-07-26T18:32:50.626404+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "Before You Chase SMCI\u2019s SpaceX Rally, Remember This Rocket Has Misfired Before - Barchart.com",
+   "tokens": [
+    "barchart",
+    "remember",
+    "before",
+    "misfir",
+    "rocket",
+    "spacex",
+    "chase",
+    "rally"
+   ]
+  },
+  "barchart earning follow nvda nvidia risk": {
+   "first_seen": "2026-07-23T13:47:29+00:00",
+   "last_seen": "2026-07-26T22:15:16.310206+00:00",
+   "sources": {
+    "barchart.com": "2026-07-26T22:15:16.310206+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "Why Nvidia (NVDA) Stock Faces Sell-the-News Risk Following Its Q2 Earnings Report - Barchart.com",
+   "tokens": [
+    "barchart",
+    "earning",
+    "follow",
+    "nvidia",
+    "nvda",
+    "risk",
+    "sell",
+    "fac"
+   ]
+  },
+  "bargain buy fool motley today top": {
+   "first_seen": "2026-07-26T01:15:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.310206+00:00",
+   "sources": {
+    "the motley fool": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "3 Top AI Bargain Stocks to Buy Today - The Motley Fool",
+   "tokens": [
+    "bargain",
+    "motley",
+    "today",
+    "fool",
+    "buy",
+    "top"
+   ]
+  },
+  "barron been chip nvidia outperformer rally": {
+   "first_seen": "2026-07-24T19:04:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.310206+00:00",
+   "sources": {
+    "barron's": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "Nvidia Stock Has Been a Chip Stock Outperformer in July. Why Its Rally Is at Risk. - Barron's",
+   "tokens": [
+    "outperformer",
+    "barron",
+    "nvidia",
+    "rally",
+    "been",
+    "chip",
+    "july",
+    "risk"
+   ]
+  },
+  "barron explain market micron spacex verizon": {
+   "first_seen": "2026-07-24T20:25:00+00:00",
+   "last_seen": "2026-07-26T18:37:21.880975+00:00",
+   "sources": {
+    "barron's": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "SpaceX, Micron, SAP, Verizon, Amex, Tenet, and More Stocks That Explain Today\u2019s Market - Barron's",
+   "tokens": [
+    "explain",
+    "verizon",
+    "barron",
+    "market",
+    "micron",
+    "spacex",
+    "tenet",
+    "today"
+   ]
+  },
+  "beat could market palantir prediction reason": {
+   "first_seen": "2026-07-23T15:30:11+00:00",
+   "last_seen": "2026-07-26T22:15:16.398587+00:00",
+   "sources": {
+    "24/7 wall st.": "2026-07-26T22:15:16.398587+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Prediction: 1 Reason Palantir Could Keep Beating the Market - 24/7 Wall St.",
+   "tokens": [
+    "prediction",
+    "palantir",
+    "market",
+    "reason",
+    "could",
+    "beat",
+    "keep",
+    "wall"
+   ]
+  },
+  "become netflix nflx play tiprank value": {
+   "first_seen": "2026-07-23T12:32:57+00:00",
+   "last_seen": "2026-07-26T22:15:16.377811+00:00",
+   "sources": {
+    "tipranks": "2026-07-26T18:32:50.620648+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "Netflix (NFLX) Stock Has Become a Value Play Post Q2 - TipRanks",
+   "tokens": [
+    "netflix",
+    "tiprank",
+    "become",
+    "value",
+    "nflx",
+    "play",
+    "post"
+   ]
+  },
+  "before earning finance microsoft result yahoo": {
+   "first_seen": "2026-07-24T15:31:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.306773+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Microsoft Stock Before Q4 Earnings: Buy Now or Wait for Results? - Yahoo Finance",
+   "tokens": [
+    "microsoft",
+    "earning",
+    "finance",
+    "before",
+    "result",
+    "yahoo",
+    "wait",
+    "buy"
+   ]
+  },
+  "below bloomberg brent fall market steady": {
+   "first_seen": "2026-07-23T22:06:16+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "bloomberg.com": "2026-07-26T22:15:36.135266+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stocks Hold Steady as Brent Oil Falls Below $100: Markets Wrap - Bloomberg.com",
+   "tokens": [
+    "bloomberg",
+    "market",
+    "steady",
+    "below",
+    "brent",
+    "fall",
+    "hold",
+    "wrap"
+   ]
+  },
+  "benefit other pentagon retail stocktwit worth": {
+   "first_seen": "2026-07-25T17:27:37+00:00",
+   "last_seen": "2026-07-26T18:37:12.341540+00:00",
+   "sources": {
+    "stocktwits": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "MSFT",
+    "PLTR"
+   ],
+   "title": "ORCL Stock Rises After-Hours On Pentagon Deal Worth Up To $7B \u2014 Why Retail Sees NOW, PLTR, MSFT And Others Benefiting Too - Stocktwits",
+   "tokens": [
+    "stocktwit",
+    "pentagon",
+    "benefit",
+    "retail",
+    "other",
+    "worth",
+    "deal",
+    "hour"
+   ]
+  },
+  "benzinga computer micro super surg thursday": {
+   "first_seen": "2026-07-23T17:59:11+00:00",
+   "last_seen": "2026-07-26T18:37:12.339537+00:00",
+   "sources": {
+    "benzinga": "2026-07-26T18:32:50.626404+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "Why Is Super Micro Computer Stock Surging on Thursday? - Benzinga",
+   "tokens": [
+    "benzinga",
+    "computer",
+    "thursday",
+    "micro",
+    "super",
+    "surg",
+    "why"
+   ]
+  },
+  "berkshire buffett google hathaway investment massive": {
+   "first_seen": "2026-07-24T02:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.373811+00:00",
+   "sources": {
+    "the motley fool": "2026-07-26T18:37:12.335526+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Warren Buffett Just Said This About Berkshire Hathaway's Massive Google Investment - The Motley Fool",
+   "tokens": [
+    "investment",
+    "berkshire",
+    "hathaway",
+    "buffett",
+    "massive",
+    "google",
+    "motley",
+    "warren"
+   ]
+  },
+  "better fool motley palantir servicenow software": {
+   "first_seen": "2026-07-26T16:25:29+00:00",
+   "last_seen": "2026-07-26T22:15:16.398587+00:00",
+   "sources": {
+    "the motley fool": "2026-07-26T18:32:50.628411+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Better AI Software Stock: Palantir vs. ServiceNow - The Motley Fool",
+   "tokens": [
+    "servicenow",
+    "palantir",
+    "software",
+    "better",
+    "motley",
+    "fool"
+   ]
+  },
+  "better globe memory micron sandisk which": {
+   "first_seen": "2026-07-26T17:50:25+00:00",
+   "last_seen": "2026-07-26T18:37:12.339537+00:00",
+   "sources": {
+    "the globe and mail": "2026-07-26T18:32:50.624395+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Micron vs. Sandisk: Which Stock Is the Better Buy for the Memory Boom? - The Globe and Mail",
+   "tokens": [
+    "sandisk",
+    "better",
+    "memory",
+    "micron",
+    "globe",
+    "which",
+    "boom",
+    "mail"
+   ]
+  },
+  "big hang netflix over question trefi": {
+   "first_seen": "2026-07-23T13:22:52+00:00",
+   "last_seen": "2026-07-26T22:15:16.377811+00:00",
+   "sources": {
+    "trefis": "2026-07-26T18:32:50.620648+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "The Big Question Hanging Over Netflix Stock - Trefis",
+   "tokens": [
+    "question",
+    "netflix",
+    "trefi",
+    "hang",
+    "over",
+    "big"
+   ]
+  },
+  "boisedev economy employe impact micron millionair": {
+   "first_seen": "2026-07-22T20:31:17+00:00",
+   "last_seen": "2026-07-26T18:37:12.339537+00:00",
+   "sources": {
+    "boisedev": "2026-07-26T18:32:50.624395+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Paper money millionaires: Big stock runup can impact Micron employees, Boise economy - BoiseDev",
+   "tokens": [
+    "millionair",
+    "boisedev",
+    "economy",
+    "employe",
+    "impact",
+    "micron",
+    "boise",
+    "money"
+   ]
+  },
+  "bought cathie invest motley opposite spacex": {
+   "first_seen": "2026-07-24T10:25:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.322260+00:00",
+   "sources": {
+    "the motley fool": "2026-07-26T18:32:50.614638+00:00",
+    "yahoo finance": "2026-07-26T22:15:16.322260+00:00"
+   },
+   "tickers": [
+    "AMD"
+   ],
+   "title": "Ark Invest's Cathie Wood Just Sold AMD Stock and Bought SpaceX. Why I'd Be Doing the Opposite. - The Motley Fool",
+   "tokens": [
+    "opposite",
+    "bought",
+    "cathie",
+    "invest",
+    "motley",
+    "spacex",
+    "fool",
+    "just"
+   ]
+  },
+  "broadcom chain opinion quantitative quiver supply": {
+   "first_seen": "2026-07-26T17:35:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.382339+00:00",
+   "sources": {
+    "quiver quantitative": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "Broadcom Stock (AVGO) Opinions on AI Chip Supply Chain Deals - Quiver Quantitative",
+   "tokens": [
+    "quantitative",
+    "broadcom",
+    "opinion",
+    "quiver",
+    "supply",
+    "chain",
+    "avgo",
+    "chip"
+   ]
+  },
+  "broadcom complaint follow narrative simplywall still": {
+   "first_seen": "2026-07-26T14:31:36+00:00",
+   "last_seen": "2026-07-26T18:37:12.337534+00:00",
+   "sources": {
+    "simplywall.st": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "Broadcom (AVGO) Faces ITC Complaint Following A Fair Value Narrative Still In Focus - simplywall.st",
+   "tokens": [
+    "simplywall",
+    "complaint",
+    "narrative",
+    "broadcom",
+    "follow",
+    "still",
+    "value",
+    "avgo"
+   ]
+  },
+  "burn correction finance money tesla yahoo": {
+   "first_seen": "2026-07-24T14:56:09+00:00",
+   "last_seen": "2026-07-26T22:15:16.349298+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T22:15:16.349298+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Buy Tesla After 15% Correction? Only If You Like Burning Your Money - Yahoo Finance",
+   "tokens": [
+    "correction",
+    "finance",
+    "money",
+    "tesla",
+    "yahoo",
+    "burn",
+    "like",
+    "only"
+   ]
+  },
+  "burry doubl finance michael short while": {
+   "first_seen": "2026-07-24T20:49:25+00:00",
+   "last_seen": "2026-07-26T22:15:16.398587+00:00",
+   "sources": {
+    "stocktwits": "2026-07-26T22:15:16.398587+00:00",
+    "tradingview": "2026-07-26T18:32:50.616641+00:00",
+    "yahoo finance": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "NVDA",
+    "TSLA",
+    "PLTR"
+   ],
+   "title": "Michael Burry Doubles Down On MU, NVDA Shorts While Holding TSLA, PLTR Bets \u2014 Here\u2019s What He\u2019s Buying - Yahoo Finance",
+   "tokens": [
+    "finance",
+    "michael",
+    "burry",
+    "doubl",
+    "short",
+    "while",
+    "yahoo",
+    "down"
+   ]
+  },
+  "business cathie daily drop investor tesla": {
+   "first_seen": "2026-07-24T20:06:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.349298+00:00",
+   "sources": {
+    "investor's business daily": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Cathie Wood Adds $50 Million Of Tesla Stock After 15% Drop - Investor's Business Daily",
+   "tokens": [
+    "business",
+    "investor",
+    "cathie",
+    "daily",
+    "tesla",
+    "drop",
+    "wood",
+    "add"
+   ]
+  },
+  "business computer daily investor price target": {
+   "first_seen": "2026-07-24T20:33:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.322260+00:00",
+   "sources": {
+    "investor's business daily": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "AMD"
+   ],
+   "title": "AMD Stock Scores Price-Target Hikes On AI Computer News - Investor's Business Daily",
+   "tokens": [
+    "business",
+    "computer",
+    "investor",
+    "target",
+    "daily",
+    "price",
+    "scor",
+    "amd"
+   ]
+  },
+  "business coverage investor kaiser market nasdaq": {
+   "first_seen": "2026-07-23T20:43:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "investor's business daily": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stock Market Today: Nasdaq Plunges To 4-Week Low; Metals Firm Kaiser Hits New Entry (Live Coverage) - Investor's Business Daily",
+   "tokens": [
+    "business",
+    "coverage",
+    "investor",
+    "kaiser",
+    "market",
+    "nasdaq",
+    "daily",
+    "entry"
+   ]
+  },
+  "business daily futur investor reportedly respond": {
+   "first_seen": "2026-07-26T15:40:00+00:00",
+   "last_seen": "2026-07-26T18:37:21.880975+00:00",
+   "sources": {
+    "investor's business daily": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "U.S., Iran Reportedly Seek Deal; How Will Futures Respond? - Investor's Business Daily",
+   "tokens": [
+    "reportedly",
+    "business",
+    "investor",
+    "respond",
+    "daily",
+    "futur",
+    "deal",
+    "iran"
+   ]
+  },
+  "business demand investor semiconductor taiwan target": {
+   "first_seen": "2026-07-16T07:00:00+00:00",
+   "last_seen": "2026-07-26T18:37:12.337534+00:00",
+   "sources": {
+    "investor's business daily": "2026-07-26T18:37:12.337534+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "Taiwan Semiconductor Tops Q2 Targets On Leading-Edge Chip Demand - Investor's Business Daily",
+   "tokens": [
+    "semiconductor",
+    "business",
+    "investor",
+    "demand",
+    "taiwan",
+    "target",
+    "daily",
+    "chip"
+   ]
+  },
+  "business earning estimat insider profit recap": {
+   "first_seen": "2026-07-22T22:52:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.349298+00:00",
+   "sources": {
+    "business insider": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Tesla Q2 earnings recap: Stock falls after profit misses estimates - Business Insider",
+   "tokens": [
+    "business",
+    "earning",
+    "estimat",
+    "insider",
+    "profit",
+    "recap",
+    "tesla",
+    "fall"
+   ]
+  },
+  "business facebook investor launch marketplace seller": {
+   "first_seen": "2026-07-24T15:35:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.368015+00:00",
+   "sources": {
+    "investor's business daily": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Meta Launches Seller App To Boost Facebook Marketplace - Investor's Business Daily",
+   "tokens": [
+    "marketplace",
+    "business",
+    "facebook",
+    "investor",
+    "launch",
+    "seller",
+    "boost",
+    "daily"
+   ]
+  },
+  "business gemini investor leadership question roadmap": {
+   "first_seen": "2026-07-23T15:39:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.373811+00:00",
+   "sources": {
+    "investor's business daily": "2026-07-26T18:37:12.335526+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Google Stock Falls 7% Amid Questions Over AI Leadership, Gemini 4 Roadmap - Investor's Business Daily",
+   "tokens": [
+    "leadership",
+    "business",
+    "investor",
+    "question",
+    "roadmap",
+    "gemini",
+    "google",
+    "daily"
+   ]
+  },
+  "business investor micron present return strategy": {
+   "first_seen": "2026-07-22T16:03:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.391064+00:00",
+   "sources": {
+    "investor's business daily": "2026-07-26T18:32:50.624395+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Micron Stock Sell-Off Presents A Strategy That Could Return 32% In Weeks - Investor's Business Daily",
+   "tokens": [
+    "business",
+    "investor",
+    "strategy",
+    "present",
+    "micron",
+    "return",
+    "could",
+    "daily"
+   ]
+  },
+  "buy forb ignore semiconductor": {
+   "first_seen": "2026-07-21T20:53:39+00:00",
+   "last_seen": "2026-07-26T22:15:16.385337+00:00",
+   "sources": {
+    "forbes": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "5 Semiconductor Stocks To Buy And 1 To Ignore - Forbes",
+   "tokens": [
+    "semiconductor",
+    "ignore",
+    "forb",
+    "buy"
+   ]
+  },
+  "buyback margin motley netflix record refresh": {
+   "first_seen": "2026-07-26T15:30:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.377811+00:00",
+   "sources": {
+    "the motley fool": "2026-07-26T22:15:16.377811+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "Netflix: Record Buybacks, Rising Margins, and a Slate in Need of a Refresh - The Motley Fool",
+   "tokens": [
+    "buyback",
+    "netflix",
+    "refresh",
+    "margin",
+    "motley",
+    "record",
+    "slate",
+    "fool"
+   ]
+  },
+  "capital global management marketbeat platform position": {
+   "first_seen": "2026-07-26T08:59:39+00:00",
+   "last_seen": "2026-07-26T22:15:16.368015+00:00",
+   "sources": {
+    "marketbeat": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Titan Global Capital Management USA LLC Has $23.82 Million Stock Position in Meta Platforms, Inc. $META - MarketBeat",
+   "tokens": [
+    "management",
+    "marketbeat",
+    "platform",
+    "position",
+    "capital",
+    "global",
+    "titan",
+    "meta"
+   ]
+  },
+  "capital guardian manufactur marketbeat position semiconductor": {
+   "first_seen": "2026-07-26T10:13:40+00:00",
+   "last_seen": "2026-07-26T18:37:12.337534+00:00",
+   "sources": {
+    "marketbeat": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "Taiwan Semiconductor Manufacturing Company Ltd. $TSM Position Reduced by Guardian Point Capital LP - MarketBeat",
+   "tokens": [
+    "semiconductor",
+    "manufactur",
+    "marketbeat",
+    "guardian",
+    "position",
+    "capital",
+    "taiwan",
+    "point"
+   ]
+  },
+  "capital liquidity management market outlook resistance": {
+   "first_seen": "2026-07-21T22:54:58+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "mott capital management": "2026-07-26T22:15:36.135266+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "S&P 500 Outlook Hinges on Key Resistance and Market Liquidity - Mott Capital Management",
+   "tokens": [
+    "management",
+    "resistance",
+    "liquidity",
+    "capital",
+    "outlook",
+    "market",
+    "hing",
+    "mott"
+   ]
+  },
+  "cathie finance here into just yahoo": {
+   "first_seen": "2026-07-24T18:30:51+00:00",
+   "last_seen": "2026-07-26T22:15:16.373811+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "META",
+    "GOOGL"
+   ],
+   "title": "Cathie Wood Just Poured $18 Million Into Meta Stock. Here\u2019s Why. - Yahoo Finance",
+   "tokens": [
+    "finance",
+    "cathie",
+    "yahoo",
+    "here",
+    "into",
+    "just",
+    "meta",
+    "pour"
+   ]
+  },
+  "chair criticiz interest possible should whatever": {
+   "first_seen": "2026-06-07T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "nbc news": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Trump says Fed chair should \u2018do whatever he wants\u2019 but criticizes possible interest rate hikes - NBC News",
+   "tokens": [
+    "criticiz",
+    "interest",
+    "possible",
+    "whatever",
+    "should",
+    "chair",
+    "trump",
+    "rate"
+   ]
+  },
+  "chair enigma hard interest predict today": {
+   "first_seen": "2026-07-24T12:55:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "usa today": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Fed chair 'an enigma:' Why July interest rate move is hard to predict - USA Today",
+   "tokens": [
+    "interest",
+    "predict",
+    "enigma",
+    "chair",
+    "today",
+    "hard",
+    "july",
+    "move"
+   ]
+  },
+  "chang friday little market updat weigh": {
+   "first_seen": "2026-07-24T20:30:00+00:00",
+   "last_seen": "2026-07-26T18:37:21.880975+00:00",
+   "sources": {
+    "cnbc": "2026-07-26T18:37:21.880975+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "S&P 500 closes little changed Friday as Iran fears and chip sell-off weigh down market: Live updates - CNBC",
+   "tokens": [
+    "friday",
+    "little",
+    "market",
+    "chang",
+    "updat",
+    "weigh",
+    "chip",
+    "clos"
+   ]
+  },
+  "chief defy interest raise trump washington": {
+   "first_seen": "2026-06-11T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "the washington post": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "New Fed chief may soon be forced to defy Trump and raise interest rates - The Washington Post",
+   "tokens": [
+    "washington",
+    "interest",
+    "chief",
+    "raise",
+    "trump",
+    "defy",
+    "forc",
+    "post"
+   ]
+  },
+  "chinese nvidia outlin owner should terrify": {
+   "first_seen": "2026-07-23T19:17:12+00:00",
+   "last_seen": "2026-07-26T18:32:50.614638+00:00",
+   "sources": {
+    "24/7 wall st.": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "A Chinese CEO Just Outlined the Bear Case for NVIDIA. It Should Terrify Owners of the Stock. - 24/7 Wall St.",
+   "tokens": [
+    "chinese",
+    "terrify",
+    "nvidia",
+    "outlin",
+    "should",
+    "owner",
+    "bear",
+    "case"
+   ]
+  },
+  "chipmaker contract largest revenue surge world": {
+   "first_seen": "2026-07-13T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.385337+00:00",
+   "sources": {
+    "cnbc": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "TSMC, the world's largest contract chipmaker, reports 68% surge in June revenue - CNBC",
+   "tokens": [
+    "chipmaker",
+    "contract",
+    "largest",
+    "revenue",
+    "surge",
+    "world",
+    "cnbc",
+    "june"
+   ]
+  },
+  "climb earning forecast goldman growth higher": {
+   "first_seen": "2026-05-28T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "goldman sachs": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "The S&P 500 Is Forecast to Climb as Earnings Growth Powers Stocks Higher - Goldman Sachs",
+   "tokens": [
+    "forecast",
+    "earning",
+    "goldman",
+    "growth",
+    "higher",
+    "climb",
+    "power",
+    "sach"
+   ]
+  },
+  "cnbc federal higher hike reserve surge": {
+   "first_seen": "2026-07-23T17:15:03+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "cnbc": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Odds of Federal Reserve rate hike surge as oil prices rip higher - CNBC",
+   "tokens": [
+    "federal",
+    "reserve",
+    "higher",
+    "surge",
+    "cnbc",
+    "hike",
+    "pric",
+    "rate"
+   ]
+  },
+  "concern finance foundry intel market revers": {
+   "first_seen": "2026-07-24T22:12:51+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stock Market Today, July 24: Intel Reverses Gains on Foundry and AI Spending Concerns - Yahoo Finance",
+   "tokens": [
+    "concern",
+    "finance",
+    "foundry",
+    "market",
+    "revers",
+    "intel",
+    "spend",
+    "today"
+   ]
+  },
+  "consider finance micron price start where": {
+   "first_seen": "2026-07-24T11:05:00+00:00",
+   "last_seen": "2026-07-26T18:37:12.339537+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.624395+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Here's the Price Where I'd Start Considering Buying Micron Stock - Yahoo Finance",
+   "tokens": [
+    "consider",
+    "finance",
+    "micron",
+    "price",
+    "start",
+    "where",
+    "yahoo",
+    "here"
+   ]
+  },
+  "could finance microsoft parabolic prediction yahoo": {
+   "first_seen": "2026-07-14T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.306773+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T22:15:16.306773+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Prediction: Microsoft Stock Could Go Parabolic After July 29. Here's Why. - Yahoo Finance",
+   "tokens": [
+    "prediction",
+    "microsoft",
+    "parabolic",
+    "finance",
+    "could",
+    "yahoo",
+    "here",
+    "july"
+   ]
+  },
+  "dan here market mispric msft stocktwit": {
+   "first_seen": "2026-07-24T15:29:42+00:00",
+   "last_seen": "2026-07-26T22:15:16.306773+00:00",
+   "sources": {
+    "stocktwits": "2026-07-26T22:15:16.306773+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Dan Ives Says \u2018Market Is Mispricing\u2019 MSFT Stock \u2014 Here\u2019s Why - Stocktwits",
+   "tokens": [
+    "stocktwit",
+    "mispric",
+    "market",
+    "here",
+    "msft",
+    "dan",
+    "why",
+    "iv"
+   ]
+  },
+  "debut fedex finance freight outlook yahoo": {
+   "first_seen": "2026-07-23T18:07:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "FedEx Freight Stock Outlook After the Spin-Off and S&P 500 Debut - Yahoo Finance",
+   "tokens": [
+    "finance",
+    "freight",
+    "outlook",
+    "debut",
+    "fedex",
+    "yahoo",
+    "spin",
+    "500"
+   ]
+  },
+  "debut finance orlando robotaxi tampa tesla": {
+   "first_seen": "2026-07-25T14:00:02+00:00",
+   "last_seen": "2026-07-26T22:15:16.349298+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Tesla Debuts Its Robotaxis in Orlando and Tampa. What This Means for TSLA Stock. - Yahoo Finance",
+   "tokens": [
+    "robotaxi",
+    "finance",
+    "orlando",
+    "debut",
+    "tampa",
+    "tesla",
+    "yahoo",
+    "mean"
+   ]
+  },
+  "demand despite finance nearly record semiconductor": {
+   "first_seen": "2026-07-22T06:11:04+00:00",
+   "last_seen": "2026-07-26T22:15:16.385337+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "Taiwan Semiconductor (TSM) Stock Is Down Nearly 15% This Month Despite Record AI Demand. Here Is Why - Yahoo Finance",
+   "tokens": [
+    "semiconductor",
+    "despite",
+    "finance",
+    "demand",
+    "nearly",
+    "record",
+    "taiwan",
+    "month"
+   ]
+  },
+  "despite finance outlook premarket strong yahoo": {
+   "first_seen": "2026-07-16T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.385337+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "Why Is TSM Stock Dipping Premarket Despite Strong Q2 Beat And Outlook? - Yahoo Finance",
+   "tokens": [
+    "premarket",
+    "despite",
+    "finance",
+    "outlook",
+    "strong",
+    "yahoo",
+    "beat",
+    "dipp"
+   ]
+  },
+  "did drop fool friday micron motley": {
+   "first_seen": "2026-07-23T19:15:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.391064+00:00",
+   "sources": {
+    "the motley fool": "2026-07-26T18:32:50.624395+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Why Did Micron Stock Drop Friday? - The Motley Fool",
+   "tokens": [
+    "friday",
+    "micron",
+    "motley",
+    "drop",
+    "fool",
+    "did",
+    "why"
+   ]
+  },
+  "discount googl look overdone trefi": {
+   "first_seen": "2026-07-24T13:57:38+00:00",
+   "last_seen": "2026-07-26T18:32:50.618645+00:00",
+   "sources": {
+    "trefis": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "The Discount On GOOGL Stock Looks Overdone - Trefis",
+   "tokens": [
+    "discount",
+    "overdone",
+    "googl",
+    "trefi",
+    "look"
+   ]
+  },
+  "done hasn nvidia someth thestreet year": {
+   "first_seen": "2026-07-25T14:47:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.310206+00:00",
+   "sources": {
+    "thestreet.com": "2026-07-26T18:32:50.614638+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "Nvidia stock is doing something it hasn\u2019t done in years - thestreet.com",
+   "tokens": [
+    "thestreet",
+    "nvidia",
+    "someth",
+    "done",
+    "hasn",
+    "year",
+    "do"
+   ]
+  },
+  "drop finance palantir prediction price yahoo": {
+   "first_seen": "2026-07-26T07:12:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.398587+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.628411+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Prediction: Palantir Stock Will Drop to This Price After Aug. 3 - Yahoo Finance",
+   "tokens": [
+    "prediction",
+    "palantir",
+    "finance",
+    "price",
+    "yahoo",
+    "drop",
+    "aug"
+   ]
+  },
+  "earning energy forb hing outlook tech": {
+   "first_seen": "2026-07-05T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "forbes": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "S&P 500 Earnings Outlook Hinges On Tech, Energy And The Fed - Forbes",
+   "tokens": [
+    "earning",
+    "outlook",
+    "energy",
+    "forb",
+    "hing",
+    "tech",
+    "500",
+    "fed"
+   ]
+  },
+  "earning factset insight": {
+   "first_seen": "2026-07-24T07:00:00+00:00",
+   "last_seen": "2026-07-26T18:37:21.880975+00:00",
+   "sources": {
+    "factset": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "FactSet Earnings Insight - FactSet",
+   "tokens": [
+    "earning",
+    "factset",
+    "insight"
+   ]
+  },
+  "earning forecast microsoft morgan stanley thestreet": {
+   "first_seen": "2026-07-26T02:17:00+00:00",
+   "last_seen": "2026-07-26T18:37:12.328060+00:00",
+   "sources": {
+    "thestreet.com": "2026-07-26T18:32:50.612633+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Morgan Stanley resets Microsoft stock forecast ahead of earnings - thestreet.com",
+   "tokens": [
+    "microsoft",
+    "thestreet",
+    "forecast",
+    "earning",
+    "stanley",
+    "morgan",
+    "ahead",
+    "reset"
+   ]
+  },
+  "earning here july meta platform tiprank": {
+   "first_seen": "2026-07-24T14:30:21+00:00",
+   "last_seen": "2026-07-26T22:15:16.368015+00:00",
+   "sources": {
+    "tipranks": "2026-07-26T18:32:50.618645+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Meta Platforms Will Report Q2 Earnings on July 29. Here\u2019s Who Owns META Stock - TipRanks",
+   "tokens": [
+    "platform",
+    "earning",
+    "tiprank",
+    "here",
+    "july",
+    "meta",
+    "own",
+    "who"
+   ]
+  },
+  "event fil item netflix other": {
+   "first_seen": "2026-07-22T00:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.377811+00:00",
+   "sources": {
+    "sec edgar": "2026-07-26T18:32:50.620648+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "NETFLIX INC filed 8-K \u2014 item 8.01 other events",
+   "tokens": [
+    "netflix",
+    "event",
+    "other",
+    "item",
+    "fil"
+   ]
+  },
+  "expert federal interest predict raise reserve": {
+   "first_seen": "2026-07-24T10:00:13+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "cbs news": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Will the Federal Reserve raise interest rates? Here is what experts predict for July's meeting. - CBS News",
+   "tokens": [
+    "interest",
+    "federal",
+    "predict",
+    "reserve",
+    "expert",
+    "raise",
+    "here",
+    "july"
+   ]
+  },
+  "extend outlook rally sandisk tradingkey weekend": {
+   "first_seen": "2026-07-26T13:00:18+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "tradingkey": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Sandisk (SNDK) Weekend Outlook: Can the S&P 500's Best Stock Extend Its 857% Rally? - TradingKey",
+   "tokens": [
+    "tradingkey",
+    "outlook",
+    "sandisk",
+    "weekend",
+    "extend",
+    "rally",
+    "best",
+    "sndk"
+   ]
+  },
+  "extreme fortune level market outlook speculation": {
+   "first_seen": "2026-07-05T07:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "fortune": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stock market outlook: S&P 500 to lose much of 2026 gains as 'speculation is hitting extreme levels' - Fortune",
+   "tokens": [
+    "speculation",
+    "extreme",
+    "fortune",
+    "outlook",
+    "market",
+    "level",
+    "2026",
+    "gain"
+   ]
+  },
+  "federal financial increase investor price reserve": {
+   "first_seen": "2026-07-25T10:00:09+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "financial times": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Investors increase bets on Federal Reserve rate rise after oil price surge - Financial Times",
+   "tokens": [
+    "financial",
+    "increase",
+    "investor",
+    "federal",
+    "reserve",
+    "price",
+    "surge",
+    "rate"
+   ]
+  },
+  "federal investopedia meet next reserve watch": {
+   "first_seen": "2026-07-24T11:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "investopedia": "2026-07-26T22:15:36.135266+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "What to Watch for at Next Week\u2019s Federal Reserve Meeting - Investopedia",
+   "tokens": [
+    "investopedia",
+    "federal",
+    "reserve",
+    "watch",
+    "meet",
+    "next",
+    "week",
+    "what"
+   ]
+  },
+  "fil item operation result tesla": {
+   "first_seen": "2026-07-22T00:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.373811+00:00",
+   "sources": {
+    "sec edgar": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "TSLA",
+    "GOOGL"
+   ],
+   "title": "Tesla, Inc. filed 8-K \u2014 item 2.02 results of operations",
+   "tokens": [
+    "operation",
+    "result",
+    "tesla",
+    "item",
+    "fil"
+   ]
+  },
+  "fil tesla": {
+   "first_seen": "2026-07-23T00:00:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.349298+00:00",
+   "sources": {
+    "sec edgar": "2026-07-26T18:32:50.616641+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Tesla, Inc. filed 10-Q",
+   "tokens": [
+    "tesla",
+    "fil"
+   ]
+  },
+  "finance friday micron tumbl why yahoo": {
+   "first_seen": "2026-07-24T18:20:26+00:00",
+   "last_seen": "2026-07-26T22:15:16.391064+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T22:15:16.391064+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Why Micron Stock Is Tumbling Friday - Yahoo Finance",
+   "tokens": [
+    "finance",
+    "friday",
+    "micron",
+    "tumbl",
+    "yahoo",
+    "why"
+   ]
+  },
+  "finance high micron prediction return yahoo": {
+   "first_seen": "2026-07-26T05:35:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.391064+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:50.624395+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Prediction: Micron Stock Will Return to All-Time Highs Soon - Yahoo Finance",
+   "tokens": [
+    "prediction",
+    "finance",
+    "micron",
+    "return",
+    "yahoo",
+    "high",
+    "soon",
+    "time"
+   ]
+  },
+  "finance market nasdaq recover street volatile": {
+   "first_seen": "2026-07-24T21:28:07+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stock market today: Nasdaq slips, Dow and S&P 500 recover to close a volatile week on Wall Street - Yahoo Finance",
+   "tokens": [
+    "volatile",
+    "finance",
+    "recover",
+    "market",
+    "nasdaq",
+    "street",
+    "close",
+    "today"
+   ]
+  },
+  "founder month quarterly stake stocktwit worst": {
+   "first_seen": "2026-07-25T04:32:25+00:00",
+   "last_seen": "2026-07-26T22:15:16.382339+00:00",
+   "sources": {
+    "stocktwits": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "AVGO Stock Heads For Worst Month In 7 Years: Co-Founder\u2019s Quarterly Stake Sales Top $720M - Stocktwits",
+   "tokens": [
+    "quarterly",
+    "stocktwit",
+    "founder",
+    "month",
+    "stake",
+    "worst",
+    "720m",
+    "avgo"
+   ]
+  },
+  "get nflx paid sale trefi wait": {
+   "first_seen": "2026-07-24T12:39:36+00:00",
+   "last_seen": "2026-07-26T22:15:16.377811+00:00",
+   "sources": {
+    "trefis": "2026-07-26T18:32:50.620648+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "Get Paid 9.5% To Wait For NFLX Stock To Go On Sale - Trefis",
+   "tokens": [
+    "trefi",
+    "nflx",
+    "paid",
+    "sale",
+    "wait",
+    "get"
+   ]
+  },
+  "head into meeting most unpredictable year": {
+   "first_seen": "2026-07-23T09:30:00+00:00",
+   "last_seen": "2026-07-26T18:37:21.880975+00:00",
+   "sources": {
+    "wsj": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "The Fed Is Heading Into One of Its Most Unpredictable Meetings in Years - WSJ",
+   "tokens": [
+    "unpredictable",
+    "meeting",
+    "head",
+    "into",
+    "most",
+    "year",
+    "fed",
+    "one"
+   ]
+  },
+  "holding insight manufactur marketbeat purchas semiconductor": {
+   "first_seen": "2026-07-26T10:47:51+00:00",
+   "last_seen": "2026-07-26T22:15:16.385337+00:00",
+   "sources": {
+    "marketbeat": "2026-07-26T18:32:50.622651+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "Taiwan Semiconductor Manufacturing Company Ltd. $TSM Shares Purchased by Insight Holdings Group LLC - MarketBeat",
+   "tokens": [
+    "semiconductor",
+    "manufactur",
+    "marketbeat",
+    "holding",
+    "insight",
+    "purchas",
+    "taiwan",
+    "group"
+   ]
+  },
+  "increas insurance mandatum marketbeat nvidia position": {
+   "first_seen": "2026-07-26T08:43:30+00:00",
+   "last_seen": "2026-07-26T22:15:16.310206+00:00",
+   "sources": {
+    "marketbeat": "2026-07-26T18:37:12.329096+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "Mandatum Life Insurance Co Ltd Increases Stock Position in NVIDIA Corporation $NVDA - MarketBeat",
+   "tokens": [
+    "marketbeat",
+    "insurance",
+    "mandatum",
+    "position",
+    "increas",
+    "nvidia",
+    "life",
+    "nvda"
+   ]
+  },
+  "inflation kiplinger market persist struggle today": {
+   "first_seen": "2026-07-24T20:08:04+00:00",
+   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "sources": {
+    "kiplinger": "2026-07-26T18:32:59.385763+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stocks Struggle as Iran, Inflation Worries Persist: Stock Market Today - Kiplinger",
+   "tokens": [
+    "inflation",
+    "kiplinger",
+    "struggle",
+    "persist",
+    "market",
+    "today",
+    "worri",
+    "iran"
+   ]
+  },
+  "infrastructure investment more research upside which": {
+   "first_seen": "2026-07-23T14:12:52+00:00",
+   "last_seen": "2026-07-26T22:15:16.395585+00:00",
+   "sources": {
+    "zacks investment research": "2026-07-26T18:32:50.626404+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "SMCI vs. HPE: Which AI Infrastructure Stock Has More Upside Now? - Zacks Investment Research",
+   "tokens": [
+    "infrastructure",
+    "investment",
+    "research",
+    "upside",
+    "which",
+    "more",
+    "smci",
+    "zack"
+   ]
+  },
+  "investor micro reveal super surge thestreet": {
+   "first_seen": "2026-07-23T16:13:00+00:00",
+   "last_seen": "2026-07-26T22:15:16.395585+00:00",
+   "sources": {
+    "thestreet.com": "2026-07-26T18:32:50.626404+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "Super Micro\u2019s 20% surge reveals what AI investors want - thestreet.com",
+   "tokens": [
+    "thestreet",
+    "investor",
+    "reveal",
+    "micro",
+    "super",
+    "surge",
+    "want",
+    "what"
+   ]
+  }
+ },
+ "version": 1
+}

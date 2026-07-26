@@ -25,3 +25,9 @@ Thumbs.db
 scratch/
 
 # NOTE: brain-memory/ is intentionally TRACKED (git-as-memory). Do not ignore it.
+# ...except the derived caches, which are regenerable API mirrors rather than memory.
+brain-memory/.run-log.json
+brain-memory/SEC-CIK-MAP.json
+brain-memory/FUNDAMENTALS-CACHE.json
+brain-memory/bars/
+brain-memory/*.tmp

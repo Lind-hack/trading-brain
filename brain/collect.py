@@ -7,7 +7,10 @@ a missing API key or a flaky feed yields an empty section, never a crash.
 """
 from __future__ import annotations
 
+import json
+import os
 import sys
+import threading
 import time
 import math
 import urllib.parse
@@ -16,7 +19,7 @@ from datetime import datetime, timedelta
 
 import requests
 
-from . import config
+from . import config, market_hours
 
 try:
     import yfinance as yf
@@ -105,7 +108,8 @@ def fetch_daily(ticker, period="1y", attempts=2):
     for i in range(attempts):
         try:
             df = _drop_blank_bars(
-                yf.Ticker(ticker).history(interval="1d", period=period, auto_adjust=False))
+                yf.Ticker(ticker).history(interval="1d", period=period, auto_adjust=False,
+                                          timeout=config.YF_TIMEOUT))
             if not df.empty:
                 return df
         except Exception as e:  # pragma: no cover - network
@@ -118,7 +122,8 @@ def fetch_intraday(ticker, interval="15m", period="5d", attempts=2):
     for i in range(attempts):
         try:
             df = _drop_blank_bars(
-                yf.Ticker(ticker).history(interval=interval, period=period, prepost=False))
+                yf.Ticker(ticker).history(interval=interval, period=period, prepost=False,
+                                          timeout=config.YF_TIMEOUT))
             if not df.empty:
                 # drop the in-progress bar
                 step = {"15m": 15, "30m": 30, "60m": 60, "1h": 60}.get(interval, 15)
@@ -130,6 +135,124 @@ def fetch_intraday(ticker, interval="15m", period="5d", attempts=2):
             print(f"[warn] {ticker} {interval} fetch {i+1}: {e}", file=sys.stderr)
         time.sleep(2 * (i + 1))
     return pd.DataFrame()
+
+
+# ── Daily-bar cache ─────────────────────────────────────────────────────────────
+#
+# A 1-year daily frame is ~250 bars, and exactly one of them — today's — can still change. The
+# pipeline was re-downloading all 250 for ~50 tickers every 30 minutes to learn one number it
+# already has from the intraday fetch it makes in the same breath. So: keep the frame for the
+# session, and rebuild today's bar locally from the intraday bars.
+#
+# The splice is what makes this safe. Without it a cached frame would freeze `indicators.price`,
+# and that price is what marks the portfolio and fires the -7% hard stop — a stale quote there is
+# not a slow cache, it is a wrong risk decision.
+
+_bars_mem = {}                     # ticker -> (session date, frame) for this process
+_bars_lock = threading.Lock()
+
+
+def _et_date(ts):
+    """The ET calendar date of a bar timestamp, tz-aware or not."""
+    try:
+        return (ts.tz_convert(config.ET) if ts.tzinfo else ts).date()
+    except (AttributeError, TypeError):     # pragma: no cover - defensive
+        return None
+
+
+def _bars_path(ticker):
+    safe = "".join(c for c in ticker if c.isalnum() or c in "-.^=") or "_"
+    return config.BARS_CACHE_DIR / f"{safe}.csv"
+
+
+def _read_cached_daily(ticker):
+    """(session_date, frame) from disk, or (None, None). A corrupt file is a miss, not a crash."""
+    path = _bars_path(ticker)
+    try:
+        if not path.exists():
+            return None, None
+        df = pd.read_csv(path, index_col=0)
+        df.index = pd.to_datetime(df.index, utc=True, format="mixed").tz_convert(config.ET)
+        if df.empty or "Close" not in df:
+            return None, None
+        # The session the cache was written for is stamped in the filename's mtime rather than
+        # the frame, because a frame fetched pre-market legitimately has no bar for today yet.
+        fetched = datetime.fromtimestamp(path.stat().st_mtime, config.ET)
+        return fetched.date(), df
+    except Exception as e:  # pragma: no cover - disk/parse
+        print(f"[warn] bars cache read {ticker}: {e}", file=sys.stderr)
+        return None, None
+
+
+def _write_cached_daily(ticker, df):
+    try:
+        config.BARS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        path = _bars_path(ticker)
+        tmp = path.with_suffix(".tmp")
+        df.to_csv(tmp)
+        os.replace(tmp, path)
+    except Exception as e:  # pragma: no cover - disk
+        print(f"[warn] bars cache write {ticker}: {e}", file=sys.stderr)
+
+
+def _splice_today(daily, intraday, now_et=None):
+    """Rebuild today's daily bar from today's intraday bars.
+
+    Returns a new frame; the input is never mutated. If the intraday feed has nothing for today
+    (pre-market, or a name with no intraday coverage) the frame comes back unchanged and the
+    caller falls back to a real fetch rather than serving yesterday's close as today's price.
+    """
+    if daily is None or daily.empty or intraday is None or intraday.empty:
+        return daily, False
+    today = (now_et or datetime.now(config.ET)).date()
+    rows = intraday[[_et_date(ts) == today for ts in intraday.index]]
+    if rows.empty:
+        return daily, False
+    out = daily.copy()
+    if out.index.size and _et_date(out.index[-1]) == today:
+        out = out.iloc[:-1]                      # replace the stale partial bar
+    stamp = pd.Timestamp(datetime.combine(today, datetime.min.time()), tz=config.ET)
+    bar = {"Open": float(rows["Open"].iloc[0]), "High": float(rows["High"].max()),
+           "Low": float(rows["Low"].min()), "Close": float(rows["Close"].iloc[-1]),
+           "Volume": float(rows["Volume"].sum())}
+    for col in out.columns:
+        if col not in bar:
+            bar[col] = 0.0                       # Dividends / Stock Splits
+    out.loc[stamp] = [bar[c] for c in out.columns]
+    return out, True
+
+
+def daily_bars(ticker, intraday=None, period="1y", now_et=None):
+    """Today's daily frame, from cache when the cache can be made current, else from the wire."""
+    if not config.BARS_CACHE:
+        return fetch_daily(ticker, period=period)
+    now_et = now_et or datetime.now(config.ET)
+    today = now_et.date()
+
+    with _bars_lock:
+        hit = _bars_mem.get(ticker)
+    if hit is None:
+        day, df = _read_cached_daily(ticker)
+        hit = (day, df) if df is not None else None
+        if hit:
+            with _bars_lock:
+                _bars_mem[ticker] = hit
+
+    if hit and hit[0] == today and hit[1] is not None and len(hit[1]) >= 30:
+        spliced, ok = _splice_today(hit[1], intraday, now_et)
+        if ok:
+            return spliced
+        # Nothing to splice with. Before the open that is correct — yesterday's frame IS the
+        # frame — but once the session is running a missing today bar means a stale price.
+        if not market_hours.is_open(now_et):
+            return hit[1]
+
+    df = fetch_daily(ticker, period=period)
+    if not df.empty:
+        with _bars_lock:
+            _bars_mem[ticker] = (today, df)
+        _write_cached_daily(ticker, df)
+    return df
 
 
 # ── Chart-pattern detectors (deterministic) ─────────────────────────────────────
@@ -331,6 +454,31 @@ def indicator_snapshot(daily, intraday):
     return snap
 
 
+# ── Finnhub rate limit ──────────────────────────────────────────────────────────
+#
+# One sliding-minute window shared by every Finnhub caller in the process. Both the news scrape
+# and the fundamentals pull run six threads wide, so without this the first two seconds of an
+# anchor cycle can spend the whole minute's allowance and every later call in that cycle comes
+# back 429 — including the earnings calendar the LONG_TERM theses depend on.
+
+_finnhub_calls = []
+_finnhub_rate_lock = threading.Lock()
+
+
+def _finnhub_throttle():
+    """Block until one more Finnhub call fits under the per-minute ceiling."""
+    while True:
+        with _finnhub_rate_lock:
+            now = time.monotonic()
+            while _finnhub_calls and now - _finnhub_calls[0] > 60:
+                _finnhub_calls.pop(0)
+            if len(_finnhub_calls) < config.FINNHUB_MAX_PER_MIN:
+                _finnhub_calls.append(now)
+                return
+            wait = 60 - (now - _finnhub_calls[0]) + 0.05
+        time.sleep(min(max(wait, 0.05), 5))
+
+
 # ── News ────────────────────────────────────────────────────────────────────────
 
 def google_news(query, limit=6):
@@ -364,6 +512,7 @@ def finnhub_news(ticker, days=5, limit=6):
         return []
     to = datetime.now(config.UTC).date()
     frm = to - timedelta(days=days)
+    _finnhub_throttle()
     try:
         r = requests.get(
             "https://finnhub.io/api/v1/company-news",
@@ -374,11 +523,15 @@ def finnhub_news(ticker, days=5, limit=6):
         rows = r.json() or []
         out = []
         for n in rows[:limit]:
+            # `summary` is the lede Finnhub already paid for and the old code threw away — it is
+            # what lets the news pass tell a real disclosure from a headline that only sounds like one.
+            summary = (n.get("summary") or "").strip()
             out.append({
                 "title": (n.get("headline") or "").strip(),
                 "source": n.get("source") or "Finnhub",
                 "published": datetime.fromtimestamp(n.get("datetime", 0), config.UTC).isoformat(),
                 "link": n.get("url") or "",
+                "summary": summary[:400],
             })
         return out
     except Exception as e:  # pragma: no cover - network
@@ -386,64 +539,352 @@ def finnhub_news(ticker, days=5, limit=6):
         return []
 
 
+# ── SEC EDGAR (free, no key, and nobody has read it yet) ────────────────────────
+# The one genuinely under-covered source available: an 8-K is public the minute it is filed and
+# the aggregators rewrite it hours later. No key, no quota — SEC asks only for a declared
+# contact in the User-Agent and ≤10 requests/second, both of which we honour.
+
+_SEC_UA = {"User-Agent": f"MarketBrain/1.0 ({config.SEC_CONTACT})",
+           "Accept-Encoding": "gzip, deflate", "Host": "www.sec.gov"}
+_SEC_DATA_UA = dict(_SEC_UA, Host="data.sec.gov")
+_SEC_MAP_PATH = config.MEMORY_DIR / "SEC-CIK-MAP.json"
+_SEC_MAP_TTL_DAYS = 30
+_sec_map_cache = None
+
+# The 8-K items that actually move a stock. An 8-K citing only 9.01 (exhibits) is bookkeeping.
+_EIGHT_K_ITEMS = {
+    "1.01": "material agreement", "1.02": "agreement terminated", "1.03": "bankruptcy",
+    "2.01": "acquisition/disposition", "2.02": "results of operations", "2.03": "new obligation",
+    "2.04": "acceleration of obligation", "2.05": "exit/restructuring costs",
+    "2.06": "material impairment", "3.01": "delisting notice", "3.02": "unregistered equity sale",
+    "4.01": "auditor change", "4.02": "prior statements not reliable",
+    "5.01": "change in control", "5.02": "executive/director change", "5.03": "bylaw amendment",
+    "7.01": "regulation FD disclosure", "8.01": "other events",
+}
+
+
+def sec_ticker_map(force=False):
+    """{TICKER: 10-digit CIK}. Cached on disk for a month — the file changes slowly."""
+    global _sec_map_cache
+    if _sec_map_cache is not None and not force:
+        return _sec_map_cache
+    if not force:
+        try:
+            stat = _SEC_MAP_PATH.stat()
+            fresh = (time.time() - stat.st_mtime) < _SEC_MAP_TTL_DAYS * 86400
+            if fresh:
+                with open(_SEC_MAP_PATH, "r", encoding="utf-8") as fh:
+                    _sec_map_cache = json.load(fh)
+                return _sec_map_cache
+        except (OSError, ValueError):
+            pass
+    try:
+        r = requests.get("https://www.sec.gov/files/company_tickers.json",
+                         headers=_SEC_UA, timeout=_HTTP_TIMEOUT)
+        r.raise_for_status()
+        rows = r.json() or {}
+        mapping = {}
+        for row in rows.values():
+            tk = (row.get("ticker") or "").upper()
+            cik = row.get("cik_str")
+            if tk and cik is not None:
+                mapping[tk] = str(cik).zfill(10)
+        if mapping:
+            _SEC_MAP_PATH.parent.mkdir(parents=True, exist_ok=True)
+            with open(_SEC_MAP_PATH, "w", encoding="utf-8") as fh:
+                json.dump(mapping, fh)
+            _sec_map_cache = mapping
+        return _sec_map_cache or {}
+    except Exception as e:  # pragma: no cover - network
+        print(f"[warn] sec ticker map: {e}", file=sys.stderr)
+        return _sec_map_cache or {}
+
+
+def sec_filings(ticker, days=5, limit=4, forms=None):
+    """Recent EDGAR filings for one name, shaped like a headline so it merges with the news feed."""
+    forms = set(forms or config.NEWS_SEC_FORMS)
+    cik = (sec_ticker_map() or {}).get(ticker.upper())
+    if not cik:
+        return []
+    cutoff = (datetime.now(config.UTC).date() - timedelta(days=days)).isoformat()
+    try:
+        r = requests.get(f"https://data.sec.gov/submissions/CIK{cik}.json",
+                         headers=_SEC_DATA_UA, timeout=_HTTP_TIMEOUT)
+        r.raise_for_status()
+        data = r.json() or {}
+    except Exception as e:  # pragma: no cover - network
+        print(f"[warn] sec filings {ticker}: {e}", file=sys.stderr)
+        return []
+    recent = ((data.get("filings") or {}).get("recent") or {})
+    company = data.get("name") or ticker.upper()
+    out = []
+    n_rows = len(recent.get("form") or [])
+    for i in range(n_rows):
+        form = (recent["form"][i] or "").strip()
+        filed = (recent.get("filingDate") or [""] * n_rows)[i] or ""
+        if filed < cutoff:
+            break                      # EDGAR returns newest-first, so the window is done
+        if form not in forms:
+            continue
+        items_raw = (recent.get("items") or [""] * n_rows)[i] or ""
+        codes = [c.strip() for c in items_raw.split(",") if c.strip()]
+        named = [f"item {c} {_EIGHT_K_ITEMS[c]}" for c in codes if c in _EIGHT_K_ITEMS]
+        if form == "8-K" and codes and not named:
+            continue                   # exhibits-only 8-K: a filing, not news
+        detail = f" — {'; '.join(named)}" if named else ""
+        acc = (recent.get("accessionNumber") or [""] * n_rows)[i] or ""
+        doc = (recent.get("primaryDocument") or [""] * n_rows)[i] or ""
+        link = (f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{acc.replace('-', '')}/{doc}"
+                if acc and doc else f"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={cik}")
+        out.append({
+            "title": f"{company} filed {form}{detail}",
+            "source": "SEC EDGAR",
+            "published": filed,
+            "link": link,
+            "summary": (recent.get("primaryDocDescription") or [""] * n_rows)[i] or "",
+            "form": form,
+        })
+        if len(out) >= limit:
+            break
+    return out
+
+
 # ── Fundamentals (Finnhub) ──────────────────────────────────────────────────────
 
-def finnhub_fundamentals(ticker):
-    """Latest quarterly revenue/EPS + surprise + next earnings date. {} without a key."""
+# Finnhub's free tier allows 60 calls/minute, and the brain runs 14 names an anchor. Nothing here
+# changes hour to hour, so every endpoint is cached on disk with a TTL matched to how fast the
+# underlying fact can actually move: a balance sheet is a day old at worst, an earnings print
+# hours. The cache is what makes the wider pull affordable rather than a rate-limit problem.
+_FUND_CACHE_PATH = config.MEMORY_DIR / "FUNDAMENTALS-CACHE.json"
+_FUND_TTL = {
+    "metric": 24 * 3600,          # ratios move on filings, not on ticks
+    "earnings": 6 * 3600,         # the last print does not change; the next one lands overnight
+    "recommendation": 24 * 3600,  # analysts revise monthly
+    "insider": 12 * 3600,         # Form 4 has a 2-day filing deadline
+    "calendar": 6 * 3600,         # one bulk pull serves every ticker
+}
+_fund_lock = threading.Lock()
+_fund_cache = None
+
+
+def _fund_cache_load():
+    global _fund_cache
+    if _fund_cache is None:
+        try:
+            with open(_FUND_CACHE_PATH, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            _fund_cache = data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            _fund_cache = {}
+    return _fund_cache
+
+
+def fundamentals_cache_save():
+    """Write the cache once per run — the collectors themselves only mutate it in memory."""
+    with _fund_lock:
+        if _fund_cache is None:
+            return
+        try:
+            _FUND_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            tmp = _FUND_CACHE_PATH.with_suffix(".tmp")
+            with open(tmp, "w", encoding="utf-8") as fh:
+                json.dump(_fund_cache, fh)
+            os.replace(tmp, _FUND_CACHE_PATH)
+        except Exception as e:  # pragma: no cover - disk
+            print(f"[warn] fundamentals cache save: {e}", file=sys.stderr)
+
+
+def _finnhub_json(kind, cache_key, path, params, force=False):
+    """One cached Finnhub GET. Returns the parsed body, or None when unavailable."""
+    key = f"{kind}:{cache_key}"
+    now = time.time()
+    with _fund_lock:
+        cache = _fund_cache_load()
+        hit = cache.get(key)
+        if hit and not force and (now - hit.get("at", 0)) < _FUND_TTL.get(kind, 3600):
+            return hit.get("data")
     if not config.FINNHUB_API_KEY:
-        return {}
+        return None
+    _finnhub_throttle()
+    try:
+        r = requests.get(f"https://finnhub.io/api/v1{path}",
+                         params={**params, "token": config.FINNHUB_API_KEY},
+                         headers=_UA, timeout=_HTTP_TIMEOUT)
+        if r.status_code in (401, 403):
+            # A premium-only endpoint on a free key. Cache the refusal so we stop asking.
+            with _fund_lock:
+                _fund_cache_load()[key] = {"at": now, "data": None}
+            return None
+        r.raise_for_status()
+        data = r.json()
+    except Exception as e:  # pragma: no cover - network
+        print(f"[warn] finnhub {kind} {cache_key}: {e}", file=sys.stderr)
+        return None
+    with _fund_lock:
+        _fund_cache_load()[key] = {"at": now, "data": data}
+    return data
+
+
+# The `stock/metric?metric=all` response carries 100+ fields and the old code kept five of them,
+# which is the whole reason a LONG_TERM thesis had nothing to stand on. These are the ones that
+# actually bear on whether a company can keep earning — and they cost no extra call.
+_METRIC_MAP = {
+    "pe_ttm": "peTTM",
+    "ps_ttm": "psTTM",
+    "pb": "pbQuarterly",
+    "revenue_per_share_ttm": "revenuePerShareTTM",
+    "gross_margin": "grossMarginTTM",
+    "operating_margin": "operatingMarginTTM",
+    "profit_margin": "netProfitMarginTTM",
+    "roe": "roeTTM",
+    "roa": "roaTTM",
+    "debt_to_equity": "totalDebt/totalEquityQuarterly",
+    "current_ratio": "currentRatioQuarterly",
+    "quick_ratio": "quickRatioQuarterly",
+    "revenue_growth_yoy": "revenueGrowthTTMYoy",
+    "eps_growth_yoy": "epsGrowthTTMYoy",
+    "revenue_growth_5y": "revenueGrowth5Y",
+    "beta": "beta",
+    "dividend_yield": "dividendYieldIndicatedAnnual",
+    "52w_high": "52WeekHigh",
+    "52w_low": "52WeekLow",
+    "52w_return": "52WeekPriceReturnDaily",
+    "avg_volume_10d": "10DayAverageTradingVolume",
+}
+
+
+def earnings_calendar_map(days=14):
+    """{TICKER: {date, hour, eps_estimate}} for the focus list — one bulk call for every name."""
+    frm = datetime.now(config.UTC).date()
+    to = frm + timedelta(days=days)
+    data = _finnhub_json("calendar", f"{frm}:{days}", "/calendar/earnings",
+                         {"from": str(frm), "to": str(to)})
+    rows = ((data or {}).get("earningsCalendar") or [])
+    watch = set(config.FOCUS_TICKERS)
     out = {}
-    tok = config.FINNHUB_API_KEY
-    try:
-        r = requests.get("https://finnhub.io/api/v1/stock/earnings",
-                         params={"symbol": ticker, "limit": 4, "token": tok},
-                         headers=_UA, timeout=_HTTP_TIMEOUT)
-        r.raise_for_status()
-        earn = r.json() or []
-        if earn:
-            last = earn[0]
-            out["last_eps_actual"] = last.get("actual")
-            out["last_eps_estimate"] = last.get("estimate")
-            out["last_eps_surprise_pct"] = last.get("surprisePercent")
-            out["last_eps_period"] = last.get("period")
-    except Exception as e:  # pragma: no cover - network
-        print(f"[warn] finnhub earnings {ticker}: {e}", file=sys.stderr)
-    try:
-        r = requests.get("https://finnhub.io/api/v1/stock/metric",
-                         params={"symbol": ticker, "metric": "all", "token": tok},
-                         headers=_UA, timeout=_HTTP_TIMEOUT)
-        r.raise_for_status()
-        m = (r.json() or {}).get("metric", {}) or {}
-        out["revenue_ttm"] = m.get("revenuePerShareTTM")
-        out["pe_ttm"] = m.get("peTTM")
-        out["profit_margin"] = m.get("netProfitMarginTTM")
-        out["52w_high"] = m.get("52WeekHigh")
-        out["52w_low"] = m.get("52WeekLow")
-    except Exception as e:  # pragma: no cover - network
-        print(f"[warn] finnhub metric {ticker}: {e}", file=sys.stderr)
+    for e in rows:
+        tk = e.get("symbol")
+        if tk not in watch or not e.get("date"):
+            continue
+        prev = out.get(tk)
+        if prev is None or e["date"] < prev["date"]:      # keep the nearest print
+            out[tk] = {"date": e.get("date"), "hour": e.get("hour"),
+                       "eps_estimate": _num(e.get("epsEstimate"), 2)}
     return out
 
 
 def finnhub_earnings_calendar(days=10):
-    """Upcoming earnings for the focus list in the next `days`. [] without a key."""
-    if not config.FINNHUB_API_KEY:
-        return []
-    frm = datetime.now(config.UTC).date()
-    to = frm + timedelta(days=days)
-    watch = set(config.FOCUS_TICKERS)
-    try:
-        r = requests.get("https://finnhub.io/api/v1/calendar/earnings",
-                         params={"from": str(frm), "to": str(to),
-                                 "token": config.FINNHUB_API_KEY},
-                         headers=_UA, timeout=_HTTP_TIMEOUT)
-        r.raise_for_status()
-        rows = (r.json() or {}).get("earningsCalendar", []) or []
-        return [{"ticker": e.get("symbol"), "date": e.get("date"),
-                 "hour": e.get("hour"), "eps_estimate": e.get("epsEstimate")}
-                for e in rows if e.get("symbol") in watch]
-    except Exception as e:  # pragma: no cover - network
-        print(f"[warn] finnhub earnings calendar: {e}", file=sys.stderr)
-        return []
+    """Upcoming focus-list earnings as a flat list, nearest first."""
+    rows = [dict(v, ticker=t) for t, v in earnings_calendar_map(days).items()]
+    return sorted(rows, key=lambda e: e["date"])
+
+
+def _summarize_insiders(rows, days=90):
+    """Net insider buying/selling from Form 4 data — open-market trades only.
+
+    Grants (code A) and option exercises (M) are compensation, not conviction, so counting them
+    would show "insider buying" every vesting date. Only P (purchase) and S (sale) mean anything.
+    """
+    cutoff = (datetime.now(config.UTC).date() - timedelta(days=days)).isoformat()
+    bought = sold = 0
+    buyers, sellers = set(), set()
+    for r in rows or []:
+        when = (r.get("transactionDate") or r.get("filingDate") or "")
+        if when < cutoff:
+            continue
+        code = (r.get("transactionCode") or "").upper()
+        share = abs(float(r.get("change") or 0))
+        if code == "P":
+            bought += share
+            buyers.add(r.get("name"))
+        elif code == "S":
+            sold += share
+            sellers.add(r.get("name"))
+    if not (bought or sold):
+        return None
+    net = bought - sold
+    return {
+        "window_days": days,
+        "shares_bought": int(bought), "shares_sold": int(sold),
+        "net_shares": int(net),
+        "buyers": len(buyers), "sellers": len(sellers),
+        "read": "net buying" if net > 0 else ("net selling" if net < 0 else "flat"),
+    }
+
+
+def _summarize_recommendations(rows):
+    """Latest analyst spread plus the one-month change — the revision is the signal."""
+    if not rows:
+        return None
+    rows = sorted(rows, key=lambda r: r.get("period") or "", reverse=True)
+    cur = rows[0]
+
+    def _score(r):
+        return ((r.get("strongBuy") or 0) * 2 + (r.get("buy") or 0)
+                - (r.get("sell") or 0) - (r.get("strongSell") or 0) * 2)
+
+    out = {"period": cur.get("period"),
+           "strong_buy": cur.get("strongBuy"), "buy": cur.get("buy"),
+           "hold": cur.get("hold"), "sell": cur.get("sell"),
+           "strong_sell": cur.get("strongSell"),
+           "score": _score(cur)}
+    if len(rows) > 1:
+        out["score_change_1m"] = _score(cur) - _score(rows[1])
+        out["prior_period"] = rows[1].get("period")
+    return out
+
+
+def finnhub_fundamentals(ticker, with_insiders=True, with_analysts=True):
+    """Company facts that move a stock: earnings, ratios, growth, analysts, insiders.
+
+    Every field runs through `_num()`, so a NaN or an unparseable string from the API becomes
+    None here rather than poisoning `json.dumps` on the way into the model packet.
+    """
+    out = {}
+    earn = _finnhub_json("earnings", ticker, "/stock/earnings", {"symbol": ticker, "limit": 4})
+    if earn:
+        last = earn[0]
+        out["last_eps_actual"] = _num(last.get("actual"), 2)
+        out["last_eps_estimate"] = _num(last.get("estimate"), 2)
+        out["last_eps_surprise_pct"] = _num(last.get("surprisePercent"), 1)
+        out["last_eps_period"] = last.get("period")
+        beats = [e for e in earn if (e.get("surprisePercent") or 0) > 0]
+        out["eps_beats_last_4"] = f"{len(beats)}/{len(earn)}"
+
+    metric = _finnhub_json("metric", ticker, "/stock/metric",
+                           {"symbol": ticker, "metric": "all"})
+    m = (metric or {}).get("metric") or {}
+    for name, key in _METRIC_MAP.items():
+        val = _num(m.get(key), 3)
+        if val is not None:
+            out[name] = val
+    out["revenue_ttm"] = out.get("revenue_per_share_ttm")   # back-compat with the old field name
+
+    nxt = earnings_calendar_map().get(ticker.upper())
+    if nxt:
+        out["next_earnings_date"] = nxt["date"]
+        out["next_earnings_hour"] = nxt.get("hour")
+        out["next_eps_estimate"] = nxt.get("eps_estimate")
+        try:
+            d = datetime.strptime(nxt["date"], "%Y-%m-%d").date()
+            out["days_to_earnings"] = (d - datetime.now(config.UTC).date()).days
+        except (TypeError, ValueError):
+            pass
+
+    if with_analysts:
+        rec = _summarize_recommendations(
+            _finnhub_json("recommendation", ticker, "/stock/recommendation", {"symbol": ticker}))
+        if rec:
+            out["analysts"] = rec
+    if with_insiders:
+        frm = (datetime.now(config.UTC).date() - timedelta(days=90)).isoformat()
+        data = _finnhub_json("insider", ticker, "/stock/insider-transactions",
+                             {"symbol": ticker, "from": frm,
+                              "to": datetime.now(config.UTC).date().isoformat()})
+        ins = _summarize_insiders((data or {}).get("data"))
+        if ins:
+            out["insiders"] = ins
+    return out
 
 
 # ── ForexFactory economic calendar (official JSON feed, no scraping) ────────────
@@ -524,8 +965,9 @@ def forexfactory_calendar(include_next_week=False):
 
 def collect_ticker(ticker, with_news=False, with_fundamentals=False):
     """Full snapshot for one ticker: bars-derived indicators, patterns, optional news/fundamentals."""
-    daily = fetch_daily(ticker)
+    # Intraday first: the daily cache needs today's intraday bars to rebuild today's daily bar.
     intraday = fetch_intraday(ticker) if not ticker.startswith("^") and "=" not in ticker else pd.DataFrame()
+    daily = daily_bars(ticker, intraday=intraday)
     snap = {
         "ticker": ticker,
         "indicators": indicator_snapshot(daily, intraday if not intraday.empty else None),

@@ -50,7 +50,9 @@ def _enabled():
     return bool(config.SUPABASE_URL and config.SUPABASE_ANON and config.SIGNAL_INGEST_KEY)
 
 
-_NEW_SIGNAL_COLS = ("confidence_rationale", "indicators_used", "news_read")
+_NEW_SIGNAL_COLS = ("confidence_rationale", "indicators_used", "news_read",
+                    "outcome", "gate_reason", "proposed_action", "news_edge",
+                    "thesis_id", "thesis_theme")
 
 
 def _post_signals(headers, rows):
@@ -118,6 +120,20 @@ def push(analysis, screen_result, portfolio_summary, mode, now_et, escalated):
                     "confidence_rationale": s.get("confidence_rationale"),
                     "indicators_used": s.get("indicators_used") or [],
                     "news_read": s.get("news_read"),
+                    # The gate verdict, stamped onto the signal by apply_actions(). This is the
+                    # column the dashboard splits on: `executed` ideas are trades the brain took,
+                    # everything else is a recommendation it did not act on, and gate_reason says
+                    # why. Absent on a run that never reached the gates.
+                    "outcome": s.get("outcome"),
+                    "gate_reason": s.get("gate_reason"),
+                    "proposed_action": s.get("proposed_action"),
+                    "news_edge": s.get("news_edge"),
+                    # A LONG_TERM signal carries the board entry it rests on (thesis.annotate_
+                    # signals). The id is the join key back to sd_theses; the theme is carried
+                    # too so the card reads on its own if the board row is older than the signal.
+                    "thesis_id": s.get("thesis_id"),
+                    "thesis_theme": (s.get("thesis") or {}).get("theme")
+                                    if isinstance(s.get("thesis"), dict) else None,
                 })
             _post_signals(h, rows)
     except Exception as e:  # pragma: no cover - network
@@ -135,6 +151,40 @@ def push(analysis, screen_result, portfolio_summary, mode, now_et, escalated):
     if ok:
         print(f"[dashboard] pushed brain {mode} run ({len(signals)} signal(s))")
     return ok
+
+
+def push_heartbeat(mode, now_et, reason):
+    """Record a run the market-hours gate turned away.
+
+    Without this a gated-out run leaves no trace at all, and "the market was closed" looks
+    exactly like "the VPS is down" on the dashboard. One scan row, no signals, an outlook that
+    says why — cheap, and it keeps the heartbeat honest.
+    """
+    if not _enabled():
+        return False
+    return _insert("sd_brain_scans",
+                   {"ts": now_et.astimezone(config.UTC).isoformat(), "mode": mode,
+                    "escalated": False, "n_signals": 0,
+                    "outlook": f"Skipped — {reason}.", "screen_why": [f"gate: {reason}"],
+                    "degraded": False}, _headers(), "gate heartbeat")
+
+
+# ── Long-term thesis board ──────────────────────────────────────────────────────
+
+def push_theses(board_packet, mode, now_et, regime=None):
+    """Publish the board after a re-score. Twice a week, not every cycle.
+
+    `board_packet` is thesis.for_packet() output — already trimmed, already ordered by
+    conviction. The whole board goes in one row because the dashboard only ever wants the
+    newest version of it; the history is in brain-memory/THESES.json and in git.
+    """
+    if not _enabled():
+        return False
+    board = board_packet or []
+    return _insert("sd_theses",
+                   {"ts": now_et.astimezone(config.UTC).isoformat(), "mode": mode,
+                    "regime": regime, "n_active": len(board), "board": board},
+                   _headers(), "thesis board")
 
 
 # ── Live trade tape ─────────────────────────────────────────────────────────────

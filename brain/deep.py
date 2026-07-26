@@ -20,11 +20,12 @@ from datetime import datetime
 from pathlib import Path
 
 from . import config
+from .jsonio import dumps, json_safe   # noqa: F401 — re-exported for the packet builders
 
 
 def build_packet(mode, market, screen_result, calendar, portfolio_summary,
                  analogs=None, fundamentals=None, focus=None, news_intel=None,
-                 strategy_notes=None):
+                 strategy_notes=None, theses=None):
     """Assemble the compact JSON packet the deep prompt reasons over."""
     focus = focus or [t["ticker"] for t in screen_result.get("triggers", [])][:8]
     slim_market = {}
@@ -44,9 +45,15 @@ def build_packet(mode, market, screen_result, calendar, portfolio_summary,
             "tickers": {t: v for t, v in (intel.get("tickers") or {}).items()
                         if t in focus or (v.get("materiality") == "high")},
             "top_stories": intel.get("top_stories") or [],
+            # How much of this cycle's feed was recycled — context for how much the news is worth.
+            "quality": intel.get("news_quality") or {},
         },
         # Lessons the weekly review has written back into brain-memory/STRATEGY.md.
         "strategy_lessons": strategy_notes or "",
+        # The standing long-horizon board (brain/thesis.py). Read-only here: a cycle may *use* a
+        # thesis to justify a LONG_TERM entry, but only the Monday and Friday reviews may score
+        # one. That separation is what stops a 30-minute chart from rewriting a 3-year argument.
+        "theses": theses or [],
         "screen": {
             "why": screen_result.get("why", []),
             "calendar_flags": screen_result.get("calendar_flags", []),
@@ -87,7 +94,30 @@ def build_prompt(mode, packet):
         "You are tier 2 of a two-model pipeline. Tier 1 (Haiku 4.5) already read the news; its\n"
         "findings are in packet.news_intel. Only cite headlines that appear there — anything else\n"
         "is fabrication. If news_intel.degraded is true, no AI read the news this cycle: say so\n"
-        "and lower confidence accordingly.\n\n"
+        "and lower confidence accordingly.\n"
+        "Each name in news_intel carries `crowding` (under-covered / mixed / saturated), a\n"
+        "`source_tier`, and an `edge`. A saturated story is already in the price — it is context,\n"
+        "not an entry. An under-covered story from a primary source is the one case where the news\n"
+        "itself justifies raising confidence, and you must say so in confidence_rationale.\n"
+        "`thin_coverage: true` means nothing good was available for that name: treat it as no news,\n"
+        "not as quiet confirmation.\n\n"
+        "packet.fundamentals now carries the company facts a LONG_TERM thesis has to rest on:\n"
+        "margins (gross/operating/profit), roe/roa, debt_to_equity, current_ratio, growth\n"
+        "(revenue_growth_yoy, eps_growth_yoy, revenue_growth_5y), valuation (pe_ttm, ps_ttm, pb),\n"
+        "beta, the 52-week range, `eps_beats_last_4`, `days_to_earnings`, `analysts` (the spread\n"
+        "plus `score_change_1m` — the revision matters more than the level) and `insiders` (open-\n"
+        "market Form 4 buying/selling only; grants and option exercises are excluded). A field that\n"
+        "is absent could not be computed — do not guess it, and do not read a missing value as zero.\n"
+        "`days_to_earnings` under ~5 caps confidence on any swing: the print outranks the chart.\n\n"
+        "packet.theses is the standing long-horizon board: structural 1-3 year bets on a demand or\n"
+        "pricing shift (the archetype being a memory-price squeeze lifting the DRAM makers). Rules:\n"
+        "  - Every LONG_TERM signal MUST set `thesis_id` to a board entry. If nothing on the board\n"
+        "    fits, the idea is not a LONG_TERM trade — label it SHORT_TERM or drop it.\n"
+        "  - You may NOT add, re-score or retire a thesis here. That happens twice a week, in the\n"
+        "    Monday and Friday reviews. If a cycle's news materially confirms or breaks one, say so\n"
+        "    in `thesis_notes` and it will be carried into the next review.\n"
+        "  - `needs_review: true` on an entry means its evidence has gone quiet. Treat its\n"
+        "    conviction as suspect and do not open new size against it.\n\n"
         "Respond with ONE JSON object and nothing else — no prose before or after, no code fence.\n"
         "Schema:\n"
         "{\n"
@@ -110,9 +140,16 @@ def build_prompt(mode, packet):
         '      "news_read": "what the Haiku 4.5 news pass concluded for this name, and how it '
         'changed your view",\n'
         '      "news": [{"title": "...", "source": "...", "link": "...", "takeaway": "..."}],\n'
+        '      "news_edge": "what this trade knows that the crowd has not priced (cite the '
+        'under-covered story or filing), or null if the news here is saturated",\n'
         '      "historical_analog": "cite a matching past event + its outcome, or null",\n'
+        '      "thesis_id": "REQUIRED for LONG_TERM: the packet.theses id this rests on, else null",\n'
         '      "data_sources": ["yfinance", "Finnhub", "ForexFactory", "Google News RSS"]\n'
         "    }\n"
+        "  ],\n"
+        '  "thesis_notes": [\n'
+        '    {"thesis_id": "...", "observation": "what today confirmed or broke", '
+        '"stance": "supports"|"undermines"}\n'
         "  ],\n"
         '  "portfolio_actions": [\n'
         '    {"action": "BUY"|"SELL"|"ADD"|"HOLD", "ticker": "NVDA", "entry": number,\n'
@@ -121,7 +158,7 @@ def build_prompt(mode, packet):
         '  "notes": "anything the trader should watch next"\n'
         "}\n\n"
         "DATA PACKET:\n```json\n"
-        + json.dumps(packet, indent=2, default=str)
+        + dumps(packet, indent=2)
         + "\n```\n"
     )
 
@@ -131,7 +168,14 @@ _REVIEW_SCHEMA = """{
   "narrative": "3-6 sentences, honest: what the week's decisions actually got right and wrong",
   "successes": ["specific things that worked, each tied to a real trade or setup type"],
   "mistakes": ["specific errors, each naming the trade and the actual mistake"],
-  "changes": ["concrete, checkable changes to make the NEXT week's calls more accurate"]
+  "changes": ["analyst-side rules for your future self, checkable at the next entry"],
+  "signal_review": "2-4 sentences on what you recommended vs what the gates let through, and \
+whether the untaken signals would have worked",
+  "pipeline_changes": [
+    {"change": "a concrete engineering change to the pipeline itself",
+     "why": "the measurement in measured_performance that motivates it",
+     "effort": "small" | "medium" | "large"}
+  ]
 }"""
 
 
@@ -153,9 +197,87 @@ def build_review_prompt(recap_json):
         '("be more disciplined"). If the sample is too small to conclude anything, say that in\n'
         "`narrative` and return few or no changes — inventing lessons from 1 trade is worse than\n"
         "admitting the sample is thin.\n\n"
+        "`measured_performance` is arithmetic over the ledger, not opinion — win rate per\n"
+        "indicator you claimed to use, calibration of each confidence bucket against its implied\n"
+        "hit rate, results by trade type, by exit kind and by sector, and `signals`: everything\n"
+        "recommended this week with the gate's verdict and the forward return on the ones that\n"
+        "were NOT taken. Ground `mistakes` and `changes` in those numbers, quoting them. Where\n"
+        "`sample_note` or a bucket's `read` says the sample is too thin, say so instead of\n"
+        "drawing a conclusion from it.\n\n"
+        "`changes` and `pipeline_changes` are different things and must not be mixed:\n"
+        "  - `changes` are analyst-side rules for how YOU judge a setup. They never override the\n"
+        "    harness gates (position limits, the -7% cut, trailing stops, sector lockout).\n"
+        "  - `pipeline_changes` are engineering requests for the humans maintaining the harness:\n"
+        "    data you needed and did not have, a gate that measurably blocked winners, a source\n"
+        "    that was consistently stale or useless, a field you could not fill honestly. Each\n"
+        "    must cite the measurement that motivates it. Return an empty list rather than\n"
+        "    inventing work — 'the pipeline was adequate this week' is a valid finding.\n\n"
         "Respond with ONE JSON object and nothing else — no prose before or after, no code fence.\n"
         f"Schema:\n{_REVIEW_SCHEMA}\n\n"
         "WEEK PACKET:\n```json\n" + recap_json + "\n```\n"
+    )
+
+
+_THESIS_SCHEMA = """{
+  "market_regime": "2-4 sentences: where the money is actually flowing over quarters, not days",
+  "theses": [
+    {
+      "id": "existing board id, or omit for a new thesis",
+      "theme": "short name, e.g. 'DRAM undersupply' or 'grid capex for AI datacentres'",
+      "driver": "the structural demand or pricing shift itself, with the numbers that show it",
+      "thesis": "the argument in plain language: who wants more of what, why supply cannot \
+answer quickly, and how that reaches revenue and margin",
+      "what_the_market_misses": "why this is not already in the price, or null if it is",
+      "tickers": ["the cleanest listed expressions, most direct first"],
+      "primary_ticker": "the single best expression",
+      "horizon": "1-3 years",
+      "conviction": 0-100,
+      "status": "active" | "watch" | "invalidated" | "realized",
+      "close_reason": "required when status is invalidated or realized",
+      "invalidation": ["specific, checkable conditions that would prove this wrong"],
+      "milestones": ["what should be observable in the next 1-2 quarters if it is right"],
+      "evidence": [{"note": "...", "source": "...", "link": "...", \
+"stance": "supports"|"undermines"}]
+    }
+  ],
+  "retired": ["ids removed from consideration, with the reason in close_reason above"]
+}"""
+
+
+def build_thesis_prompt(packet_json):
+    """The long-horizon review — the only run permitted to score the thesis board.
+
+    Kept apart from both the trade schema and the weekly accuracy review because it answers a
+    different question on a different clock: not "was that trade right" but "is this still where
+    the world is going".
+    """
+    return (
+        "You are the Market Brain's long-horizon analyst. This run is NOT about today's tape.\n"
+        "You are maintaining a standing board of 1-3 year structural investment theses, and you\n"
+        "are the only run allowed to change it.\n\n"
+        "What counts as a thesis here: a durable shift in what people or companies demand, big\n"
+        "enough that the supply side cannot answer it within a year, expressible through listed\n"
+        "companies whose revenue and margin should visibly benefit. The archetype Lind gave: when\n"
+        "memory demand ran ahead of fab capacity and DRAM contract prices doubled, the memory\n"
+        "makers were the trade — not because of a chart, but because the product was wanted and\n"
+        "could not be made fast enough.\n\n"
+        "What does NOT count: a stock that has gone up; a good company at any price; a story with\n"
+        "no supply constraint; anything whose whole case is momentum or sentiment. If the honest\n"
+        "answer is that nothing structural is visible right now, return few or no theses. An empty\n"
+        "board beats a fabricated one — you will be graded against these in a year.\n\n"
+        "For each thesis you MUST supply `invalidation`: specific, checkable conditions that would\n"
+        "prove it wrong (a capacity number, a price level, a demand datapoint). A thesis with no\n"
+        "falsifier is a bias, and it will be rejected.\n\n"
+        "Re-score what is already on the board before proposing anything new. Conviction should\n"
+        "move on evidence in the packet, not on price action. Retire an entry honestly: mark it\n"
+        "`invalidated` when the argument broke and `realized` when it has played out, and say why\n"
+        "in `close_reason`. Entries flagged `needs_review` have had no fresh evidence in weeks —\n"
+        "either find some in this packet or cut the conviction.\n\n"
+        "Only cite headlines and data present in the packet. Fabricated evidence is the worst\n"
+        "possible failure here, because a fake datapoint on a 3-year thesis survives for 3 years.\n\n"
+        "Respond with ONE JSON object and nothing else — no prose before or after, no code fence.\n"
+        f"Schema:\n{_THESIS_SCHEMA}\n\n"
+        "PACKET:\n```json\n" + packet_json + "\n```\n"
     )
 
 

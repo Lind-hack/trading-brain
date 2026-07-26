@@ -21,7 +21,7 @@ import json
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
-from . import collect, config, deep
+from . import collect, config, deep, jsonio, news_quality
 
 # Deterministic fallback vocabulary — used only when Haiku is unreachable.
 _BULL_WORDS = (
@@ -44,42 +44,74 @@ _CATALYST_WORDS = {
 
 # ── Headline gathering (free sources, parallel) ──────────────────────────────────
 
-def gather_headlines(tickers, per_ticker=None, max_workers=6):
-    """Scrape fresh headlines per ticker. Returns {ticker: [{title, source, published, link}]}."""
+def _merge_stats(total, part):
+    for k in ("seen", "kept", "dropped", "under_covered"):
+        total[k] = total.get(k, 0) + part.get(k, 0)
+    for reason, n in (part.get("drop_reasons") or {}).items():
+        total.setdefault("drop_reasons", {})
+        total["drop_reasons"][reason] = total["drop_reasons"].get(reason, 0) + n
+    return total
+
+
+def gather_headlines(tickers, per_ticker=None, max_workers=6, store=None, with_sec=None,
+                     stats=None):
+    """Scrape wide, then keep only the least-saturated few per ticker.
+
+    Scraping stays parallel; scoring is deliberately sequential because the seen-headline store
+    is shared mutable state and a story's outlet count is only correct if every ticker's
+    headlines are folded into the same store in a defined order.
+    """
     per_ticker = per_ticker or config.NEWS_HEADLINES_PER_TICKER
-    out = {}
+    candidates = max(per_ticker, config.NEWS_CANDIDATES_PER_TICKER)
+    with_sec = config.NEWS_SEC_FILINGS if with_sec is None else with_sec
 
     def _job(t):
-        items = collect.finnhub_news(t, days=3, limit=per_ticker)
-        if len(items) < per_ticker:
-            items += collect.google_news(f"{t} stock", limit=per_ticker - len(items))
-        # de-dupe on normalised title
-        seen, uniq = set(), []
-        for n in items:
-            key = (n.get("title") or "").strip().lower()[:90]
-            if key and key not in seen:
-                seen.add(key)
-                uniq.append(n)
-        return t, uniq[:per_ticker]
+        items = []
+        if with_sec:
+            items += collect.sec_filings(t, days=4, limit=3)
+        items += collect.finnhub_news(t, days=3, limit=candidates)
+        items += collect.google_news(f"{t} stock", limit=max(4, candidates // 2))
+        return t, items
 
+    raw = {}
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         for t, items in ex.map(_job, tickers):
-            if items:
-                out[t] = items
+            raw[t] = items
+
+    own_store = store is None
+    store = news_quality.load_store() if own_store else store
+    totals = {"seen": 0, "kept": 0, "dropped": 0, "under_covered": 0, "drop_reasons": {}}
+    out = {}
+    for t, items in raw.items():
+        scored = news_quality.observe(items, ticker=t, store=store)
+        kept, dropped = news_quality.rank(scored, limit=per_ticker)
+        _merge_stats(totals, news_quality.summarize(kept, dropped))
+        if kept:
+            out[t] = kept
+    if own_store:
+        news_quality.save_store(store)
+    if totals["seen"]:
+        print(f"[news] {totals['seen']} headline(s) scraped, {totals['kept']} kept "
+              f"({totals['under_covered']} under-covered), {totals['dropped']} filtered "
+              f"{totals['drop_reasons']}")
+    if stats is not None:
+        stats.update(totals)
     return out
 
 
-def gather_macro_headlines(limit=8):
+def gather_macro_headlines(limit=8, store=None):
     """Market-wide headlines: what is moving the whole tape right now."""
     queries = ["stock market today", "Federal Reserve interest rates", "S&P 500 outlook"]
-    items, seen = [], set()
+    items = []
     for q in queries:
-        for n in collect.google_news(q, limit=limit):
-            key = (n.get("title") or "").strip().lower()[:90]
-            if key and key not in seen:
-                seen.add(key)
-                items.append(n)
-    return items[:limit]
+        items += collect.google_news(q, limit=limit)
+    own_store = store is None
+    store = news_quality.load_store() if own_store else store
+    scored = news_quality.observe(items, ticker="_MACRO", store=store)
+    kept, _ = news_quality.rank(scored, limit=limit)
+    if own_store:
+        news_quality.save_store(store)
+    return kept
 
 
 # ── Haiku pass ──────────────────────────────────────────────────────────────────
@@ -94,6 +126,8 @@ _SCHEMA = """{
       "catalyst": "earnings" | "guidance" | "product" | "regulatory" | "analyst" | "macro" | "none",
       "summary": "one line: the single most important thing the news says about this name",
       "is_fresh": true|false,
+      "crowding": "under-covered" | "mixed" | "saturated",
+      "edge": "what a reader who only follows mainstream coverage would NOT already know, or null",
       "headlines_used": [{"title": "...", "source": "...", "link": "..."}]
     }
   },
@@ -103,9 +137,25 @@ _SCHEMA = """{
 _INSTRUCTIONS = """You are the Market Brain's news analyst (tier 1 of 2). You read headlines and
 classify them. You do NOT propose trades, prices, entries, or stops — a separate model does that.
 
+Every headline arrives pre-scored by the harness. Use those fields, do not re-guess them:
+- `source_tier`: "primary" is the SEC filing itself, "wire/first-hand" broke the story,
+  "mainstream" reported it, "aggregator" rewrote someone else's work hours later.
+- `outlets`: how many distinct outlets have run this same story. `crowding` summarises it —
+  "saturated" means the market has already read this everywhere.
+- `age_min`: minutes since the story first appeared (ours or the publisher's timestamp,
+  whichever is older). A story hours old is already in the price.
+- `summary`: the article's own lede when the feed gave us one.
+- `low_quality: true` means nothing better existed for that ticker — treat it as thin coverage.
+
 Rules:
-- Judge MATERIALITY honestly. "high" means this headline can move the stock today; recycled
-  summaries, listicles, and "3 stocks to watch" filler are "low". Most names are "low".
+- Judge MATERIALITY honestly. "high" means this headline can move the stock today AND is new
+  information. A saturated story everyone has already traded is at most "medium" no matter how
+  dramatic it sounds. Recycled summaries and filler are "low". Most names are "low".
+- An SEC filing outranks any article rewriting it. If both are present, cite the filing.
+- Prefer under-covered, high-tier stories in headlines_used and top_stories. An obscure item from
+  a primary source is worth more to us than the same fact from ten aggregators.
+- `edge` is where the value is: state what this specific coverage reveals that the crowd has not
+  priced. If the whole story is already everywhere, set edge to null and say so in summary.
 - SENTIMENT is about the news content only, not the chart.
 - is_fresh = false if the headlines look like restatements of old news.
 - Use ONLY the headlines given to you. Never invent a headline, a source, or a link. If a
@@ -115,17 +165,36 @@ Rules:
 
 Respond with ONE JSON object and nothing else — no prose, no code fence."""
 
+_PROMPT_FIELDS = ("title", "source", "published", "link", "summary", "form")
+
+
+def _for_prompt(items):
+    """Trim a scored headline to what the model needs — the score, not the bookkeeping."""
+    out = []
+    for n in items or []:
+        rec = {k: n[k] for k in _PROMPT_FIELDS if n.get(k)}
+        if rec.get("summary"):
+            rec["summary"] = rec["summary"][:280]
+        rec["source_tier"] = n.get("tier_name")
+        rec["outlets"] = n.get("outlets")
+        rec["crowding"] = n.get("crowding")
+        rec["age_min"] = n.get("age_min")
+        if n.get("low_quality"):
+            rec["low_quality"] = True
+        out.append(rec)
+    return out
+
 
 def _build_prompt(headlines, macro_headlines, calendar):
     payload = {
-        "macro_headlines": macro_headlines,
-        "ticker_headlines": headlines,
+        "macro_headlines": _for_prompt(macro_headlines),
+        "ticker_headlines": {t: _for_prompt(v) for t, v in (headlines or {}).items()},
         "calendar_imminent": (calendar or {}).get("imminent", [])[:8],
         "calendar_speeches": (calendar or {}).get("speeches", [])[:6],
     }
     return (
         f"{_INSTRUCTIONS}\n\nSchema:\n{_SCHEMA}\n\nHEADLINES:\n```json\n"
-        + json.dumps(payload, indent=2, default=str)
+        + jsonio.dumps(payload, indent=2)
         + "\n```\n"
     )
 
@@ -183,12 +252,22 @@ def _sanitize(result, headlines):
         except (TypeError, ValueError):
             sentiment = 0
         mat = str(info.get("materiality") or "low").lower()
+        # Crowding is measured, not opined: take it from the best headline we actually scraped
+        # for this name rather than from the model's impression of how widely covered it is.
+        pool = cited or headlines.get(tk) or []
+        best = max(pool, key=lambda n: n.get("novelty", 0), default={})
+        edge = str(info.get("edge") or "").strip()
         clean[tk] = {
             "sentiment": sentiment,
             "materiality": mat if mat in ("high", "medium", "low") else "low",
             "catalyst": str(info.get("catalyst") or "none").lower(),
             "summary": str(info.get("summary") or "").strip(),
             "is_fresh": bool(info.get("is_fresh", True)),
+            "crowding": best.get("crowding") or "mixed",
+            "novelty": best.get("novelty"),
+            "source_tier": best.get("tier_name"),
+            "thin_coverage": bool(best.get("low_quality")),
+            "edge": edge or None,
             "headlines_used": cited,
         }
     result["tickers"] = clean
@@ -226,12 +305,18 @@ def _fallback(headlines, macro_headlines):
         scores = [_score_title(n.get("title", "")) for n in items]
         avg = round(sum(scores) / len(scores))
         strongest = max(items, key=lambda n: abs(_score_title(n.get("title", ""))))
+        best = max(items, key=lambda n: n.get("novelty", 0))
         tickers[t] = {
             "sentiment": avg,
             "materiality": "medium" if abs(avg) >= 20 else "low",
             "catalyst": _catalyst_of(strongest.get("title", "")),
             "summary": f"keyword scan only (no AI read): {strongest.get('title','')[:120]}",
             "is_fresh": True,
+            "crowding": best.get("crowding") or "mixed",
+            "novelty": best.get("novelty"),
+            "source_tier": best.get("tier_name"),
+            "thin_coverage": bool(best.get("low_quality")),
+            "edge": None,
             "headlines_used": items[:3],
         }
     macro_scores = [_score_title(n.get("title", "")) for n in macro_headlines] or [0]
@@ -250,16 +335,25 @@ def _fallback(headlines, macro_headlines):
 # ── Escalation ──────────────────────────────────────────────────────────────────
 
 def escalation_reasons(intel):
-    """Which news findings justify spending an Opus deep run this cycle."""
+    """Which news findings justify spending an Opus deep run this cycle.
+
+    Materiality still escalates on its own — a saturated FOMC decision moves the tape whether or
+    not it is a scoop. The sentiment-only path does not: loud tone on a story ten outlets have
+    already run is the definition of news that is in the price, and paying for a deep run on it
+    is how the budget gets spent on nothing.
+    """
     reasons = []
     for t, info in (intel.get("tickers") or {}).items():
         mat = info.get("materiality")
         sent = info.get("sentiment") or 0
+        crowd = info.get("crowding") or "mixed"
+        tag = f", {crowd}" + (f" via {info['source_tier']}" if info.get("source_tier") else "")
         if mat in config.NEWS_ESCALATE_MATERIALITY and info.get("is_fresh"):
             reasons.append(f"{t}: {mat}-materiality {info.get('catalyst')} news "
-                           f"(sentiment {sent:+d}) — {info.get('summary','')[:90]}")
-        elif abs(sent) >= config.NEWS_ESCALATE_ABS_SENTIMENT and info.get("is_fresh"):
-            reasons.append(f"{t}: strong news sentiment {sent:+d} ({info.get('catalyst')})")
+                           f"(sentiment {sent:+d}{tag}) — {info.get('summary','')[:90]}")
+        elif (abs(sent) >= config.NEWS_ESCALATE_ABS_SENTIMENT and info.get("is_fresh")
+              and crowd != "saturated"):
+            reasons.append(f"{t}: strong news sentiment {sent:+d} ({info.get('catalyst')}{tag})")
     if abs(intel.get("macro_sentiment") or 0) >= 70:
         reasons.append(f"macro news sentiment {intel['macro_sentiment']:+d}")
     return reasons
@@ -274,6 +368,17 @@ def news_for_ticker(intel, ticker):
 def run(tickers, calendar=None, use_claude=True):
     """Convenience: scrape + analyze in one call. Returns the intel dict."""
     tickers = list(dict.fromkeys(tickers))[:config.NEWS_TICKERS_PER_CYCLE]
-    headlines = gather_headlines(tickers)
-    macro = gather_macro_headlines()
-    return analyze(headlines, macro, calendar, use_claude=use_claude)
+    # One store for the whole cycle: a macro story that also ran under a ticker must count as
+    # two outlets on the same story, not as two unrelated first sightings.
+    store = news_quality.load_store()
+    stats = {}
+    headlines = gather_headlines(tickers, store=store, stats=stats)
+    macro = gather_macro_headlines(store=store)
+    news_quality.save_store(store)
+    intel = analyze(headlines, macro, calendar, use_claude=use_claude)
+    intel["news_quality"] = stats
+    # The scraped, scored, ranked headlines — kept so the caller can attach them to the market
+    # snapshots instead of scraping the same names a second time. Superset of headlines_used:
+    # these are everything that survived the quality gate, not only what Haiku chose to cite.
+    intel["headlines"] = headlines
+    return intel
