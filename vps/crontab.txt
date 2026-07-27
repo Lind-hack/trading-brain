@@ -71,4 +71,24 @@ LOGD=/root/signal-deck-logs
 5 12 * * 1-5         flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest >> $LOGD/brain-digest.log 2>&1'
 5 13 * * 1-5         flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest >> $LOGD/brain-digest.log 2>&1'
 
-# No overnight job and nothing on Saturday or Sunday. The market is shut, so the brain is too.
+# ── the crypto book — the one track that does run overnight and at weekends ─────
+# Separate lock, separate log, separate ledger (brain-memory/PORTFOLIO_CRYPTO.json). It shares
+# nothing with the jobs above except the box, so a stuck equity cycle cannot hold it up and vice
+# versa — /tmp/brain-crypto.lock is its own file on purpose.
+#
+# --crypto-cycle routes around market_hours.gate() and calls crypto_gate() itself, which answers
+# "always". That is the whole point: this venue has no bell, no weekend and no holiday, and every
+# hour the equity book is shut is an hour this one still trades.
+#
+# It has to run through the night for a second reason, and it is the expensive one to get wrong:
+# the scalp time stop only fires inside a cycle. A 24-hour scalp filled at 03:00 UTC expires at
+# 03:00 UTC the next day, and if nothing is running at 03:00 there is no code path anywhere in
+# this system that closes it. Thinning this schedule overnight quietly turns a one-day trade back
+# into an open-ended one.
+#
+# :18/:48 keeps it clear of the stock engine (:07/:22/:37/:52) and of the brain's own equity
+# cycle (:03/:33). Deep run only when the screener or the Haiku news pass fires, same as equities.
+18,48 * * * *        flock -n /tmp/brain-crypto.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --crypto-cycle >> $LOGD/brain-crypto.log 2>&1'
+
+# Nothing else runs overnight or at the weekend: for the equity book the market is shut, so the
+# brain is too.

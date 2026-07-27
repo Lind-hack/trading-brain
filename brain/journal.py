@@ -197,7 +197,15 @@ def _grade(exit_rec):
     if opened and closed:
         held_days = round((closed - opened).total_seconds() / 86400, 2)
         lo, hi = _EXPECTED_DAYS.get(ttype, (None, None))
-        if lo is not None:
+        if exit_rec.get("exit_kind") == "time_stop":
+            # The harness closed this one *because* the horizon ran out, so grading the hold
+            # against the horizon is circular — and a 24h crypto scalp lands at ~1.02 days, which
+            # would otherwise be flagged as "held longer than a SCALP should run" by the very
+            # mechanism that enforced the window. What is worth grading is the result.
+            notes.append(f"Held {held_days}d — closed by the scalp time stop, so the horizon was "
+                         f"honoured. Grade the setup, not the hold: "
+                         f"{pnl:+.1f}% at the moment the clock ran out.")
+        elif lo is not None:
             if held_days > hi:
                 notes.append(f"Held {held_days}d — longer than a {ttype} should run "
                              f"(expected ≤{hi}d). Either the label or the exit was wrong.")

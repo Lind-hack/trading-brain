@@ -15,6 +15,9 @@ def _score_ticker(snap):
     score, reasons = 0, []
     ind = snap.get("indicators", {}) or {}
     patterns = snap.get("patterns", []) or []
+    # The bar is the venue's, taken from the symbol. RSI 70 is a Tuesday on a trending token, so
+    # scoring crypto against the equity bands would flag all three every cycle.
+    th = config.thresholds_for(snap.get("ticker"))
 
     for p in patterns:
         w = p.get("strength", 1)
@@ -23,15 +26,15 @@ def _score_ticker(snap):
 
     rsi = ind.get("rsi14_d")
     if rsi is not None:
-        if rsi >= config.SCREEN_RSI_HOT:
+        if rsi >= th.rsi_hot:
             score += 1
             reasons.append(f"RSI hot {rsi}")
-        elif rsi <= config.SCREEN_RSI_COLD:
+        elif rsi <= th.rsi_cold:
             score += 1
             reasons.append(f"RSI cold {rsi}")
 
     vol = ind.get("vol_vs_avg")
-    if vol is not None and vol >= config.SCREEN_VOL_MULT:
+    if vol is not None and vol >= th.vol_mult:
         score += 1
         reasons.append(f"volume {vol}x average")
 

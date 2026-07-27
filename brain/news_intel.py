@@ -67,6 +67,15 @@ def gather_headlines(tickers, per_ticker=None, max_workers=6, store=None, with_s
 
     def _job(t):
         items = []
+        if config.is_crypto(t):
+            # All three equity sources are dead ends for a token: there is no EDGAR filer behind
+            # BTC, Finnhub's company-news endpoint keys on an equity symbol and returns nothing,
+            # and "BTC-USD stock" as a search string returns coverage of the ETFs rather than of
+            # the asset. So the crypto track runs on one well-aimed Google News query instead of
+            # three broad ones, and asks it for the full candidate count since nothing else feeds
+            # the quality scorer.
+            query = config.CRYPTO_NEWS_QUERIES.get(t) or f"{config.label_for(t)} crypto"
+            return t, collect.google_news(query, limit=candidates)
         if with_sec:
             items += collect.sec_filings(t, days=4, limit=3)
         items += collect.finnhub_news(t, days=3, limit=candidates)
@@ -99,15 +108,31 @@ def gather_headlines(tickers, per_ticker=None, max_workers=6, store=None, with_s
     return out
 
 
-def gather_macro_headlines(limit=8, store=None):
-    """Market-wide headlines: what is moving the whole tape right now."""
-    queries = ["stock market today", "Federal Reserve interest rates", "S&P 500 outlook"]
+_MACRO_QUERIES = {
+    "stock": ["stock market today", "Federal Reserve interest rates", "S&P 500 outlook"],
+    # The crypto tape has its own macro, and it is not the S&P's. What moves all three tokens at
+    # once is ETF flow, regulation, and a large liquidation cascade — none of which appear in an
+    # equity macro sweep. Rates stay on the list because the dollar and real yields still set the
+    # risk backdrop this book trades inside.
+    "crypto": ["crypto market today", "bitcoin ETF flows", "crypto regulation SEC",
+               "crypto liquidations"],
+}
+
+
+def gather_macro_headlines(limit=8, store=None, venue="stock"):
+    """Market-wide headlines: what is moving the whole tape right now.
+
+    `venue` picks which tape. The store key is separated with it, so a crypto sweep's outlet counts
+    never inflate the crowding score of an equity headline covering the same story.
+    """
+    queries = _MACRO_QUERIES.get(venue, _MACRO_QUERIES["stock"])
     items = []
     for q in queries:
         items += collect.google_news(q, limit=limit)
     own_store = store is None
     store = news_quality.load_store() if own_store else store
-    scored = news_quality.observe(items, ticker="_MACRO", store=store)
+    scored = news_quality.observe(items, ticker="_MACRO" if venue == "stock" else f"_MACRO_{venue.upper()}",
+                                  store=store)
     kept, _ = news_quality.rank(scored, limit=limit)
     if own_store:
         news_quality.save_store(store)
@@ -370,15 +395,19 @@ def news_for_ticker(intel, ticker):
     return info.get("headlines_used") or []
 
 
-def run(tickers, calendar=None, use_claude=True):
-    """Convenience: scrape + analyze in one call. Returns the intel dict."""
+def run(tickers, calendar=None, use_claude=True, venue="stock"):
+    """Convenience: scrape + analyze in one call. Returns the intel dict.
+
+    `venue` only picks the macro sweep's queries. The per-ticker scrape needs no such flag: it
+    already dispatches on the symbol, so a mixed list would be handled correctly either way.
+    """
     tickers = list(dict.fromkeys(tickers))[:config.NEWS_TICKERS_PER_CYCLE]
     # One store for the whole cycle: a macro story that also ran under a ticker must count as
     # two outlets on the same story, not as two unrelated first sightings.
     store = news_quality.load_store()
     stats = {}
     headlines = gather_headlines(tickers, store=store, stats=stats)
-    macro = gather_macro_headlines(store=store)
+    macro = gather_macro_headlines(store=store, venue=venue)
     news_quality.save_store(store)
     intel = analyze(headlines, macro, calendar, use_claude=use_claude)
     intel["news_quality"] = stats

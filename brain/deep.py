@@ -95,7 +95,8 @@ def build_packet(mode, market, screen_result, calendar, portfolio_summary,
 
 def _load_prompt(mode):
     name = {"pre": "anchor_pre", "mid": "anchor_mid", "close": "anchor_close",
-            "cycle": "cycle", "weekly": "weekly_review", "research": "research"}.get(mode, "cycle")
+            "cycle": "cycle", "weekly": "weekly_review", "research": "research",
+            "crypto": "crypto_cycle"}.get(mode, "cycle")
     p = config.REPO_ROOT / "prompts" / f"{name}.md"
     if p.exists():
         return p.read_text(encoding="utf-8")
@@ -108,11 +109,35 @@ _load_prompt.DEFAULT = (
 )
 
 
+_CRYPTO_VENUE_NOTE = (
+    "THIS RUN IS THE CRYPTO BOOK. It is a separate paper account from the equity one, with its\n"
+    "own cash, its own positions and its own rules. Never propose an equity ticker here, and never\n"
+    "reason about the crypto book's exposure using the stock book's positions.\n"
+    "  - The venue never closes. There is no open, no close, no half-day and no weekend, so\n"
+    "    'wait for the bell' and 'no time to work before the close' are not available reasons.\n"
+    "    The day rolls at 00:00 UTC and so does every daily candle you are shown.\n"
+    "  - `fundamentals` is absent for every token and always will be. A token has no earnings\n"
+    "    date, no margin and no Form 4. Its absence is not a missing data point to note or work\n"
+    "    around — the concept does not apply. LONG_TERM here rests on the tape, on flows and on\n"
+    "    the news, and `thesis_id` may be null.\n"
+    "  - The stops are wider because the asset is. This book cuts at -15% and trails 20%, so an\n"
+    "    equity-width -7% stop on BTC is not caution, it is an exit on ordinary noise.\n"
+    "  - SCALP is enforced here, not merely labelled. Tag a signal SCALP and the harness will\n"
+    "    close it automatically within 24 hours of the fill, at whatever the tape says — winner,\n"
+    "    loser or flat — and it runs on a tighter -6% cut, a 7% trail and a smaller position than\n"
+    "    a swing. Use it when the idea genuinely resolves inside a day. Do NOT tag a multi-day\n"
+    "    thesis SCALP: it will be closed a day in regardless of how right it was going to be.\n"
+    "    Equally, do not label a genuine intraday momentum trade SHORT_TERM to dodge the clock.\n"
+    "    `holding_period` must match: hours for a SCALP, days-weeks for SHORT_TERM.\n\n"
+)
+
+
 def build_prompt(mode, packet):
     template = _load_prompt(mode)
     return (
         f"{template}\n\n"
-        "You are tier 2 of a two-model pipeline. Tier 1 (Haiku 4.5) already read the news; its\n"
+        + (_CRYPTO_VENUE_NOTE if mode == "crypto" else "")
+        + "You are tier 2 of a two-model pipeline. Tier 1 (Haiku 4.5) already read the news; its\n"
         "findings are in packet.news_intel. Only cite headlines that appear there — anything else\n"
         "is fabrication. If news_intel.degraded is true, no AI read the news this cycle: say so\n"
         "and lower confidence accordingly.\n"

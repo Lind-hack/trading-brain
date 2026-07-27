@@ -226,6 +226,17 @@ def daily_bars(ticker, intraday=None, period="1y", now_et=None):
     """Today's daily frame, from cache when the cache can be made current, else from the wire."""
     if not config.BARS_CACHE:
         return fetch_daily(ticker, period=period)
+    # Crypto goes straight to the wire. The cache below is built on the ET trading day: it splices
+    # today's intraday bars into today's daily bar and, failing that, trusts yesterday's frame
+    # whenever `market_hours.is_open()` says the session is shut. Both halves are wrong for a token.
+    # Yahoo stamps crypto daily bars at 00:00 UTC, which is the *previous* ET date, so the splice
+    # would append a second bar for the same day instead of replacing it and the frame would grow a
+    # phantom bar per cycle. Worse, the equity market is shut for most of crypto's week, so the
+    # fallback would serve a frozen price to a book whose stops run 24/7 — a stale quote there is
+    # not a slow cache, it is a wrong risk decision. Three tickers on the wire per cycle is the
+    # cheaper side of that trade by a wide margin.
+    if config.is_crypto(ticker):
+        return fetch_daily(ticker, period=period)
     now_et = now_et or datetime.now(config.ET)
     today = now_et.date()
 
@@ -295,6 +306,9 @@ def detect_patterns(ticker, daily, intraday):
     patterns = []
     if daily is None or len(daily) < 30:
         return patterns
+    # Venue-specific bars. Dispatched on the symbol so a crypto snapshot can never be measured
+    # against the equity numbers — a 1% "gap" is ordinary drift on a token that never closes.
+    th = config.thresholds_for(ticker)
 
     close = daily["Close"]
     price = float(close.iloc[-1])
@@ -306,7 +320,7 @@ def detect_patterns(ticker, daily, intraday):
     vol_mult = (last_vol / avg_vol) if avg_vol else 0.0
 
     # 1. N-day breakout / breakdown with volume confirmation
-    lb = config.SCREEN_BREAKOUT_LOOKBACK
+    lb = th.breakout_lookback
     prior_high = float(daily["High"].iloc[-lb - 1:-1].max())
     prior_low = float(daily["Low"].iloc[-lb - 1:-1].min())
     if price > prior_high:
@@ -314,14 +328,14 @@ def detect_patterns(ticker, daily, intraday):
             "name": f"{lb}-day breakout",
             "detail": f"close {price:.2f} > prior {lb}d high {prior_high:.2f}"
                       + (f" on {vol_mult:.1f}x volume" if vol_mult else ""),
-            "bias": "bullish", "strength": 3 if vol_mult >= config.SCREEN_VOL_MULT else 2,
+            "bias": "bullish", "strength": 3 if vol_mult >= th.vol_mult else 2,
         })
     elif price < prior_low:
         patterns.append({
             "name": f"{lb}-day breakdown",
             "detail": f"close {price:.2f} < prior {lb}d low {prior_low:.2f}"
                       + (f" on {vol_mult:.1f}x volume" if vol_mult else ""),
-            "bias": "bearish", "strength": 3 if vol_mult >= config.SCREEN_VOL_MULT else 2,
+            "bias": "bearish", "strength": 3 if vol_mult >= th.vol_mult else 2,
         })
 
     # 2. Gap up / down vs prior close
@@ -329,7 +343,7 @@ def detect_patterns(ticker, daily, intraday):
         prev_close = float(close.iloc[-2])
         today_open = float(daily["Open"].iloc[-1])
         gap = (today_open - prev_close) / prev_close * 100 if prev_close else 0.0
-        if abs(gap) >= config.SCREEN_GAP_PCT:
+        if abs(gap) >= th.gap_pct:
             patterns.append({
                 "name": f"gap {'up' if gap > 0 else 'down'}",
                 "detail": f"{gap:+.1f}% open gap ({prev_close:.2f} -> {today_open:.2f})",
@@ -389,13 +403,13 @@ def detect_patterns(ticker, daily, intraday):
     # 6. 52-week-high / low proximity
     hi52 = float(daily["High"].tail(252).max())
     lo52 = float(daily["Low"].tail(252).min())
-    if hi52 and (hi52 - price) / hi52 <= config.SCREEN_52W_PROXIMITY:
+    if hi52 and (hi52 - price) / hi52 <= th.prox_52w:
         patterns.append({
             "name": "near 52-week high",
             "detail": f"{price:.2f} within {(hi52-price)/hi52*100:.1f}% of 52w high {hi52:.2f}",
             "bias": "bullish", "strength": 1,
         })
-    elif lo52 and (price - lo52) / lo52 <= config.SCREEN_52W_PROXIMITY:
+    elif lo52 and (price - lo52) / lo52 <= th.prox_52w:
         patterns.append({
             "name": "near 52-week low",
             "detail": f"{price:.2f} within {(price-lo52)/lo52*100:.1f}% of 52w low {lo52:.2f}",
@@ -974,9 +988,20 @@ def collect_ticker(ticker, with_news=False, with_fundamentals=False):
         "patterns": detect_patterns(ticker, daily, intraday if not intraday.empty else None),
     }
     if with_news:
-        company = ticker
-        snap["news"] = (finnhub_news(ticker) or google_news(f"{company} stock", limit=5))
-    if with_fundamentals:
+        if config.is_crypto(ticker):
+            # Finnhub company-news is keyed on an equity symbol and returns nothing for a token,
+            # so there is no fallback here — Google News RSS is the crypto track's only feed.
+            snap["news"] = google_news(config.CRYPTO_NEWS_QUERIES.get(ticker)
+                                       or f"{config.label_for(ticker)} crypto", limit=6)
+        else:
+            company = ticker
+            snap["news"] = (finnhub_news(ticker) or google_news(f"{company} stock", limit=5))
+    if with_fundamentals and not config.is_crypto(ticker):
+        # A token has no earnings date, no margin, no insider Form 4 and no analyst spread. The
+        # field is left *absent* rather than filled with zeros or nulls, because CLAUDE.md tells the
+        # analyst "a missing field could not be computed, it is not a zero" — and a zeroed
+        # fundamentals block would read as a company with no revenue and no growth, which is a
+        # bearish fact about a stock rather than the truth, which is that the concept does not apply.
         snap["fundamentals"] = finnhub_fundamentals(ticker)
     return snap
 
@@ -995,3 +1020,21 @@ def collect_market(tickers=None, with_news=False, with_fundamentals=False, max_w
 
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         return dict(ex.map(_job, tickers))
+
+
+def collect_crypto_market(with_news=False, max_workers=4):
+    """Snapshot the crypto universe plus its own market context.
+
+    Deliberately a thin wrapper rather than a flag on collect_market: the two venues differ in what
+    context they need, not just in which tickers they hold. BTC and ETH are the crypto tape's own
+    regime indicators — SUI does not trade independently of them in a risk-off hour, so they appear
+    twice, once as context and once as candidates. SPY/QQQ/ES/NQ are dropped because equity index
+    futures say little about a Sunday-morning token move, while DXY and the VIX stay: crypto still
+    reacts to the dollar and to risk appetite, and that cross-asset read is exactly what a
+    token-only packet would miss.
+
+    `with_fundamentals` is not a parameter at all. There is nothing to fetch.
+    """
+    tickers = list(dict.fromkeys(config.CRYPTO_MARKET_CONTEXT + config.CRYPTO_TICKERS))
+    return collect_market(tickers, with_news=with_news, with_fundamentals=False,
+                          max_workers=max_workers)

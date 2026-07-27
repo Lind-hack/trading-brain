@@ -8,6 +8,7 @@ Two-model pipeline, every 30 minutes:
 
 Modes:
   --cycle                 collect + news read + screen; deep-analyze only if something fires
+  --crypto-cycle          the same, for the 24/7 crypto book (separate ledger, own gate)
   --anchor {pre,mid,close} scheduled deep run (always escalates)
   --research TICKER       on-demand deep dive into one ticker (news + fundamentals)
   --weekly-review         weekly recap: performance, every trade, every signal, accuracy changes
@@ -16,10 +17,15 @@ Modes:
   --no-claude             skip both model tiers (deterministic fallback only)
   --ignore-market-hours   bypass the session gate (manual backfills only)
 
-Every mode passes through brain/market_hours.gate() before it does anything. The market is the
-schedule: no weekends, no holidays, nothing outside the session, and the close and weekly runs
+Every *equity* mode passes through brain/market_hours.gate() before it does anything. The market is
+the schedule: no weekends, no holidays, nothing outside the session, and the close and weekly runs
 wait for the real close (13:00 ET on a half-day). Cron only proposes a time. The Sunday digest
 is gone — its week-ahead calendar is now a section of the Friday recap.
+
+`--crypto-cycle` is the exception, and deliberately so: its venue has no bell, so it routes around
+the equity gate entirely and uses market_hours.crypto_gate() from inside do_crypto_cycle. Putting
+it through the session gate would stop it at 16:00 ET and all weekend — which is most of the tape
+it exists to trade, and would leave a 24-hour scalp clock with nothing running to expire it.
 
 Paper trading only. No real-money orders are ever placed: gate-approved trades are mirrored
 to an Alpaca PAPER account (brain/broker.py, paper host hardcoded) and the JSON ledger stays
@@ -85,6 +91,27 @@ def _news_watchlist(market, screen_result, portfolio):
     # Whatever the reserve did not need goes back to the triggers rather than going unused.
     out += [t for t in triggered if t not in out][:limit - len(out)]
     return out[:limit]
+
+
+def _crypto_news_watchlist(screen_result, portfolio):
+    """Which tokens Haiku reads on a crypto cycle.
+
+    Far simpler than the equity version, and deliberately so: that one rations a ~50-name sweep
+    down to a handful and reserves places so a news-first idea is not crowded out by the screener.
+    Here the universe is four tokens and the cycle budget is larger than that, so there is nothing
+    to ration — every token gets read every cycle. Held names lead only so the ordering matches the
+    equity path for anyone reading both logs.
+    """
+    seen, out = set(), []
+    for t in list(portfolio.held_tickers()) + \
+            [x.get("ticker") for x in screen_result.get("triggers", [])] + \
+            list(config.CRYPTO_TICKERS):
+        # `is_crypto` rather than a MARKET_CONTEXT exclusion list: DXY and the VIX ride along in
+        # the crypto packet as context and there is no headline sweep to run on either of them.
+        if t and t not in seen and config.is_crypto(t):
+            seen.add(t)
+            out.append(t)
+    return out
 
 
 def _attach_news(market, intel, limit=4):
@@ -257,7 +284,8 @@ def run_analysis(mode, market, screen_result, calendar, portfolio, args, focus=N
         return thesis.annotate_signals(
             deep.fallback_analysis(screen_result, market, news_intel=intel))
     try:
-        prompt = deep.build_prompt(mode if mode in ("pre", "mid", "close") else "cycle", packet)
+        prompt = deep.build_prompt(
+            mode if mode in ("pre", "mid", "close", "crypto") else "cycle", packet)
         # Bind each LONG_TERM call to the board entry it claims to rest on — an unanchored one
         # is a momentum trade wearing an investment label, and the email says so.
         return thesis.annotate_signals(deep.run_claude(prompt, model=config.CLAUDE_DEEP_MODEL))
@@ -407,6 +435,82 @@ def do_cycle(args, mode="cycle", force=False):
                   prices, persist)
     psum = portfolio.summary(prices)
     _emit(analysis, screen_result, psum, mode, now_et, escalated, exits, applied, args,
+          intel=intel)
+    return 0
+
+
+def do_crypto_cycle(args, force=False):
+    """The crypto book's cycle — the same pipeline, a different venue, a different account.
+
+    Written as its own function rather than a `venue=` flag through do_cycle() because almost
+    every line differs in a way a flag would have to branch on anyway: a different portfolio, a
+    different collector, a different watchlist, no fundamentals, no broker mirror, no session
+    gate. A flag would read as "mostly the same" and the one thing that must never happen here is
+    a crypto run silently picking up an equity default.
+
+    Three deliberate omissions, each with a reason:
+      * No broker mirror. Alpaca paper does not list SUI at all and spells the others `BTC/USD`,
+        so a mirror attempt would half-succeed — two of four tokens filled — and the ledger would
+        stop matching the paper account. The JSON ledger is the whole truth for this book.
+      * No calendar rows into the events memory. CPI is one event; the equity cycle already files
+        it. See memory.log_events(with_calendar=...).
+      * No fundamentals. There are none.
+    """
+    now_et = datetime.now(config.ET)
+    persist = not args.dry_run
+    portfolio = Portfolio(mirror=False, rules=config.CRYPTO_RULES)
+    market = collect.collect_crypto_market(with_news=False)
+    prices = _price_lookup(market)
+    # The macro calendar still matters — CPI and the FOMC move the dollar, and the dollar moves
+    # this book — so it is read into the packet. It is only the *memory* write that is skipped.
+    calendar = collect.forexfactory_calendar()
+
+    if persist:
+        memory.backfill_returns(prices)
+        logged = memory.log_events(market, calendar, with_calendar=False)
+        print(f"[memory] logged {logged} crypto event(s)")
+
+    screen_result = screener.screen(market, calendar=calendar,
+                                    held_tickers=portfolio.held_tickers(), force=force)
+
+    watchlist = _crypto_news_watchlist(screen_result, portfolio)
+    intel = news_intel.run(watchlist, calendar=calendar, use_claude=not args.no_claude,
+                           venue="crypto")
+    _attach_news(market, intel)
+    news_reasons = news_intel.escalation_reasons(intel)
+    if news_reasons:
+        screen_result["why"] = list(screen_result.get("why", [])) + news_reasons
+
+    escalated = bool(screen_result["escalate"] or news_reasons)
+    allowed, why = market_hours.crypto_gate("cycle", now_et)
+    print(f"[crypto] {market_hours.crypto_describe(now_et)} — {why}")
+    print(f"[screen] escalate={escalated} :: {'; '.join(screen_result['why']) or 'quiet'}")
+
+    analysis = None
+    applied, opened = [], []
+    # Mechanical exits first, every cycle, escalation or not. This is where the scalp time stop
+    # fires, and it is the reason the crypto cron has to run through the night: a 24-hour clock
+    # started at 03:00 UTC expires at 03:00 UTC, and nothing else in this system will close it.
+    exits = mark_exits(portfolio, prices, persist=persist)
+    if escalated and allowed:
+        analysis = run_analysis("crypto", market, screen_result, calendar, portfolio, args,
+                                focus=[t for t in config.CRYPTO_TICKERS if t in market],
+                                with_fundamentals=False, intel=intel)
+        # Entries are always allowed on this venue, so the suppression check has a live executor
+        # on every cycle — unlike the equity path, where an out-of-session repeat stays hypothetical.
+        suppressed = dedupe.apply(
+            analysis, can_execute=lambda a: portfolio.validate_action(a, prices)[0])
+        if suppressed:
+            print(f"[dedupe] {dedupe.summarize(suppressed)}")
+            if persist:
+                memory.log_suppressed(suppressed, "crypto", prices=prices)
+        applied, opened = apply_actions(analysis, portfolio, prices, persist=persist,
+                                        mode="crypto")
+
+    record_trades(portfolio, portfolio.exits_this_run, opened, analysis, intel, now_et,
+                  prices, persist)
+    psum = portfolio.summary(prices)
+    _emit(analysis, screen_result, psum, "crypto", now_et, escalated, exits, applied, args,
           intel=intel)
     return 0
 
@@ -777,6 +881,8 @@ def do_digest(args):
 
 def _mode_of(args):
     """The gate's name for what this invocation is — the anchor's own name, not 'anchor'."""
+    if args.crypto_cycle:
+        return "crypto"
     if args.anchor:
         return args.anchor
     if args.research:
@@ -792,6 +898,8 @@ def main():
     ap = argparse.ArgumentParser(description="Market Brain — paper-trading analysis engine")
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--cycle", action="store_true", help="collect+screen, deep-analyze only if flagged")
+    g.add_argument("--crypto-cycle", action="store_true", dest="crypto_cycle",
+                   help="same, for the 24/7 crypto book — separate ledger, no session gate")
     g.add_argument("--anchor", choices=["pre", "mid", "close"], help="scheduled deep run")
     g.add_argument("--research", metavar="TICKER", help="on-demand deep dive into one ticker")
     g.add_argument("--weekly-review", action="store_true", dest="weekly_review")
@@ -807,8 +915,12 @@ def main():
     # One chokepoint for every mode. Cron proposes a time; this decides whether the market is
     # actually open for it. Nothing below runs on a weekend, a holiday, or outside the session,
     # and the close/weekly runs wait for the *real* close rather than a fixed UTC hour.
+    #
+    # The crypto cycle is routed around it, not exempted from gating: it runs
+    # market_hours.crypto_gate() itself, which knows that 03:00 on a Sunday is a normal trading
+    # hour there. The equity gate would refuse every one of those runs.
     mode = _mode_of(args)
-    if not args.ignore_market_hours:
+    if not args.ignore_market_hours and not args.crypto_cycle:
         allowed, why = market_hours.gate(mode)
         if not allowed:
             now_et = datetime.now(config.ET)
@@ -828,6 +940,8 @@ def main():
     try:
         if args.cycle:
             return do_cycle(args, mode="cycle", force=False)
+        if args.crypto_cycle:
+            return do_crypto_cycle(args)
         if args.anchor:
             rc = do_cycle(args, mode=args.anchor, force=True)
             if rc == 0:

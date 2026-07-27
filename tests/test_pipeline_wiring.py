@@ -163,7 +163,8 @@ def test_the_news_pass_hands_forward_both_its_scores_and_its_headlines(monkeypat
     monkeypatch.setattr(news_intel, "gather_headlines",
                         lambda t, store=None, stats=None: (stats.update({"kept": 1, "dropped": 4}),
                                                            scraped)[1])
-    monkeypatch.setattr(news_intel, "gather_macro_headlines", lambda store=None: [])
+    monkeypatch.setattr(news_intel, "gather_macro_headlines",
+                        lambda store=None, venue="stock": [])
     monkeypatch.setattr(news_intel, "analyze",
                         lambda h, m, c, use_claude=True: {"tickers": {}, "degraded": False})
 

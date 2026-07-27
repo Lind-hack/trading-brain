@@ -141,7 +141,12 @@ def push(analysis, screen_result, portfolio_summary, mode, now_et, escalated):
         ok = False
     if portfolio_summary:
         ok = _insert("sd_portfolio",
-                     {"ts": ts, "equity": portfolio_summary.get("equity"),
+                     {"ts": ts,
+                      # Two books push into this table. Stamping which one wrote the row is what
+                      # keeps the dashboard's equity curve from alternating between two unrelated
+                      # $10,000 balances every half hour.
+                      "book": portfolio_summary.get("book", "stock"),
+                      "equity": portfolio_summary.get("equity"),
                       "cash": portfolio_summary.get("cash"),
                       "total_return_pct": portfolio_summary.get("total_return_pct"),
                       "n_open": portfolio_summary.get("n_open"),

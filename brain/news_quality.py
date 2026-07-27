@@ -51,12 +51,18 @@ _TIER1 = (
     "business wire", "businesswire", "pr newswire", "prnewswire", "globe newswire",
     "globenewswire", "the information", "nikkei", "barron", "associated press", "ap news",
     "digitimes", "axios", "semafor", "politico", "the economist",
+    # Crypto's own first-hand desks. These break the ETF-flow, exchange and regulatory stories days
+    # before the equity wires pick them up, which is exactly the under-covered end of the tape the
+    # crypto book is meant to trade. Unlisted they default to tier 2 and rank below a CNBC rewrite
+    # of their own reporting.
+    "coindesk", "the block", "theblock.co", "blockworks", "protos", "dl news", "dlnews",
 )
 _TIER2 = (
     "cnbc", "yahoo finance", "marketwatch", "investor's business daily", "forbes", "fortune",
     "the verge", "techcrunch", "ars technica", "tom's hardware", "engadget", "the register",
     "bbc", "the guardian", "new york times", "washington post", "business insider", "cnn",
     "stat news", "endpoints news", "electrek", "protocol", "sherwood", "quartz", "time",
+    "cointelegraph", "decrypt", "the defiant",
 )
 _TIER3 = (
     "motley fool", "fool.com", "zacks", "simply wall st", "investorplace", "24/7 wall st",
@@ -65,6 +71,12 @@ _TIER3 = (
     "seeking alpha", "kiplinger", "gobankingrates", "aol", "msn", "nasdaq.com", "watcher.guru",
     "coinspeaker", "aiinvest", "ai invest", "quiverquant", "stockstory", "bnn breaking",
     "analyst ratings", "sportskeeda", "financhill", "moneywise", "nypost", "dailymail",
+    # The crypto content-farm layer, which is bigger than the equity one and runs almost entirely
+    # on price-prediction posts. Unlisted these default to tier 2 and would fill a thin packet with
+    # rewrites of a story tier 1 already ran.
+    "bitcoinist", "newsbtc", "u.today", "utoday", "cryptopotato", "ambcrypto", "coingape",
+    "coinpedia", "beincrypto", "cryptoslate", "zycrypto", "cryptonews", "crypto news",
+    "the crypto basic", "coincodex", "cryptodaily", "bitcoinethereumnews",
 )
 
 TIER_NAMES = {0: "primary", 1: "wire/first-hand", 2: "mainstream", 3: "aggregator"}
@@ -100,6 +112,19 @@ _FARM_TITLE = (
     (r"\bmy\s+top\b", "opinion-bait"),
     (r"\bmotley\s+fool\b", "farm"),
     (r"\b(?:everything|what)\s+you\s+need\s+to\s+know\b", "explainer-filler"),
+    # Crypto's own clickbait grammar. Every pattern above misses it because none of it says
+    # "stock" — the format is a price target with no thesis attached to it.
+    (r"\bprice\s+(?:prediction|forecast)\b", "price-target-bait"),
+    # The numbered listicle again, in its crypto wording ("3 Coins Under $1 Including Sui"). The
+    # equity version above only knows the word "stocks". The lookahead spares a real story about a
+    # token unlock, which is a supply event worth reading and says "13.72M tokens unlock".
+    (r"\b\d{1,2}\s+(?:top\s+|best\s+|cheap\s+|hot\s+|hidden\s+)?"
+     r"(?:coins?|tokens?|altcoins?|cryptos?|memecoins?)\b"
+     r"(?!\s+(?:unlock|unlocked|were|will|worth|remain|entered|left))", "listicle"),
+    (r"\b(?:altcoins?|coins?|tokens?|cryptos?)\s+to\s+(?:buy|watch|hold|explode)\b", "listicle"),
+    (r"\b\d+0{1,3}x\s+(?:gains?|potential|returns?|move)\b", "hype"),
+    (r"\b(?:to\s+the\s+moon|moonshot|next\s+bitcoin|next\s+ethereum)\b", "hype"),
+    (r"\bcould\s+(?:hit|reach|surge\s+to|soar\s+to|explode\s+to)\s*\$", "price-target-bait"),
 )
 _FARM_RE = tuple((re.compile(p, re.I), tag) for p, tag in _FARM_TITLE)
 _FARM_PENALTY = 32
@@ -121,6 +146,9 @@ _STOP = {
     "was", "were", "with", "from", "after", "amid", "its", "it", "that", "this", "says", "said",
     "new", "stock", "stocks", "shares", "share", "inc", "corp", "corporation", "company", "com",
     "update", "report", "reports", "reported", "million", "billion", "may", "will", "has", "have",
+    # Crypto filler. "Bitcoin price" is in nearly every token headline, so leaving these in makes
+    # two unrelated stories look like the same story to the overlap test that merges duplicates.
+    "crypto", "cryptocurrency", "token", "coin", "price", "usd",
 }
 
 

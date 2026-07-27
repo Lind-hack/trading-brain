@@ -36,21 +36,16 @@ def usable_price(px):
     except (TypeError, ValueError):
         return False
 
-# Minimal sector map for the focus list; anything unmapped is "Other".
-SECTORS = {
-    "AAPL": "Tech", "MSFT": "Tech", "NVDA": "Semis", "AMD": "Semis", "AVGO": "Semis",
-    "TSM": "Semis", "MU": "Semis", "SMCI": "Semis", "ORCL": "Tech", "ADBE": "Tech",
-    "CRM": "Tech", "PANW": "Tech", "SNOW": "Tech", "PLTR": "Tech",
-    "TSLA": "Auto", "AMZN": "Consumer", "META": "Tech", "GOOGL": "Tech", "NFLX": "Media",
-    "DIS": "Media", "UBER": "Tech", "COIN": "Crypto", "HOOD": "Fintech", "MSTR": "Crypto",
-    "MARA": "Crypto", "SOFI": "Fintech", "JPM": "Banks", "GS": "Banks", "BAC": "Banks",
-    "XOM": "Energy", "CVX": "Energy", "CEG": "Energy", "LLY": "Health", "UNH": "Health",
-    "GE": "Industrial", "BA": "Industrial", "CAT": "Industrial",
-}
+# The sector map now lives with the rule set that owns it (config.STOCK_SECTORS), because a
+# second book needs a second map and a module-level dict cannot serve both. Re-exported here so
+# existing importers keep working.
+SECTORS = config.STOCK_SECTORS
 
 
 def sector_of(ticker):
-    return SECTORS.get(ticker, "Other")
+    """Stock-book sector lookup. Inside the class use `self.rules.sector_of` — the crypto book
+    maps each token to its own sector and must not be answered from the equity table."""
+    return config.STOCK_RULES.sector_of(ticker)
 
 
 # The reasoning the model attached to an entry, carried whole from proposal to exit.
@@ -69,10 +64,34 @@ ENTRY_META_FIELDS = (
 )
 
 
-def _default_state():
+def held_hours(pos, now=None):
+    """Wall-clock hours this position has been open, or None if it cannot be worked out.
+
+    None rather than 0 on a bad timestamp, deliberately: 0 reads as "just opened" and would make
+    the time stop hold a position forever, which is the exact failure it exists to prevent. None
+    is checked explicitly at every call site so an unparseable `opened` skips the time stop and
+    leaves the price stops to do their job.
+    """
+    opened = pos.get("opened")
+    if not opened:
+        return None
+    try:
+        ts = datetime.fromisoformat(str(opened).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=config.UTC)
+    now = now or datetime.now(config.UTC)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=config.UTC)
+    return (now - ts).total_seconds() / 3600.0
+
+
+def _default_state(rules=None):
+    rules = rules or config.STOCK_RULES
     return {
-        "cash": config.STARTING_CASH,
-        "starting_cash": config.STARTING_CASH,
+        "cash": rules.starting_cash,
+        "starting_cash": rules.starting_cash,
         "positions": {},          # ticker -> position dict
         "closed_trades": [],      # list of closed-trade records
         "sector_fails": {},       # sector -> consecutive-loss count
@@ -83,8 +102,11 @@ def _default_state():
 
 
 class Portfolio:
-    def __init__(self, path=None, mirror=True):
-        self.path = Path(path or (config.MEMORY_DIR / "PORTFOLIO.json"))
+    def __init__(self, path=None, mirror=True, rules=None):
+        # Which book this is. Everything gate-shaped reads from here rather than from the config
+        # module, so the crypto book cannot silently inherit an equity stop.
+        self.rules = rules or config.STOCK_RULES
+        self.path = Path(path or (config.MEMORY_DIR / self.rules.ledger))
         self.state = self._load()
         # Mirror gate-approved decisions into the Alpaca PAPER account. Off for --dry-run and
         # for tests, so the gate suite never needs network access.
@@ -102,12 +124,12 @@ class Portfolio:
         if self.path.exists():
             try:
                 st = json.loads(self.path.read_text(encoding="utf-8"))
-                base = _default_state()
+                base = _default_state(self.rules)
                 base.update(st)
                 return base
             except Exception:
                 pass
-        return _default_state()
+        return _default_state(self.rules)
 
     def save(self):
         self.state["updated"] = datetime.now(config.UTC).isoformat()
@@ -137,11 +159,14 @@ class Portfolio:
         return self.state["week_trades"].get(self._iso_week(), 0)
 
     # ── mechanical exits (run every cycle, independent of Claude) ─────────────
-    def mark_to_market(self, prices):
-        """Update last prices + high-water marks, then auto-exit on hard/trailing stops.
+    def mark_to_market(self, prices, now=None):
+        """Update last prices + high-water marks, then auto-exit on hard/trailing/time stops.
 
         Returns a list of {ticker, reason, pnl_pct, pnl_usd} for exits taken this pass.
+
+        `now` is injectable so the time stop can be tested without waiting a day for it.
         """
+        now = now or datetime.now(config.UTC)
         exits = []
         for t in list(self.state["positions"].keys()):
             pos = self.state["positions"][t]
@@ -152,30 +177,64 @@ class Portfolio:
             pos["high_water"] = max(pos.get("high_water", pos["entry"]), px)
             gain = (px - pos["entry"]) / pos["entry"] * 100
             peak_gain = (pos["high_water"] - pos["entry"]) / pos["entry"] * 100
+            scalp = self.rules.is_scalp(pos.get("trade_type"))
+            stop_pct = self.rules.stop_pct_for(pos.get("trade_type"))
 
-            # tighten trailing stop as the trade works
-            trail = config.TRAIL_BASE_PCT
-            if peak_gain >= 20:
-                trail = config.TRAIL_TIGHT_20
-            elif peak_gain >= 15:
-                trail = config.TRAIL_TIGHT_15
+            # Tighten the trailing stop as the trade works — but a scalp does not step through
+            # the +15%/+20% ladder at all. That ladder exists to let a multi-week winner breathe;
+            # on a position measured in hours it would hand back most of a move that took
+            # minutes to make. A scalp trails one tight distance from its peak, start to finish.
+            if scalp:
+                trail = self.rules.scalp_trail_pct
+            else:
+                trail = self.rules.trail_base_pct
+                if peak_gain >= 20:
+                    trail = self.rules.trail_tight_20
+                elif peak_gain >= 15:
+                    trail = self.rules.trail_tight_15
             pos["trail_pct"] = trail
             trail_level = pos["high_water"] * (1 - trail / 100)
             pos["stop_level"] = round(max(trail_level, pos.get("hard_stop", 0)), 2)
 
+            # The deadline written at entry wins over the current rules, so re-tuning the window
+            # never retroactively times out (or reprieves) a position already on the book.
+            max_hold = pos.get("scalp_max_hold_h") or self.rules.scalp_max_hold_h
+            held_h = held_hours(pos, now)
+            if scalp and held_h is not None:
+                # Surfaced on the position so the email, the dashboard and a human reading the
+                # ledger can all see the clock, not just the exit that eventually fires from it.
+                pos["scalp_hours_left"] = round(max(0.0, max_hold - held_h), 2)
+
             reason = kind = None
-            if gain <= config.HARD_STOP_PCT:
-                reason = f"hard stop hit ({gain:.1f}% ≤ {config.HARD_STOP_PCT}%)"
+            if gain <= stop_pct:
+                reason = f"hard stop hit ({gain:.1f}% ≤ {stop_pct}%)"
                 kind = "hard_stop"
             elif px <= trail_level:
                 reason = f"trailing stop hit ({trail:.0f}% from peak {pos['high_water']:.2f})"
                 kind = "trailing_stop"
+            elif scalp and held_h is not None and held_h >= max_hold:
+                # Checked last on purpose. If a scalp is both out of time and through its stop,
+                # the price stop is the more useful thing to read on the exit card and in the
+                # journal's grading — "it went against me" explains more than "time was up".
+                reason = (f"scalp time stop ({held_h:.1f}h held ≥ "
+                          f"{max_hold:g}h max, closed {gain:+.1f}%)")
+                kind = "time_stop"
             if reason:
                 exits.append(self._close(t, px, reason, kind=kind))
         self.state["equity_curve"].append(
             {"ts": datetime.now(config.UTC).isoformat(), "equity": self.equity(prices)})
         self.state["equity_curve"] = self.state["equity_curve"][-500:]
         return exits
+
+    def scalp_hours_left(self, pos, now=None):
+        """Hours before this scalp is force-closed, or None if it is not on the scalp clock."""
+        if not self.rules.is_scalp(pos.get("trade_type")):
+            return None
+        held_h = held_hours(pos, now)
+        if held_h is None:
+            return None
+        max_hold = pos.get("scalp_max_hold_h") or self.rules.scalp_max_hold_h
+        return round(max(0.0, max_hold - held_h), 2)
 
     def _mirror(self, kind, ticker, **kw):
         """Send one decision to the paper broker. Records the result; never raises."""
@@ -205,7 +264,7 @@ class Portfolio:
         pnl_usd = proceeds - pos["shares"] * pos["entry"]
         pnl_pct = (price - pos["entry"]) / pos["entry"] * 100
         self.state["cash"] += proceeds
-        sector = pos.get("sector", sector_of(ticker))
+        sector = pos.get("sector", self.rules.sector_of(ticker))
         # sector-fail bookkeeping: a loser increments, a winner resets
         if pnl_usd < 0:
             self.state["sector_fails"][sector] = self.state["sector_fails"].get(sector, 0) + 1
@@ -252,20 +311,21 @@ class Portfolio:
             eq = self.equity(prices)
             if kind == "BUY" and ticker in self.state["positions"]:
                 return False, f"{ticker} already held (use ADD)"
-            if kind == "BUY" and len(self.state["positions"]) >= config.MAX_POSITIONS:
-                return False, f"at position cap ({config.MAX_POSITIONS})"
-            if self.new_trades_this_week() >= config.MAX_NEW_TRADES_PER_WEEK and kind == "BUY":
+            if kind == "BUY" and len(self.state["positions"]) >= self.rules.max_positions:
+                return False, f"at position cap ({self.rules.max_positions})"
+            if self.new_trades_this_week() >= self.rules.max_new_trades_per_week and kind == "BUY":
                 return False, (f"weekly new-trade cap reached "
-                               f"({config.MAX_NEW_TRADES_PER_WEEK}/week)")
-            sector = sector_of(ticker)
-            if self.state["sector_fails"].get(sector, 0) >= config.SECTOR_FAIL_LIMIT:
+                               f"({self.rules.max_new_trades_per_week}/week)")
+            sector = self.rules.sector_of(ticker)
+            if self.state["sector_fails"].get(sector, 0) >= self.rules.sector_fail_limit:
                 return False, (f"sector '{sector}' locked out after "
-                               f"{config.SECTOR_FAIL_LIMIT} consecutive losers")
+                               f"{self.rules.sector_fail_limit} consecutive losers")
             price = action.get("entry") or prices.get(ticker)
             if not price:
                 return False, f"no price for {ticker}"
-            target_pct = min(action.get("target_weight_pct", config.DEFAULT_POSITION_PCT),
-                         config.MAX_POSITION_PCT)
+            tt = action.get("trade_type")
+            target_pct = min(action.get("target_weight_pct", self.rules.default_pct_for(tt)),
+                         self.rules.weight_cap_for(tt))
             target_usd = eq * target_pct / 100
             if kind == "ADD":
                 cur = self.state["positions"].get(ticker)
@@ -294,13 +354,21 @@ class Portfolio:
         # BUY / ADD
         price = action.get("entry") or prices.get(ticker)
         eq = self.equity(prices)
-        target_pct = min(action.get("target_weight_pct", config.DEFAULT_POSITION_PCT),
-                         config.MAX_POSITION_PCT)
+        trade_type = action.get("trade_type")
+        target_pct = min(action.get("target_weight_pct", self.rules.default_pct_for(trade_type)),
+                         self.rules.weight_cap_for(trade_type))
         target_usd = min(eq * target_pct / 100, self.state["cash"])
         shares = round(target_usd / price, 4)
         if shares <= 0:
             return False, "sized to zero shares"
-        hard_stop = action.get("stop") or round(price * (1 + config.HARD_STOP_PCT / 100), 2)
+        stop_pct = self.rules.stop_pct_for(trade_type)
+        hard_stop = action.get("stop") or round(price * (1 + stop_pct / 100), 2)
+        # A scalp's proposed stop is clamped to the scalp band. The model routinely attaches the
+        # swing-width stop it was thinking in to an idea it then labels SCALP, and an un-clamped
+        # −12% stop on a position meant to live four hours is the mislabel this whole block
+        # exists to stop. Wider than the band is refused; tighter than it is the model's call.
+        if self.rules.is_scalp(trade_type):
+            hard_stop = max(hard_stop, round(price * (1 + stop_pct / 100), 2))
         now = datetime.now(config.UTC).isoformat()
         # Reasoning snapshot taken at entry — the journal grades this against the exit.
         entry_meta = {k: action.get(k) for k in ENTRY_META_FIELDS}
@@ -316,8 +384,14 @@ class Portfolio:
         else:
             self.state["positions"][ticker] = {
                 "shares": shares, "entry": price, "opened": now,
-                "sector": sector_of(ticker), "high_water": price,
-                "hard_stop": hard_stop, "trail_pct": config.TRAIL_BASE_PCT,
+                "sector": self.rules.sector_of(ticker), "high_water": price,
+                "hard_stop": hard_stop,
+                "trail_pct": (self.rules.scalp_trail_pct if self.rules.is_scalp(trade_type)
+                              else self.rules.trail_base_pct),
+                # Written at entry so the deadline is a fact in the ledger rather than something
+                # recomputed from whatever the rules happen to say on the day it fires.
+                "scalp_max_hold_h": (self.rules.scalp_max_hold_h
+                                     if self.rules.is_scalp(trade_type) else None),
                 "last": price, "target": action.get("target"),
                 "broker": mirror, **entry_meta,
             }
@@ -361,6 +435,10 @@ class Portfolio:
                 "trade_type": pos.get("trade_type"), "confidence": pos.get("confidence"),
                 "holding_period": pos.get("holding_period"),
                 "opened": opened, "held_days": held_days,
+                # Recomputed here rather than read off the position: mark_to_market only writes
+                # it when a fresh quote arrived, and a scalp whose feed went quiet is exactly the
+                # one whose remaining clock a reader most needs to see.
+                "scalp_hours_left": self.scalp_hours_left(pos),
             })
         closed = self.state["closed_trades"]
         wins = [c for c in closed if c["pnl_usd"] > 0]
@@ -375,6 +453,12 @@ class Portfolio:
             "sector_fails": {k: v for k, v in self.state["sector_fails"].items() if v},
             "broker": broker.health(),
             "broker_events": self.broker_events,
+            # Which book this is, and its own caps. The email and the dashboard used to read the
+            # module-level equity constants, so a crypto summary rendered "3/8 positions" against
+            # limits that book has never been subject to.
+            "book": self.rules.name,
+            "max_positions": self.rules.max_positions,
+            "max_new_trades_per_week": self.rules.max_new_trades_per_week,
         }
 
     def realized_pnl(self):

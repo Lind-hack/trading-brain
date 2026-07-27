@@ -18,7 +18,7 @@ from email.mime.text import MIMEText
 from . import config
 
 _TYPE_META = {
-    "SCALP": ("⚡ SCALP", "#f59e0b", "minutes–hours", "Quick in-and-out on momentum. Small size, tight stop, take profit fast."),
+    "SCALP": ("⚡ SCALP", "#f59e0b", "minutes–hours", "Quick in-and-out on momentum. Small size, tight stop — and the harness force-closes it when the clock runs out, win or lose."),
     "SHORT_TERM": ("📈 SHORT-TERM", "#3b82f6", "days–weeks", "A swing trade riding a multi-day move. Manage with the trailing stop."),
     "LONG_TERM": ("🏦 LONG-TERM INVESTMENT", "#a855f7", "months+", "A position you benefit from holding over a long period — thesis-driven, wider stop."),
 }
@@ -149,11 +149,25 @@ def build_card(sig, now_et, intel_ticker=None):
   <tr><td style="height:16px;"></td></tr>"""
 
 
+def _clock(p):
+    """The scalp's remaining runway, or nothing at all for the other horizons.
+
+    Only a scalp carries `scalp_hours_left`; every other position gets None from the ledger, so
+    this stays out of the way on a card that has no clock to show.
+    """
+    left = p.get("scalp_hours_left")
+    if left is None:
+        return ""
+    color = "#ef4444" if left <= 2 else "#f59e0b"
+    text = f"{left:.0f}h left" if left >= 1 else f"{left * 60:.0f}m left"
+    return (f' <span style="color:{color};font-size:11px;font-weight:700;">⚡ {text}</span>')
+
+
 def _portfolio_card(psum):
     if not psum:
         return ""
     rows = "".join(
-        f'<tr><td style="padding:4px 0;font-size:13px;color:#e5e7eb;">{p["ticker"]}</td>'
+        f'<tr><td style="padding:4px 0;font-size:13px;color:#e5e7eb;">{p["ticker"]}{_clock(p)}</td>'
         f'<td style="padding:4px 0;font-size:13px;text-align:right;color:{"#22c55e" if p["pnl_pct"]>=0 else "#ef4444"};">'
         f'{p["pnl_pct"]:+.1f}%</td>'
         f'<td style="padding:4px 0;font-size:13px;text-align:right;color:#9ca3af;">${p["value"]:,.0f}</td></tr>'
@@ -162,14 +176,20 @@ def _portfolio_card(psum):
         rows = '<tr><td colspan="3" style="padding:4px 0;font-size:13px;color:#6b7280;">No open positions.</td></tr>'
     ret = psum.get("total_return_pct", 0)
     rc = "#22c55e" if ret >= 0 else "#ef4444"
+    # The book's own caps, falling back to the equity constants only for a summary written before
+    # there was a second book. Showing 8 positions to a crypto book capped at 4 is just wrong.
+    max_pos = psum.get("max_positions") or config.MAX_POSITIONS
+    max_new = psum.get("max_new_trades_per_week") or config.MAX_NEW_TRADES_PER_WEEK
+    title = ("Crypto paper portfolio (simulated)" if psum.get("book") == "crypto"
+             else "Paper portfolio (simulated)")
     return f"""
   <tr><td style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;padding:22px 26px;">
-    <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#60a5fa;">Paper portfolio (simulated)</p>
+    <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#60a5fa;">{title}</p>
     <p style="margin:0;font-size:26px;font-weight:800;color:#fff;">${psum.get("equity",0):,.0f}
       <span style="font-size:15px;color:{rc};">({ret:+.1f}%)</span></p>
     <p style="margin:2px 0 12px;font-size:12px;color:#6b7280;">
-      cash ${psum.get("cash",0):,.0f} · {psum.get("n_open",0)}/{config.MAX_POSITIONS} positions ·
-      {psum.get("new_trades_this_week",0)}/{config.MAX_NEW_TRADES_PER_WEEK} new trades this week ·
+      cash ${psum.get("cash",0):,.0f} · {psum.get("n_open",0)}/{max_pos} positions ·
+      {psum.get("new_trades_this_week",0)}/{max_new} new trades this week ·
       win rate {psum.get("win_rate") if psum.get("win_rate") is not None else "—"}%</p>
     <table width="100%" cellpadding="0" cellspacing="0">{rows}</table>
   </td></tr>
@@ -250,12 +270,16 @@ def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=N
     longs = [s for s in signals if (s.get("trade_type") or "").upper() == "LONG_TERM"]
     ordered = scalps + shorts + longs + [s for s in signals if s not in scalps + shorts + longs]
 
+    # The crypto book gets its own subject prefix. Both books email the same inbox and the two
+    # arrive interleaved at all hours; without it there is nothing in the subject that says which
+    # account a BTC line belongs to.
+    book = "Market Brain 🪙 Crypto" if mode == "crypto" else "Market Brain"
     if signals:
         tags = ", ".join(f"{s.get('ticker')} {s.get('direction','')}" for s in ordered[:5])
         prefix = "⚠️ " if degraded else ""
-        subject = f"{prefix}Market Brain: {tags} — {now_et.strftime('%I:%M %p ET')}"
+        subject = f"{prefix}{book}: {tags} — {now_et.strftime('%I:%M %p ET')}"
     else:
-        subject = f"Market Brain: {mode} recap — {now_et.strftime('%I:%M %p ET')}"
+        subject = f"{book}: {mode} recap — {now_et.strftime('%I:%M %p ET')}"
 
     header = f"""
   <tr><td style="padding:0 0 18px;">
@@ -309,8 +333,13 @@ def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=N
         lines.append(f"  Sources: {', '.join(s.get('data_sources', []))}")
         lines.append("")
     if portfolio_summary:
-        lines.append(f"PAPER PORTFOLIO: ${portfolio_summary.get('equity',0):,.0f} "
+        lines.append(f"PAPER PORTFOLIO ({portfolio_summary.get('book','stock')}): "
+                     f"${portfolio_summary.get('equity',0):,.0f} "
                      f"({portfolio_summary.get('total_return_pct',0):+.1f}%)")
+        for p in portfolio_summary.get("open_positions", []):
+            left = p.get("scalp_hours_left")
+            clock = f" — scalp clock {left:.1f}h left" if left is not None else ""
+            lines.append(f"  {p['ticker']} {p['pnl_pct']:+.1f}% ${p['value']:,.0f}{clock}")
     lines.append(config.DISCLAIMER)
     return subject, "\n".join(lines), html
 

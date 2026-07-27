@@ -112,6 +112,11 @@ create table if not exists public.sd_trades (
 create table if not exists public.sd_portfolio (
   id               bigint generated always as identity primary key,
   ts               timestamptz not null default now(),
+  -- Which paper book this row belongs to: 'stock' or 'crypto'. They are two separate $10,000
+  -- accounts and both push here, so without this column the equity curve alternates between two
+  -- unrelated balances every half hour and reads as violent intraday swings that never happened.
+  -- Rows written before the crypto book existed are all equity, hence the default.
+  book             text not null default 'stock',
   equity           double precision,
   cash             double precision,
   total_return_pct double precision,
@@ -123,7 +128,11 @@ create table if not exists public.sd_portfolio (
 
 create index if not exists sd_brain_scans_ts_idx   on public.sd_brain_scans   (ts desc);
 create index if not exists sd_brain_signals_ts_idx on public.sd_brain_signals (ts desc);
+-- Migration for a database created before the crypto book. Safe to re-run.
+alter table public.sd_portfolio add column if not exists book text not null default 'stock';
+
 create index if not exists sd_portfolio_ts_idx      on public.sd_portfolio      (ts desc);
+create index if not exists sd_portfolio_book_ts_idx on public.sd_portfolio      (book, ts desc);
 create index if not exists sd_trades_ts_idx         on public.sd_trades         (ts desc);
 create index if not exists sd_trades_ticker_idx     on public.sd_trades         (ticker, ts desc);
 create index if not exists sd_theses_ts_idx         on public.sd_theses         (ts desc);

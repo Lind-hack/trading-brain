@@ -19,7 +19,7 @@ never open a day we consider shut.
 """
 from __future__ import annotations
 
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 
 from . import config
 
@@ -334,6 +334,95 @@ def gate(mode: str, now: datetime | None = None) -> tuple[bool, str]:
         return True, f"the trading week has closed{tag}"
 
     return True, "ungated mode"
+
+
+# ── The crypto venue ────────────────────────────────────────────────────────────────────────────
+# Everything above answers "is the NYSE open". For BTC/ETH/SUI that question has no meaning: there
+# is no bell, no holiday, no half-day and no weekend. The temptation is to reuse gate() with the
+# session checks loosened, and that would be a mistake — loosening the equity gate would silently
+# undo the work that stopped the stock track running on Christmas. So crypto gets its own clock,
+# and the two never share a code path.
+#
+# The other half of the reasoning is that "always open" is not the same as "no schedule". A 24/7
+# venue still needs anchors, or there is no such thing as a daily or weekly review. Crypto has a
+# universally agreed boundary for both and it is not the exchange's: daily candles roll at 00:00
+# UTC everywhere, and the weekly candle rolls at 00:00 UTC on Monday. Those are the anchors below.
+#
+# In particular the crypto weekly recap does NOT ride along with the Friday stock recap. Friday
+# 16:00 ET is the middle of the crypto week — a recap written there would miss Saturday and Sunday,
+# two days on which this book can and does trade. Same reasoning that gave crypto its own cycle.
+CRYPTO_ANCHOR_WINDOW_H = 2.0     # how late an anchor run may still fire after its UTC boundary
+
+
+def _utc_hours_into_day(now: datetime) -> tuple[datetime, float]:
+    """(now as UTC, hours elapsed since 00:00 UTC). The crypto day's only landmark."""
+    utc = now.astimezone(timezone.utc)
+    return utc, utc.hour + utc.minute / 60 + utc.second / 3600
+
+
+def crypto_entries_allowed(now: datetime | None = None) -> bool:
+    """May the crypto book open new positions right now? Always — that is the whole point.
+
+    Kept as a function rather than inlined `True` so callers stay symmetrical with the equity path
+    (`entries_allowed`), and so a future restriction has one place to live.
+    """
+    return True
+
+
+def crypto_entries_reason(now: datetime | None = None) -> str:
+    """The line that ends up in the email and the log, mirroring entries_reason()."""
+    return "24/7 venue — new entries allowed at any hour, including weekends"
+
+
+def crypto_days_left_this_week(now: datetime | None = None) -> int:
+    """Days left in the UTC crypto week, counting today. The pace context, crypto-side.
+
+    Always 7 on a Monday and 1 on a Sunday, because unlike the equity week no holiday can shorten
+    it. Exists so the packet can say "3 trades, 2 days left" without the analyst having to work out
+    which timezone the week is measured in.
+    """
+    utc, _ = _utc_hours_into_day(now or datetime.now(config.ET))
+    return 7 - utc.weekday()
+
+
+def crypto_gate(mode: str, now: datetime | None = None) -> tuple[bool, str]:
+    """May a crypto run of `mode` proceed? Returns (allowed, human-readable reason).
+
+      cycle       always — the venue never shuts
+      daily       shortly after 00:00 UTC, the daily-candle boundary
+      weekly      shortly after 00:00 UTC on Monday, the weekly-candle boundary
+      research    always, same as the equity side
+    """
+    now = now or datetime.now(config.ET)
+
+    if mode in ("cycle", "research"):
+        return True, "24/7 venue — always open"
+
+    utc, hours_in = _utc_hours_into_day(now)
+
+    if mode == "daily":
+        if hours_in > CRYPTO_ANCHOR_WINDOW_H:
+            return False, (f"the daily anchor runs just after 00:00 UTC — it is "
+                           f"{utc.strftime('%H:%M')} UTC, {hours_in:.1f}h into the crypto day")
+        return True, f"{hours_in:.1f}h into the crypto day (00:00 UTC roll)"
+
+    if mode == "weekly":
+        if utc.weekday() != MON:
+            return False, (f"the crypto week rolls at 00:00 UTC Monday — it is "
+                           f"{utc.strftime('%a')} in UTC")
+        if hours_in > CRYPTO_ANCHOR_WINDOW_H:
+            return False, (f"the weekly recap runs just after the Monday 00:00 UTC roll — it is "
+                           f"{utc.strftime('%H:%M')} UTC")
+        return True, "the crypto week has rolled (00:00 UTC Monday)"
+
+    return True, "ungated mode"
+
+
+def crypto_describe(now: datetime | None = None) -> str:
+    """One line about the crypto venue, for logs and the top of the crypto recap."""
+    utc, hours_in = _utc_hours_into_day(now or datetime.now(config.ET))
+    return (f"{utc:%a %b %d %H:%M} UTC — crypto open (always), {hours_in:.1f}h into the day, "
+            f"{crypto_days_left_this_week(now)} day(s) left this crypto week")
 
 
 def describe(now: datetime | None = None) -> str:

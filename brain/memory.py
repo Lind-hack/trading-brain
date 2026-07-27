@@ -122,11 +122,17 @@ def _append(record):
     _append_to(EVENT_LOG, record)
 
 
-def log_events(market, calendar, spy_price=None):
+def log_events(market, calendar, spy_price=None, with_calendar=True):
     """Record this cycle's patterns + calendar events with a market snapshot.
 
     ref_ticker/ref_price anchor the forward-return calc: a ticker's own price for chart
     patterns, SPY for macro/calendar events. Returns the number of events logged.
+
+    `with_calendar=False` logs the chart patterns and skips the macro rows. The crypto cycle
+    passes it: CPI and FOMC are one event, and the equity cycle already files them against SPY.
+    Filing them a second time against a crypto benchmark would not add a second data point, it
+    would add a duplicate — and `analogs_for` counts rows, so every macro analog's sample size
+    would quietly double while its statistical weight stayed the same.
     """
     now = datetime.now(config.UTC)
     ts = now.isoformat()
@@ -143,7 +149,8 @@ def log_events(market, calendar, spy_price=None):
                 "forward": {h: None for h in _HORIZONS},
             })
             n += 1
-    for e in calendar.get("imminent", []) + calendar.get("trump_soon", []):
+    cal_events = calendar.get("imminent", []) + calendar.get("trump_soon", []) if with_calendar else []
+    for e in cal_events:
         _append({
             "id": uuid.uuid4().hex[:12], "ts": ts,
             "type": "speech" if "speak" in e["title"].lower() else "calendar",
