@@ -109,6 +109,40 @@ def test_crypto_weight_cap_is_twenty_five_not_fifteen(crypto_pf):
     assert weight_pct == pytest.approx(25.0, abs=0.1)
 
 
+def test_a_coin_dearer_than_the_whole_slot_is_still_buyable(crypto_pf):
+    """The bug the first live crypto cycle found, 2026-07-27 23:18 UTC.
+
+    BTC costs ~$65k a coin against a $10k book, so *every* legal weight buys less than one unit.
+    The equity whole-share floor rejected that as "insufficient cash for BTC-USD ($10000)" and the
+    crypto book could never have opened BTC at all — nor ETH, which was the trade it actually
+    refused. Crypto is bought fractionally; the floor does not belong on this venue.
+    """
+    ok, msg = _buy(crypto_pf, "BTC-USD", 65_000.0, weight=10)
+    assert ok, msg
+    held = crypto_pf.state["positions"]["BTC-USD"]
+    assert held["shares"] == pytest.approx(1000.0 / 65_000.0, rel=1e-3)
+
+
+def test_the_rejected_eth_trade_now_goes_through(crypto_pf):
+    """The exact refused signal: ETH-USD LONG, entry 1888.42, SHORT_TERM at a 10% weight."""
+    ok, msg = _buy(crypto_pf, "ETH-USD", 1888.42, weight=10)
+    assert ok, msg
+    assert crypto_pf.state["positions"]["ETH-USD"]["shares"] == pytest.approx(0.5295, abs=1e-3)
+
+
+def test_an_empty_crypto_book_still_refuses_to_buy(crypto_pf):
+    """Fractional sizing must not turn a broke book into an infinitely divisible one."""
+    crypto_pf.state["cash"] = 0.0
+    ok, msg = _buy(crypto_pf, "BTC-USD", 65_000.0, weight=10)
+    assert not ok and "insufficient cash" in msg
+
+
+def test_a_stock_too_dear_for_the_slot_is_still_rejected(stock_pf):
+    """The equity book keeps the whole-share floor — this change must not have reached it."""
+    ok, msg = _buy(stock_pf, "BRK-A", 700_000.0, weight=10)
+    assert not ok and "insufficient cash" in msg
+
+
 def test_crypto_position_cap_is_the_size_of_the_universe(crypto_pf):
     for t in config.CRYPTO_TICKERS:
         ok, msg = _buy(crypto_pf, t, 100.0)

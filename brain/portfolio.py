@@ -333,7 +333,13 @@ class Portfolio:
                 target_usd = max(0, target_usd - cur_val)
             if target_usd > self.state["cash"]:
                 target_usd = self.state["cash"]
-            if target_usd < price:  # can't afford even one share
+            # Crypto is bought in fractions, so "cannot afford one whole unit" is not a real
+            # constraint there — a $1,000 slot is 0.0154 BTC, and applying the equity floor made
+            # the crypto book structurally unable to open BTC (~$65k/coin) or ETH at any legal
+            # weight. Equities keep the whole-share floor; apply_action's `sized to zero shares`
+            # check still catches a slot too small to round to a position.
+            unit_floor = 0.0 if config.is_crypto(ticker) else price
+            if target_usd <= unit_floor:
                 return False, f"insufficient cash for {ticker} (${self.state['cash']:.0f})"
             return True, f"buy ~${target_usd:.0f} ({target_pct:.0f}% target)"
         return False, f"unknown action '{kind}'"
