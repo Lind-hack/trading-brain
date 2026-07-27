@@ -2,7 +2,7 @@
  "stories": {
   "000 analysi cryptoticker eth ethereum next": {
    "first_seen": "2026-07-27T09:57:21+00:00",
-   "last_seen": "2026-07-27T14:49:39.366542+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
    "sources": {
     "cryptoticker": "2026-07-27T14:49:39.366542+00:00"
    },
@@ -22,7 +22,7 @@
   },
   "000 bull ethereum next target test": {
    "first_seen": "2026-07-27T12:30:00+00:00",
-   "last_seen": "2026-07-27T14:49:39.366542+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
    "sources": {
     "crypto news": "2026-07-27T14:49:39.366542+00:00"
    },
@@ -42,7 +42,7 @@
   },
   "10am 2026 market prediction range robinhood": {
    "first_seen": "2026-07-27T11:04:43+00:00",
-   "last_seen": "2026-07-27T14:49:39.361215+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
    "sources": {
     "robinhood": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -63,7 +63,7 @@
   },
   "2026 biggest bitcoin foundation liquidation wipeout": {
    "first_seen": "2026-06-03T07:00:00+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -82,9 +82,30 @@
     "hit"
    ]
   },
+  "2026 bitcoin chatgpt cryptonew december target": {
+   "first_seen": "2026-07-27T16:14:31+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
+   "sources": {
+    "cryptonews.net": "2026-07-27T22:08:37.003445+00:00"
+   },
+   "tickers": [
+    "BTC-USD"
+   ],
+   "title": "ChatGPT says the Bitcoin price will hit this target by December 31, 2026 - Cryptonews.net",
+   "tokens": [
+    "cryptonew",
+    "december",
+    "bitcoin",
+    "chatgpt",
+    "target",
+    "2026",
+    "hit",
+    "net"
+   ]
+  },
   "2026 bitcoin everyth foundation know proposal": {
    "first_seen": "2026-07-08T07:00:00+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -105,7 +126,7 @@
   },
   "2026 bitcoin market prediction sailgp trade": {
    "first_seen": "2026-07-24T07:00:00+00:00",
-   "last_seen": "2026-07-27T14:49:39.361215+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
    "sources": {
     "sailgp": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -182,6 +203,27 @@
     "end"
    ]
   },
+  "2026 massive model prediction reveal surge": {
+   "first_seen": "2026-06-14T07:00:00+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "ccn.com": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "4 AI Models Reveal SOL Price Predictions for 2026 \u2014 One Calls for a Massive Surge - CCN.com",
+   "tokens": [
+    "prediction",
+    "massive",
+    "reveal",
+    "model",
+    "surge",
+    "2026",
+    "call",
+    "ccn"
+   ]
+  },
   "2028 bold marvell micron prediction price": {
    "first_seen": "2026-07-24T14:30:13+00:00",
    "last_seen": "2026-07-26T22:15:16.322260+00:00",
@@ -244,7 +286,7 @@
   },
   "65k above bitcoin hold risk today": {
    "first_seen": "2026-07-27T13:30:01+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "ig.com": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -280,6 +322,27 @@
     "72m",
     "fac",
     "sui"
+   ]
+  },
+  "946 add bitmine cryptonew ethereum jump": {
+   "first_seen": "2026-07-27T16:04:31+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
+   "sources": {
+    "cryptonews.net": "2026-07-27T22:08:37.004958+00:00"
+   },
+   "tickers": [
+    "ETH-USD"
+   ],
+   "title": "Ethereum Price Jumps 27% as Tom Lee\u2019s BitMine Adds 9,946 ETH - Cryptonews.net",
+   "tokens": [
+    "cryptonew",
+    "ethereum",
+    "bitmine",
+    "jump",
+    "946",
+    "add",
+    "eth",
+    "lee"
    ]
   },
   "aapl analyst finally modest nasdaq stocktwit": {
@@ -365,7 +428,7 @@
   },
   "above analysi bitcoin confirm cryptopotato recovery": {
    "first_seen": "2026-07-27T13:42:00+00:00",
-   "last_seen": "2026-07-27T14:49:39.361215+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
    "sources": {
     "cryptopotato": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -405,6 +468,27 @@
     "pric"
    ]
   },
+  "above bitcoin decision market outlook tradingview": {
+   "first_seen": "2026-07-27T12:21:46+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "tradingview": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Bitcoin price holds above $65K as Fed rate decision, ETF flows shape market outlook - TradingView",
+   "tokens": [
+    "tradingview",
+    "decision",
+    "bitcoin",
+    "outlook",
+    "market",
+    "above",
+    "shape",
+    "flow"
+   ]
+  },
   "above bitcoin fxstreet inflow prediction support": {
    "first_seen": "2026-07-27T07:57:04+00:00",
    "last_seen": "2026-07-27T14:49:45.839953+00:00",
@@ -424,6 +508,27 @@
     "above",
     "pause",
     "bomb"
+   ]
+  },
+  "above cryptorank extend prediction rebound solana": {
+   "first_seen": "2026-07-21T12:21:50+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "cryptorank": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Solana Price Prediction: Can SOL Extend Its Rebound Above $80? - CryptoRank",
+   "tokens": [
+    "cryptorank",
+    "prediction",
+    "rebound",
+    "extend",
+    "solana",
+    "above",
+    "can",
+    "sol"
    ]
   },
   "accelerat activity blockchain cryptorank cumulative transaction": {
@@ -467,6 +572,27 @@
     "ahead",
     "which",
     "amzn"
+   ]
+  },
+  "acquir africa coinhako holding marketforc partner": {
+   "first_seen": "2026-07-18T09:53:41+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "marketforces africa": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "SOL Price Climbs As Solana Partner SBI Holdings Acquires Coinhako - MarketForces Africa",
+   "tokens": [
+    "marketforc",
+    "coinhako",
+    "holding",
+    "partner",
+    "acquir",
+    "africa",
+    "solana",
+    "climb"
    ]
   },
   "activiti certain commissioner securiti supra trigger": {
@@ -513,7 +639,7 @@
   },
   "actually clarity insider market stand structure": {
    "first_seen": "2026-07-24T13:01:53+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "tech-insider.org": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -530,6 +656,26 @@
     "stand",
     "where",
     "2026"
+   ]
+  },
+  "adviser fall gain securitize secz statu": {
+   "first_seen": "2026-07-27T17:42:25+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "crypto news": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Securitize gains SEC adviser status as SECZ falls 10% - Crypto News",
+   "tokens": [
+    "securitize",
+    "adviser",
+    "statu",
+    "fall",
+    "gain",
+    "secz",
+    "sec"
    ]
   },
   "africa drop ethereum marketforc queue validator": {
@@ -555,7 +701,7 @@
   },
   "africa ethereum huge marketforc stak toward": {
    "first_seen": "2026-07-27T08:34:15+00:00",
-   "last_seen": "2026-07-27T14:49:39.366542+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
    "sources": {
     "marketforces africa": "2026-07-27T14:49:39.366542+00:00"
    },
@@ -572,6 +718,27 @@
     "stak",
     "eth",
     "rac"
+   ]
+  },
+  "again finance hour liquidation strik yahoo": {
+   "first_seen": "2026-05-27T07:00:00+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Crypto Liquidations Nears $1 Billion in 24 Hours as US Strikes Iran Again - Yahoo Finance",
+   "tokens": [
+    "liquidation",
+    "finance",
+    "again",
+    "strik",
+    "yahoo",
+    "hour",
+    "iran",
+    "near"
    ]
   },
   "against august beincrypto bitcoin prediction streak": {
@@ -701,7 +868,7 @@
   },
   "ahead bitcoin decision expect steady tradingview": {
    "first_seen": "2026-07-27T07:58:09+00:00",
-   "last_seen": "2026-07-27T14:49:39.361215+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
    "sources": {
     "tradingview": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -1318,7 +1485,7 @@
   },
   "altcoin august before bitcoin could foundation": {
    "first_seen": "2026-07-23T16:05:56+00:00",
-   "last_seen": "2026-07-27T14:49:39.373223+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-27T14:49:39.373223+00:00"
    },
@@ -1441,7 +1608,7 @@
   },
   "ambcrypto august bound past support unlock": {
    "first_seen": "2026-07-27T08:00:16+00:00",
-   "last_seen": "2026-07-27T14:49:39.373223+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
    "sources": {
     "ambcrypto": "2026-07-27T14:49:39.373223+00:00"
    },
@@ -1460,9 +1627,30 @@
     "set"
    ]
   },
+  "ambcrypto august downtrend holder persist unlock": {
+   "first_seen": "2026-07-27T21:30:03+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
+   "sources": {
+    "ambcrypto": "2026-07-27T22:08:37.008963+00:00"
+   },
+   "tickers": [
+    "SUI20947-USD"
+   ],
+   "title": "August token unlock tests SUI holders as long-term downtrend persists - AMBCrypto",
+   "tokens": [
+    "ambcrypto",
+    "downtrend",
+    "persist",
+    "august",
+    "holder",
+    "unlock",
+    "long",
+    "term"
+   ]
+  },
   "ambcrypto bitcoin data liquidation possible suggest": {
    "first_seen": "2026-07-27T11:00:33+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "ambcrypto": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -1479,6 +1667,48 @@
     "data",
     "drop",
     "60k"
+   ]
+  },
+  "ambcrypto could prediction reason solana three": {
+   "first_seen": "2026-07-23T16:30:57+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "ambcrypto": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Solana price prediction: THREE reasons why SOL could hit $120 - AMBCrypto",
+   "tokens": [
+    "prediction",
+    "ambcrypto",
+    "reason",
+    "solana",
+    "could",
+    "three",
+    "120",
+    "hit"
+   ]
+  },
+  "ambcrypto down ethga gwei recover time": {
+   "first_seen": "2026-07-27T20:00:46+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
+   "sources": {
+    "ambcrypto": "2026-07-27T22:08:37.004958+00:00"
+   },
+   "tickers": [
+    "ETH-USD"
+   ],
+   "title": "ETHGas down 92%, hits all-time low \u2013 Can GWEI\u2019s price recover? - AMBCrypto",
+   "tokens": [
+    "ambcrypto",
+    "recover",
+    "ethga",
+    "down",
+    "gwei",
+    "time",
+    "all",
+    "can"
    ]
   },
   "amd blueprint cerbra create hardware marketbeat": {
@@ -1539,7 +1769,7 @@
   },
   "among compani divergence liquidation moomoo strategi": {
    "first_seen": "2026-07-24T06:06:23+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "moomoo": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -1558,9 +1788,30 @@
     "hold"
    ]
   },
+  "analysi bitcoin foundation rally ready solana": {
+   "first_seen": "2026-05-25T07:00:00+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "bitcoin foundation": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "SOL Price Analysis May 2026: Is Solana Ready for a Rally to $100? - Bitcoin Foundation",
+   "tokens": [
+    "foundation",
+    "analysi",
+    "bitcoin",
+    "solana",
+    "rally",
+    "ready",
+    "2026",
+    "100"
+   ]
+  },
   "analysi cryptopotato decision ethereum major resistance": {
    "first_seen": "2026-07-26T13:22:00+00:00",
-   "last_seen": "2026-07-27T14:49:39.366542+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
    "sources": {
     "cryptopotato": "2026-07-27T14:49:39.366542+00:00"
    },
@@ -1619,6 +1870,47 @@
     "climb",
     "yield",
     "keep"
+   ]
+  },
+  "analyst breakout prediction solana support target": {
+   "first_seen": "2026-07-27T18:30:52+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "brave new coin": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Solana Price Prediction: SOL Holds $75 Support as Analysts Target a Breakout Towards $140 - Brave New Coin",
+   "tokens": [
+    "prediction",
+    "breakout",
+    "analyst",
+    "support",
+    "solana",
+    "target",
+    "toward",
+    "brave"
+   ]
+  },
+  "analyst could finance hit prediction yahoo": {
+   "first_seen": "2026-07-25T20:44:50+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "yahoo finance": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "XRP Price Prediction: Analyst Says XRP Could Hit $15 - Yahoo Finance",
+   "tokens": [
+    "prediction",
+    "analyst",
+    "finance",
+    "could",
+    "yahoo",
+    "hit",
+    "xrp"
    ]
   },
   "analyst coverage microsoft opinion quantitative stanley": {
@@ -1912,7 +2204,7 @@
   },
   "approach bitcoin bottom ethereum foundation relative": {
    "first_seen": "2026-07-24T10:16:25+00:00",
-   "last_seen": "2026-07-27T14:49:39.366542+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-27T14:49:39.366542+00:00"
    },
@@ -1933,7 +2225,7 @@
   },
   "approach cryptonew ethereum prediction queue unstak": {
    "first_seen": "2026-07-27T10:18:12+00:00",
-   "last_seen": "2026-07-27T14:49:39.366542+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
    "sources": {
     "cryptonews": "2026-07-27T14:49:39.366542+00:00"
    },
@@ -1974,7 +2266,7 @@
   },
   "arca coinmarketcap debut nasdaq nyse reward": {
    "first_seen": "2026-07-23T00:52:58+00:00",
-   "last_seen": "2026-07-27T14:49:39.373223+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
    "sources": {
     "coinmarketcap": "2026-07-27T14:49:39.373223+00:00"
    },
@@ -2017,7 +2309,7 @@
   },
   "asset framework howey sec under wilmerhale": {
    "first_seen": "2026-03-24T07:00:00+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "wilmerhale": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -2031,6 +2323,27 @@
     "asset",
     "howey",
     "under",
+    "sec"
+   ]
+  },
+  "asset groundbreak interpretation mcdermott regulation schulte": {
+   "first_seen": "2026-03-24T15:20:57+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "mcdermott will & schulte": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "SEC issues groundbreaking interpretation on crypto asset regulation - McDermott Will & Schulte",
+   "tokens": [
+    "interpretation",
+    "groundbreak",
+    "regulation",
+    "mcdermott",
+    "schulte",
+    "asset",
+    "issu",
     "sec"
    ]
   },
@@ -2097,9 +2410,30 @@
     "low"
    ]
   },
+  "azerbaijan bitmine dominant ethereum holder latest": {
+   "first_seen": "2026-07-27T19:45:45+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
+   "sources": {
+    "latest news from azerbaijan": "2026-07-27T22:08:37.004958+00:00"
+   },
+   "tickers": [
+    "ETH-USD"
+   ],
+   "title": "BitMine becomes dominant Ethereum holder with 5.79 million ETH stash - Latest news from Azerbaijan",
+   "tokens": [
+    "azerbaijan",
+    "dominant",
+    "ethereum",
+    "bitmine",
+    "holder",
+    "latest",
+    "becom",
+    "stash"
+   ]
+  },
   "back bitcoin center challenge data mara": {
    "first_seen": "2026-07-27T14:16:26+00:00",
-   "last_seen": "2026-07-27T14:49:39.361215+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
    "sources": {
     "ccn.com": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -2242,6 +2576,27 @@
     "today"
    ]
   },
+  "bear confidence declar market pymnt technologi": {
+   "first_seen": "2026-07-27T16:06:01+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "pymnts.com": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "DeFi Technologies CEO Declares Confidence in Company Amid Crypto Bear Market - PYMNTS.com",
+   "tokens": [
+    "confidence",
+    "technologi",
+    "declar",
+    "market",
+    "pymnt",
+    "bear",
+    "defi",
+    "ceo"
+   ]
+  },
   "beat could market palantir prediction reason": {
    "first_seen": "2026-07-23T15:30:11+00:00",
    "last_seen": "2026-07-26T22:15:16.398587+00:00",
@@ -2283,9 +2638,30 @@
     "post"
    ]
   },
+  "before below bitcoin forecast fxempire rally": {
+   "first_seen": "2026-07-27T20:00:00+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "fxempire": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Bitcoin Price Forecast: BTC Stalls Below $68K as ETF Rally Fades Before FOMC - FXEmpire",
+   "tokens": [
+    "forecast",
+    "fxempire",
+    "bitcoin",
+    "before",
+    "below",
+    "rally",
+    "stall",
+    "fomc"
+   ]
+  },
   "before bitcoin cycle foundation market predict": {
    "first_seen": "2026-07-23T07:52:11+00:00",
-   "last_seen": "2026-07-27T14:49:39.361215+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -2327,10 +2703,11 @@
   },
   "beincrypto unlock watch week": {
    "first_seen": "2026-07-27T06:56:00+00:00",
-   "last_seen": "2026-07-27T14:49:39.373223+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
    "sources": {
     "beincrypto": "2026-07-27T14:49:39.373223+00:00",
-    "bitget": "2026-07-27T14:49:39.373223+00:00"
+    "bitget": "2026-07-27T14:49:39.373223+00:00",
+    "cryptorank": "2026-07-27T22:08:37.008963+00:00"
    },
    "tickers": [
     "SUI20947-USD"
@@ -2427,6 +2804,27 @@
     "warren"
    ]
   },
+  "bernstein bitcoin correction despite foundation reach": {
+   "first_seen": "2026-07-07T07:00:00+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
+   "sources": {
+    "bitcoin foundation": "2026-07-27T22:08:37.003445+00:00"
+   },
+   "tickers": [
+    "BTC-USD"
+   ],
+   "title": "Bernstein: Despite Bitcoin\u2019s Correction, BTC Price Will Reach $150,000 by Year-End - Bitcoin Foundation",
+   "tokens": [
+    "correction",
+    "foundation",
+    "bernstein",
+    "bitcoin",
+    "despite",
+    "reach",
+    "year",
+    "000"
+   ]
+  },
   "better fool motley palantir servicenow software": {
    "first_seen": "2026-07-26T16:25:29+00:00",
    "last_seen": "2026-07-26T22:15:16.398587+00:00",
@@ -2467,9 +2865,30 @@
     "mail"
    ]
   },
+  "big bitcoin crash morningstar where winter": {
+   "first_seen": "2026-07-27T09:18:48+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "morningstar": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Crypto Winter or the Big Crash? Where the Bitcoin Price Goes Now - Morningstar",
+   "tokens": [
+    "morningstar",
+    "bitcoin",
+    "winter",
+    "crash",
+    "where",
+    "big",
+    "now",
+    "go"
+   ]
+  },
   "big cryptocurrenci declin fall marketwatch most": {
    "first_seen": "2026-07-24T14:00:00+00:00",
-   "last_seen": "2026-07-27T14:49:39.373223+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
    "sources": {
     "marketwatch": "2026-07-27T14:49:39.373223+00:00"
    },
@@ -2506,9 +2925,30 @@
     "big"
    ]
   },
+  "bigger expect modestly solana trader tradingview": {
+   "first_seen": "2026-05-12T07:00:00+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "tradingview": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Solana (SOL) Dips Modestly, But Traders Still Expect Bigger Move - TradingView",
+   "tokens": [
+    "tradingview",
+    "modestly",
+    "bigger",
+    "expect",
+    "solana",
+    "trader",
+    "still",
+    "move"
+   ]
+  },
   "bill explainer landmark reuter senate what": {
    "first_seen": "2026-07-22T07:00:00+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "reuters": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -2523,6 +2963,27 @@
     "senate",
     "bill",
     "what"
+   ]
+  },
+  "bitcoin bounce channel gaussian support trader": {
+   "first_seen": "2026-07-27T13:05:25+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
+   "sources": {
+    "bitcoin news": "2026-07-27T22:08:37.008963+00:00"
+   },
+   "tickers": [
+    "SUI20947-USD"
+   ],
+   "title": "SUI Slips to Support Near $0.72 as Traders Eye a Gaussian Channel Bounce - Bitcoin News",
+   "tokens": [
+    "gaussian",
+    "bitcoin",
+    "channel",
+    "support",
+    "bounce",
+    "trader",
+    "near",
+    "slip"
    ]
   },
   "bitcoin caution finance inflow professional yahoo": {
@@ -2548,7 +3009,7 @@
   },
   "bitcoin challeng forecast forex major reversal": {
    "first_seen": "2026-07-23T14:54:25+00:00",
-   "last_seen": "2026-07-27T14:49:39.361215+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
    "sources": {
     "forex.com": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -2569,7 +3030,7 @@
   },
   "bitcoin clarity fall market motley today": {
    "first_seen": "2026-07-23T22:57:00+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "the motley fool": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -2590,7 +3051,7 @@
   },
   "bitcoin coindesk decision hormuz hostiliti interest": {
    "first_seen": "2026-07-27T10:37:50+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "coindesk": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -2612,7 +3073,7 @@
   },
   "bitcoin coindesk despite inflow straight weekly": {
    "first_seen": "2026-07-27T11:05:32+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "coindesk": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -2629,6 +3090,27 @@
     "weekly",
     "third",
     "late"
+   ]
+  },
+  "bitcoin coindesk dropp option their trader": {
+   "first_seen": "2026-07-27T11:53:54+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
+   "sources": {
+    "coindesk": "2026-07-27T22:08:37.003445+00:00"
+   },
+   "tickers": [
+    "BTC-USD"
+   ],
+   "title": "Bitcoin options traders are dropping their hedges going into the Fed meeting - CoinDesk",
+   "tokens": [
+    "coindesk",
+    "bitcoin",
+    "option",
+    "trader",
+    "dropp",
+    "their",
+    "hedg",
+    "into"
    ]
   },
   "bitcoin coindesk outperform pric retake slid": {
@@ -2673,6 +3155,27 @@
     "mark"
    ]
   },
+  "bitcoin cryptonew inflow negative prediction streak": {
+   "first_seen": "2026-07-27T10:40:28+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
+   "sources": {
+    "cryptonews": "2026-07-27T22:08:37.003445+00:00"
+   },
+   "tickers": [
+    "BTC-USD"
+   ],
+   "title": "Bitcoin Price Prediction: ETF Inflow Streak Ends and Turns Negative, Yet BTC Price Holds - Cryptonews",
+   "tokens": [
+    "prediction",
+    "cryptonew",
+    "negative",
+    "bitcoin",
+    "inflow",
+    "streak",
+    "hold",
+    "turn"
+   ]
+  },
   "bitcoin cryptonew level outflow prediction return": {
    "first_seen": "2026-07-27T10:40:28+00:00",
    "last_seen": "2026-07-27T14:49:39.361215+00:00",
@@ -2694,9 +3197,30 @@
     "btc"
    ]
   },
+  "bitcoin cryptonomist inflow market reversal signal": {
+   "first_seen": "2026-07-27T07:40:55+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "the cryptonomist": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Bitcoin ETF Inflows Mark 2026 Trend Reversal and Market Signal - The Cryptonomist",
+   "tokens": [
+    "cryptonomist",
+    "reversal",
+    "bitcoin",
+    "inflow",
+    "market",
+    "signal",
+    "trend",
+    "2026"
+   ]
+  },
   "bitcoin cryptorank hour liquidation long spike": {
    "first_seen": "2026-07-26T13:49:11+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "cryptorank": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -2715,9 +3239,72 @@
     "out"
    ]
   },
+  "bitcoin defiant ether inflow tripl weekly": {
+   "first_seen": "2026-07-27T19:15:13+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "the defiant": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Ether ETFs Pull $104M, Tripling Bitcoin's Weekly Inflows - The Defiant",
+   "tokens": [
+    "bitcoin",
+    "defiant",
+    "inflow",
+    "weekly",
+    "ether",
+    "tripl",
+    "104m",
+    "pull"
+   ]
+  },
+  "bitcoin demand materialize neutral prediction solana": {
+   "first_seen": "2026-07-27T06:45:11+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "bitcoin world": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Solana Price Prediction: SOL Stuck In Neutral As Demand Fails To Materialize - Bitcoin World",
+   "tokens": [
+    "materialize",
+    "prediction",
+    "bitcoin",
+    "neutral",
+    "demand",
+    "solana",
+    "stuck",
+    "world"
+   ]
+  },
+  "bitcoin downside reach streak three trader": {
+   "first_seen": "2026-07-27T14:59:30+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "tech times": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Bitcoin ETF Streak Reaches Three Weeks as Traders Drop Downside Hedges - Tech Times",
+   "tokens": [
+    "downside",
+    "bitcoin",
+    "streak",
+    "trader",
+    "reach",
+    "three",
+    "drop",
+    "hedg"
+   ]
+  },
   "bitcoin ethereum foundation fund month outperform": {
    "first_seen": "2026-07-27T12:46:09+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -2740,7 +3327,7 @@
   },
   "bitcoin ethereum higher liquidation short tokenpost": {
    "first_seen": "2026-07-26T04:36:43+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "tokenpost.com": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -2761,7 +3348,7 @@
   },
   "bitcoin fortune liquidation outflow pressure startup": {
    "first_seen": "2026-07-26T05:17:40+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "startup fortune": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -2778,6 +3365,69 @@
     "startup",
     "market",
     "signal"
+   ]
+  },
+  "bitcoin foundation market reason ripple underperform": {
+   "first_seen": "2026-07-27T14:37:14+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "bitcoin foundation": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Why Is XRP Underperforming? 3 Reasons Ripple Still Can't Catch Up With the Crypto Market - Bitcoin Foundation",
+   "tokens": [
+    "underperform",
+    "foundation",
+    "bitcoin",
+    "market",
+    "reason",
+    "ripple",
+    "catch",
+    "still"
+   ]
+  },
+  "bitcoin iran pause rise strike tradingview": {
+   "first_seen": "2026-07-27T14:51:26+00:00",
+   "last_seen": "2026-07-27T22:08:37.003445+00:00",
+   "sources": {
+    "tradingview": "2026-07-27T22:08:37.003445+00:00"
+   },
+   "tickers": [
+    "BTC-USD"
+   ],
+   "title": "Bitcoin price eyes $66K as US stocks rise on Iran-strike pause - TradingView",
+   "tokens": [
+    "tradingview",
+    "bitcoin",
+    "strike",
+    "pause",
+    "iran",
+    "rise",
+    "66k",
+    "ey"
+   ]
+  },
+  "bitcoin liquidation profit support teeter trendline": {
+   "first_seen": "2026-07-25T10:42:05+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "crypto news": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Bitcoin price teeters on trendline support after tech liquidation sparks profit-taking - Crypto News",
+   "tokens": [
+    "liquidation",
+    "trendline",
+    "bitcoin",
+    "support",
+    "profit",
+    "teeter",
+    "spark",
+    "tech"
    ]
   },
   "bitmine cryptopotato ethereum keep near treasury": {
@@ -2844,6 +3494,27 @@
     "just"
    ]
   },
+  "breakout bullish fxempire prediction solana support": {
+   "first_seen": "2026-07-23T15:20:00+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "fxempire": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Solana Price Prediction: SOL Eyes Bullish Breakout to $90 as Trend Line Support Holds - FXEmpire",
+   "tokens": [
+    "prediction",
+    "breakout",
+    "fxempire",
+    "bullish",
+    "support",
+    "solana",
+    "trend",
+    "hold"
+   ]
+  },
   "brief coingape july market": {
    "first_seen": "2026-07-27T12:30:50+00:00",
    "last_seen": "2026-07-27T14:49:45.839953+00:00",
@@ -2905,7 +3576,7 @@
   },
   "bull can over reclaim sui week": {
    "first_seen": "2026-05-12T07:00:00+00:00",
-   "last_seen": "2026-07-27T14:49:39.373223+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
    "sources": {
     "crypto news": "2026-07-27T14:49:39.373223+00:00"
    },
@@ -3195,6 +3866,27 @@
     "fool"
    ]
   },
+  "capital etf inflow prediction sell solana": {
+   "first_seen": "2026-06-08T07:00:00+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "capital.com": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Solana price prediction | ETF Inflows Lag Sell-Off - Capital.com",
+   "tokens": [
+    "prediction",
+    "capital",
+    "inflow",
+    "solana",
+    "sell",
+    "etf",
+    "lag",
+    "off"
+   ]
+  },
   "capital global management marketbeat platform position": {
    "first_seen": "2026-07-26T08:59:39+00:00",
    "last_seen": "2026-07-26T22:15:16.368015+00:00",
@@ -3280,9 +3972,30 @@
     "pour"
    ]
   },
+  "caution onchain peirce securiti supra trigger": {
+   "first_seen": "2026-07-27T15:18:50+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "jd supra": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "SEC\u2019s Peirce cautions that crypto vaults, onchain lending may trigger securities laws - JD Supra",
+   "tokens": [
+    "securiti",
+    "caution",
+    "onchain",
+    "trigger",
+    "peirce",
+    "supra",
+    "vault",
+    "lend"
+   ]
+  },
   "chain depress favor finance forecast yahoo": {
    "first_seen": "2026-07-16T07:00:00+00:00",
-   "last_seen": "2026-07-27T14:49:39.373223+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
    "sources": {
     "yahoo finance": "2026-07-27T14:49:39.373223+00:00"
    },
@@ -3429,7 +4142,7 @@
   },
   "cleanspark industry market moomoo today trend": {
    "first_seen": "2026-07-27T10:38:20+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "moomoo": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -3488,6 +4201,27 @@
     "hike",
     "pric",
     "rate"
+   ]
+  },
+  "coinfomania development ecosystem major market network": {
+   "first_seen": "2026-07-26T07:01:28+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
+   "sources": {
+    "coinfomania": "2026-07-27T22:08:37.008963+00:00"
+   },
+   "tickers": [
+    "SUI20947-USD"
+   ],
+   "title": "Sui Network Sees Major Ecosystem Developments Amid Market Shifts - Coinfomania",
+   "tokens": [
+    "coinfomania",
+    "development",
+    "ecosystem",
+    "network",
+    "market",
+    "major",
+    "shift",
+    "sui"
    ]
   },
   "concern finance foundry intel market revers": {
@@ -3551,6 +4285,69 @@
     "yahoo",
     "here",
     "july"
+   ]
+  },
+  "cryptonew driv ethereum heat here suddenly": {
+   "first_seen": "2026-07-27T16:04:31+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
+   "sources": {
+    "cryptonews.net": "2026-07-27T22:08:37.004958+00:00"
+   },
+   "tickers": [
+    "ETH-USD"
+   ],
+   "title": "Ethereum Price Is Suddenly Heating Up: Here\u2019s What\u2019s Driving It - Cryptonews.net",
+   "tokens": [
+    "cryptonew",
+    "ethereum",
+    "suddenly",
+    "driv",
+    "heat",
+    "here",
+    "what",
+    "net"
+   ]
+  },
+  "cryptonew key rebound solana support test": {
+   "first_seen": "2026-07-17T19:26:52+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "cryptonews.net": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Will Solana price rebound to $80 as SOL tests key support? - Cryptonews.net",
+   "tokens": [
+    "cryptonew",
+    "rebound",
+    "support",
+    "solana",
+    "test",
+    "key",
+    "net",
+    "sol"
+   ]
+  },
+  "cryptopotato ethereum head prediction rejection where": {
+   "first_seen": "2026-07-24T13:09:00+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
+   "sources": {
+    "cryptopotato": "2026-07-27T22:08:37.004958+00:00"
+   },
+   "tickers": [
+    "ETH-USD"
+   ],
+   "title": "Ethereum Price Prediction: Where Is ETH Headed After the $1,950 Rejection? - CryptoPotato",
+   "tokens": [
+    "cryptopotato",
+    "prediction",
+    "rejection",
+    "ethereum",
+    "where",
+    "head",
+    "950",
+    "eth"
    ]
   },
   "dan here market mispric msft stocktwit": {
@@ -3618,7 +4415,7 @@
   },
   "decade donelson interpretation policy potential regulation": {
    "first_seen": "2026-03-30T07:00:00+00:00",
-   "last_seen": "2026-07-27T14:49:45.839953+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
    "sources": {
     "baker donelson": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -3635,6 +4432,27 @@
     "policy",
     "baker",
     "joint"
+   ]
+  },
+  "decline demand forecast further institutional retail": {
+   "first_seen": "2026-07-20T10:09:42+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "tmgm trading": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Solana Price Forecast: SOL risks further decline amid weak institutional, retail demand - TMGM trading",
+   "tokens": [
+    "institutional",
+    "forecast",
+    "decline",
+    "further",
+    "demand",
+    "retail",
+    "solana",
+    "risk"
    ]
   },
   "demand despite finance nearly record semiconductor": {
@@ -3656,6 +4474,27 @@
     "record",
     "taiwan",
     "month"
+   ]
+  },
+  "despite explode past slide solana yellow": {
+   "first_seen": "2026-06-11T04:02:41+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "yellow.com": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Solana RWAs Explode Past $1.49B Despite SOL Price Slide - Yellow.com",
+   "tokens": [
+    "despite",
+    "explode",
+    "solana",
+    "yellow",
+    "slide",
+    "past",
+    "49b",
+    "rwa"
    ]
   },
   "despite finance outlook premarket strong yahoo": {
@@ -3701,7 +4540,7 @@
   },
   "dip key mub near pluang support": {
    "first_seen": "2026-07-27T09:45:38+00:00",
-   "last_seen": "2026-07-27T14:49:39.373223+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
    "sources": {
     "pluang": "2026-07-27T14:49:39.373223+00:00"
    },
@@ -3779,7 +4618,7 @@
   },
   "drop inflow signal volume which yellow": {
    "first_seen": "2026-07-27T07:09:06+00:00",
-   "last_seen": "2026-07-27T14:49:39.366542+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
    "sources": {
     "yellow.com": "2026-07-27T14:49:39.366542+00:00"
    },
@@ -3796,6 +4635,24 @@
     "drop",
     "83m",
     "dex"
+   ]
+  },
+  "drop nearly pluang sui unlock": {
+   "first_seen": "2026-07-27T22:05:22+00:00",
+   "last_seen": "2026-07-27T22:08:37.008963+00:00",
+   "sources": {
+    "pluang": "2026-07-27T22:08:37.008963+00:00"
+   },
+   "tickers": [
+    "SUI20947-USD"
+   ],
+   "title": "Sui crypto drops nearly 9% amid token unlocks a... - Pluang",
+   "tokens": [
+    "nearly",
+    "pluang",
+    "unlock",
+    "drop",
+    "sui"
    ]
   },
   "earning energy forb hing outlook tech": {
@@ -3877,6 +4734,25 @@
     "who"
    ]
   },
+  "emerg etf market more selective trend": {
+   "first_seen": "2026-07-23T11:00:58+00:00",
+   "last_seen": "2026-07-27T22:09:04.280992+00:00",
+   "sources": {
+    "etf trends": "2026-07-27T22:09:04.280992+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Crypto ETFs: A More Selective Market Emerges - ETF Trends",
+   "tokens": [
+    "selective",
+    "market",
+    "emerg",
+    "trend",
+    "more",
+    "etf"
+   ]
+  },
   "etf investor kavout mean stak what": {
    "first_seen": "2026-07-25T11:53:31+00:00",
    "last_seen": "2026-07-27T14:49:39.373223+00:00",
@@ -3895,6 +4771,27 @@
     "what",
     "etf",
     "sui"
+   ]
+  },
+  "ethereum fxempire negotiation prediction resume track": {
+   "first_seen": "2026-07-27T17:54:00+00:00",
+   "last_seen": "2026-07-27T22:08:37.004958+00:00",
+   "sources": {
+    "fxempire": "2026-07-27T22:08:37.004958+00:00"
+   },
+   "tickers": [
+    "ETH-USD"
+   ],
+   "title": "Ethereum Price Prediction: ETH On Track to Hit $2,200 as U.S.-Iran Negotiations Resume - FXEmpire",
+   "tokens": [
+    "negotiation",
+    "prediction",
+    "ethereum",
+    "fxempire",
+    "resume",
+    "track",
+    "iran",
+    "200"
    ]
   },
   "event fil item netflix other": {
@@ -4174,6 +5071,25 @@
     "year",
     "fed",
     "one"
+   ]
+  },
+  "hit pluang record solana tokeniz volum": {
+   "first_seen": "2026-07-21T17:32:11+00:00",
+   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "sources": {
+    "pluang": "2026-07-27T22:08:37.006963+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Tokenized stocks on Solana hit record volumes i... - Pluang",
+   "tokens": [
+    "tokeniz",
+    "pluang",
+    "record",
+    "solana",
+    "volum",
+    "hit"
    ]
   },
   "holding insight manufactur marketbeat purchas semiconductor": {
