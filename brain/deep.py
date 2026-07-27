@@ -19,8 +19,24 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from . import config
+from . import config, market_hours
 from .jsonio import dumps, json_safe   # noqa: F401 — re-exported for the packet builders
+
+
+def _pace(now, portfolio_summary):
+    """The week's trade count against the target, plus how much week is left to hit it."""
+    taken = int((portfolio_summary or {}).get("new_trades_this_week", 0) or 0)
+    left = market_hours.sessions_left_this_week(now.date())
+    return {
+        "new_trades_this_week": taken,
+        "weekly_target": config.WEEKLY_TRADE_TARGET,
+        "weekly_cap": config.MAX_NEW_TRADES_PER_WEEK,
+        "sessions_left_this_week": left,
+        # Behind only when the week can no longer fit the remaining trades at one a session.
+        # Zero trades with five sessions left is on pace, not behind — flagging that would put a
+        # "you are behind" nudge in front of the analyst every Monday morning, which is noise.
+        "behind_pace": left < config.WEEKLY_TRADE_TARGET - taken,
+    }
 
 
 def build_packet(mode, market, screen_result, calendar, portfolio_summary,
@@ -33,9 +49,14 @@ def build_packet(mode, market, screen_result, calendar, portfolio_summary,
         if t in market:
             slim_market[t] = market[t]
     intel = news_intel or {}
+    now = datetime.now(config.ET)
     return {
-        "as_of": datetime.now(config.ET).strftime("%Y-%m-%d %H:%M ET"),
+        "as_of": now.strftime("%Y-%m-%d %H:%M ET"),
         "mode": mode,
+        # Where the week stands against the pace target. Visible, never enforced: the harness has
+        # no rule that fires a trade to hit a number. It exists so a quiet week reads as a decision
+        # the analyst made rather than a question nobody asked.
+        "pace": _pace(now, portfolio_summary),
         # Tier 1 (Haiku 4.5) read of the news. The only headlines you may cite are these.
         "news_intel": {
             "model": intel.get("model"),
@@ -118,6 +139,16 @@ def build_prompt(mode, packet):
         "    in `thesis_notes` and it will be carried into the next review.\n"
         "  - `needs_review: true` on an entry means its evidence has gone quiet. Treat its\n"
         "    conviction as suspect and do not open new size against it.\n\n"
+        "packet.pace is how the week is tracking: `new_trades_this_week` against `weekly_target`\n"
+        "(the pace Lind asked for, roughly one entry per session) with `sessions_left_this_week`\n"
+        "and the hard `weekly_cap`. Read it as an activity check, not a quota. This is a fast tape\n"
+        "and the failure it guards against is real: passing on a decent setup at 09:45 because a\n"
+        "better one might appear at 14:30, every day, until the week ends flat. If you are behind\n"
+        "pace, lower the bar to *look* — take the marginal breakout, the second-tier name, the\n"
+        "smaller size — do NOT lower the bar for evidence. A trade with no thesis is worse than no\n"
+        "trade, and `behind_pace: true` is never a reason to fabricate one. When you end a run with\n"
+        "no signals while behind pace, say in `notes` what specifically was missing, so the Friday\n"
+        "review can tell a genuinely dead tape from an analyst who was too slow to commit.\n\n"
         "Respond with ONE JSON object and nothing else — no prose before or after, no code fence.\n"
         "Schema:\n"
         "{\n"
@@ -204,6 +235,13 @@ def build_review_prompt(recap_json):
         "were NOT taken. Ground `mistakes` and `changes` in those numbers, quoting them. Where\n"
         "`sample_note` or a bucket's `read` says the sample is too thin, say so instead of\n"
         "drawing a conclusion from it.\n\n"
+        "`stats.n_opened` against `stats.weekly_trade_target` (and `pace_gap`) is the activity\n"
+        "check: Lind asked for roughly one entry per session. Coming in under target is not a\n"
+        "failure by itself, but the review must say which it was — a tape that offered nothing\n"
+        "(cite the regime and what was missing) or setups you passed on. Cross-check\n"
+        "`measured_performance.signals` for advisory and rejected calls that then ran: those are\n"
+        "evidence of hesitation and belong in `mistakes`. Over target with a weak win rate is the\n"
+        "mirror failure. Never write 'trade more' as a change on its own.\n\n"
         "`changes` and `pipeline_changes` are different things and must not be mixed:\n"
         "  - `changes` are analyst-side rules for how YOU judge a setup. They never override the\n"
         "    harness gates (position limits, the -7% cut, trailing stops, sector lockout).\n"

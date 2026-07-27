@@ -70,8 +70,13 @@ CLAUDE_LITE_TIMEOUT = int(os.environ.get("BRAIN_LITE_TIMEOUT", "150"))  # second
 NEWS_TICKERS_PER_CYCLE = int(os.environ.get("BRAIN_NEWS_TICKERS", "14"))
 NEWS_HEADLINES_PER_TICKER = 5
 # Haiku materiality/sentiment thresholds that escalate a cycle to an Opus deep run.
-NEWS_ESCALATE_MATERIALITY = ("high",)
-NEWS_ESCALATE_ABS_SENTIMENT = 55
+# `medium` is included: at one entry per session the cost of missing a real setup outweighs the
+# cost of an Opus run that concludes nothing. The saturation guard below still blocks the case
+# this was really protecting against — a loud story every outlet has already run.
+NEWS_ESCALATE_MATERIALITY = tuple(
+    s.strip() for s in os.environ.get("BRAIN_NEWS_ESCALATE_MATERIALITY", "high,medium").split(",")
+    if s.strip())
+NEWS_ESCALATE_ABS_SENTIMENT = int(os.environ.get("BRAIN_NEWS_ESCALATE_SENTIMENT", "45"))
 
 # ── News quality gate (brain/news_quality.py) ───────────────────────────────────
 # Scrape wide, then keep only the least-saturated few. Candidates cost nothing extra at
@@ -94,9 +99,18 @@ ALPACA_SECRET = os.environ.get("ALPACA_PAPER_SECRET_KEY", "")
 
 # ── Paper portfolio (PDF Part 2 discipline rules) ───────────────────────────────
 STARTING_CASH = float(os.environ.get("BRAIN_START_CASH", "10000"))
-MAX_POSITIONS = 6
-MAX_POSITION_PCT = 20.0     # ≤20% of equity in any one name
-MAX_NEW_TRADES_PER_WEEK = 3
+# Sized for roughly one entry per session. The old 3/week cap was the binding constraint on a
+# fast tape: it was spent by Tuesday and every Wednesday–Friday setup was rejected before it was
+# even judged. The cap now sits ABOVE the pace target so it stops runaway churn without ever
+# being the reason a good Thursday trade is refused.
+MAX_POSITIONS = int(os.environ.get("BRAIN_MAX_POSITIONS", "8"))
+MAX_POSITION_PCT = float(os.environ.get("BRAIN_MAX_POSITION_PCT", "15"))   # ≤15% of equity per name
+MAX_NEW_TRADES_PER_WEEK = int(os.environ.get("BRAIN_MAX_NEW_TRADES", "6"))
+DEFAULT_POSITION_PCT = float(os.environ.get("BRAIN_DEFAULT_POSITION_PCT", "12"))
+# The pace the analyst is measured against — shown in its packet, never enforced. A floor cannot
+# be enforced without buying the least-bad thing on a dead tape, which is how an account bleeds.
+# This makes the target visible so a quiet week is a deliberate call rather than an oversight.
+WEEKLY_TRADE_TARGET = int(os.environ.get("BRAIN_WEEKLY_TRADE_TARGET", "5"))
 HARD_STOP_PCT = -7.0        # cut a loser at -7%
 TRAIL_BASE_PCT = 10.0       # initial trailing stop
 TRAIL_TIGHT_15 = 7.0        # tighten to 7% once +15%
@@ -129,13 +143,16 @@ FF_WATCH_KEYWORDS = [
 SPEECH_KEYWORDS = ["Speaks", "Speech", "Testimony", "Press Conference"]
 
 # ── Screener thresholds (deterministic; no LLM) ─────────────────────────────────
-SCREEN_GAP_PCT = 1.5            # |open gap| ≥ this ⇒ flag
-SCREEN_VOL_MULT = 1.8          # volume ≥ this × 20-bar avg ⇒ flag
-SCREEN_BREAKOUT_LOOKBACK = 20  # N-bar high/low breakout window
-SCREEN_RSI_HOT = 72
-SCREEN_RSI_COLD = 28
-SCREEN_EVENT_HORIZON_H = 2.0   # high-impact calendar event within this many hours ⇒ flag
-SCREEN_52W_PROXIMITY = 0.02    # within 2% of the 52-week high/low ⇒ flag
+# Loosened for a one-entry-per-session pace. These decide when Opus is allowed to *look*, not
+# what it may trade — a wider net costs deep runs that conclude "nothing here", which is the
+# cheap failure. The expensive failure is a setup that never reached the analyst at all.
+SCREEN_GAP_PCT = float(os.environ.get("BRAIN_SCREEN_GAP_PCT", "1.0"))    # |open gap| ≥ this ⇒ flag
+SCREEN_VOL_MULT = float(os.environ.get("BRAIN_SCREEN_VOL_MULT", "1.5"))  # ≥ this × 20-bar avg vol
+SCREEN_BREAKOUT_LOOKBACK = int(os.environ.get("BRAIN_SCREEN_BREAKOUT", "15"))  # N-bar high/low
+SCREEN_RSI_HOT = int(os.environ.get("BRAIN_SCREEN_RSI_HOT", "70"))
+SCREEN_RSI_COLD = int(os.environ.get("BRAIN_SCREEN_RSI_COLD", "30"))
+SCREEN_EVENT_HORIZON_H = 3.0   # high-impact calendar event within this many hours ⇒ flag
+SCREEN_52W_PROXIMITY = 0.03    # within 3% of the 52-week high/low ⇒ flag
 
 # ── Signal de-duplication (brain/dedupe.py) ─────────────────────────────────────
 # The screener fires on a *condition*, and a condition persists. A 20-day breakout is still a

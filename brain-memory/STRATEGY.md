@@ -18,7 +18,10 @@ trade is taken. Process quality matters more than any single week's P&L.
    every request, so a live host or a missing key fails closed and the run continues on the
    simulation alone. No code path in this repo can reach a real-money broker.
 2. **Rules over conviction.** The code enforces the risk gates; the analyst proposes within them.
-3. **Selectivity.** No trade is the default. Force nothing.
+3. **Pace with discipline.** Target ~5 new trades a week (about one per session), taken as soon as
+   a real opportunity shows — from the news or the chart. Behind pace, widen what you *look* at;
+   never widen what counts as evidence. Force nothing: a trade with no thesis is still worse than
+   no trade.
 4. **Honesty.** Real indicator values and real headlines only — never fabricated. Losses are
    logged and learned from, not hidden.
 5. **Every trade is journaled and graded.** Entry reasoning goes into the Obsidian trade journal;
@@ -27,8 +30,8 @@ trade is taken. Process quality matters more than any single week's P&L.
 
 ## Risk gates (enforced in `brain/portfolio.py`)
 
-- Max **6** open positions; **≤20%** equity per name.
-- **≤3** new trades per week.
+- Max **8** open positions; **≤15%** equity per name (**12%** default when unspecified).
+- **≤6** new trades per week — a churn brake set *above* the ~5/week pace target, not a quota.
 - **−7%** hard stop (mechanical). Trailing stop **10% → 7% at +15% → 5% at +20%**.
 - Sector lockout after **2** consecutive losers in that sector.
 
@@ -55,3 +58,11 @@ trade is taken. Process quality matters more than any single week's P&L.
 
 - _(seed)_ Initial charter. $10k paper account, hybrid screener + Opus deep runs on Lind's Claude
   Code subscription, 3 daily anchors + event-driven escalations.
+- **2026-07-27 — pace target added, caps raised.** Lind: "at least 5 trades a week so to be at
+  least 1 trade a day." The binding constraint was the 3/week cap — spent by Tuesday, so every
+  Wednesday–Friday setup was refused before it was judged. Caps moved to 8 positions / ≤15% per
+  name / ≤6 new trades per week, per-name weight cut so a fuller book isn't a riskier one. The
+  screener and news-escalation thresholds were loosened (gap 1.5→1.0%, volume 1.8→1.5×, breakout
+  20→15 bars, RSI 72/28→70/30, `medium` materiality now escalates) so more setups reach the
+  analyst at all. `WEEKLY_TRADE_TARGET = 5` is shown in every packet and enforced nowhere: a hard
+  floor would buy the least-bad name on a dead tape, which is how an account bleeds.

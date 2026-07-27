@@ -489,6 +489,14 @@ def build_weekly_email(recap, now_et):
         f'{g.get("verdict")} — {"; ".join(g.get("notes") or []) or "nothing anomalous"}</li>'
         for g in recap.get("gradings", []) or [])
 
+    # Activity against the pace target, next to the P&L. A green week on one trade and a green
+    # week on five are different weeks, and only this line says which one it was.
+    target = st.get("weekly_trade_target") or config.WEEKLY_TRADE_TARGET
+    opened_n = st.get("n_opened", 0)
+    pace_c = "#22c55e" if opened_n >= target else ("#f59e0b" if opened_n >= target - 2 else "#ef4444")
+    pace_html = (f'<span style="color:{pace_c};font-weight:700;">{opened_n}</span> '
+                 f'<span style="color:#6b7280;">/ {target} target</span>')
+
     an = recap.get("analytics") or {}
     sig_html = _signals_html(an.get("signals") or {}, recap.get("signal_review"))
     meas_html = _measured_html(an)
@@ -512,7 +520,7 @@ def build_weekly_email(recap, now_et):
       · realised ${st.get("realized_usd",0):+,.0f}</p>
     <table width="100%" cellpadding="0" cellspacing="0">
       {_row("Closed trades", st.get("n_closed", 0))}
-      {_row("Opened this week", st.get("n_opened", 0))}
+      {_row("Opened this week", pace_html)}
       {_row("Still open", st.get("n_open", 0))}
       {_row("Win rate", f"{wr}%" if wr is not None else "—")}
       {_row("Best / worst", f'{st.get("best","—")} / {st.get("worst","—")}')}
@@ -559,6 +567,7 @@ def build_weekly_email(recap, now_et):
              f"Week: {ret:+.2f}%  (${st.get('equity_start',0):,.0f} -> ${st.get('equity_end',0):,.0f})",
              f"Realised ${st.get('realized_usd',0):+,.0f} across {st.get('n_closed',0)} closed trade(s)",
              f"Win rate: {wr if wr is not None else 'n/a'}  ·  best {st.get('best','—')} / worst {st.get('worst','—')}",
+             f"Opened this week: {opened_n} / {target} target",
              "", "HOW THE WEEK WENT", recap.get("narrative") or "—", "", "TRADES CLOSED"]
     for c in recap.get("closed", []) or []:
         lines.append(f"  {c.get('ticker')} [{c.get('trade_type') or '—'}] conf {c.get('confidence')} "

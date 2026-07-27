@@ -45,8 +45,16 @@ The recap packet you are given is already computed — you do not recalculate it
 6. **Look at how trades ended.** `by_exit_kind` separates the mechanical -7% cut from trailing
    stops and from your own exits. A week of hard stops means entries were early, not that stops
    are wrong.
-7. A flat, quiet week with no trades is a legitimate result. Say so plainly instead of inventing
-   a lesson. Do not manufacture mistakes to fill the list.
+7. **Judge the pace, not only the P&L.** `stats.n_opened` against `stats.weekly_trade_target`
+   (with `pace_gap`) says how much you actually traded. Lind asked for roughly one entry per
+   session. If you came in under, the review must say **which** it was, with evidence:
+   - the tape genuinely offered nothing (cite the regime, the missing volume, the empty calendar), or
+   - setups were there and you passed on them — check `measured_performance.signals` for the
+     advisory and rejected calls that then ran. That is hesitation, and it belongs in `mistakes`.
+
+   Over target with a poor win rate is the mirror failure: say that too. A quiet week is a
+   legitimate result *once you have shown it was the market and not the analyst*. Do not
+   manufacture mistakes to fill the list, and never propose "trade more" as a lesson on its own.
 
 ## Output contract
 

@@ -31,8 +31,8 @@ def _buy(pf, ticker, entry, weight=10.0, stop=None):
 
 # ── position cap ────────────────────────────────────────────────────────────────
 
-def test_seventh_position_rejected(pf):
-    # Preload 6 positions directly (bypasses the weekly cap so we isolate the position cap).
+def test_one_position_past_the_cap_is_rejected(pf):
+    # Preload a full book directly (bypasses the weekly cap so we isolate the position cap).
     for i in range(config.MAX_POSITIONS):
         t = f"T{i}"
         pf.state["positions"][t] = {
@@ -48,8 +48,8 @@ def test_seventh_position_rejected(pf):
 
 # ── per-name weight cap ───────────────────────────────────────────────────────────
 
-def test_position_weight_capped_at_20pct(pf):
-    # Ask for 50% — the gate must cap the fill at 20% of equity.
+def test_position_weight_capped_at_the_configured_limit(pf):
+    # Ask for 50% — the gate must cap the fill at MAX_POSITION_PCT of equity.
     ok, msg = _buy(pf, "AAPL", entry=100, weight=50.0)
     assert ok, msg
     pos = pf.state["positions"]["AAPL"]
@@ -151,3 +151,23 @@ def test_sell_unheld_rejected(pf):
     ok, msg = pf.validate_action({"action": "SELL", "ticker": "GOOGL"}, prices={"GOOGL": 100})
     assert not ok
     assert "not held" in msg
+
+
+# ── the default weight when the analyst omits one ────────────────────────────────
+
+def test_an_unsized_buy_falls_back_to_the_default_weight(pf):
+    """The old fallback was a hardcoded 15%. At 8 positions that is a book the account
+    cannot fund, so an unsized proposal has to fall back to the configured default."""
+    ok, msg = pf.apply_action(
+        {"action": "BUY", "ticker": "AAPL", "entry": 100, "stop": 93, "reason": "no weight given"},
+        prices={"AAPL": 100})
+    assert ok, msg
+    pos = pf.state["positions"]["AAPL"]
+    assert pos["shares"] * pos["entry"] == pytest.approx(
+        config.STARTING_CASH * config.DEFAULT_POSITION_PCT / 100, rel=1e-6)
+
+
+def test_a_full_book_at_the_default_weight_still_fits_the_account():
+    """8 positions at the default must not need more cash than the account has."""
+    assert config.MAX_POSITIONS * config.DEFAULT_POSITION_PCT <= 100
+    assert config.DEFAULT_POSITION_PCT <= config.MAX_POSITION_PCT

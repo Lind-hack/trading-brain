@@ -275,3 +275,40 @@ def test_high_materiality_escalates_even_when_everyone_has_it():
                                  "crowding": "saturated", "catalyst": "macro", "summary": "cut"}},
              "macro_sentiment": 0}
     assert len(news_intel.escalation_reasons(intel)) == 1
+
+
+# ── the widened gate: enough looks to hit ~1 entry a session ─────────────────────
+
+def test_merely_notable_news_now_buys_a_look():
+    """Medium materiality with unremarkable tone used to be ignored. At a one-entry-a-session
+    pace the cost of a deep run that concludes nothing is lower than the cost of never seeing
+    the setup at all."""
+    intel = {"tickers": {"AMD": {"materiality": "medium", "sentiment": 20, "is_fresh": True,
+                                 "crowding": "mixed", "catalyst": "guidance"}},
+             "macro_sentiment": 0}
+    assert len(news_intel.escalation_reasons(intel)) == 1
+
+
+def test_medium_materiality_that_everyone_has_run_is_still_ignored():
+    """The widening must not reopen the hole the saturation guard closed: a story ten outlets
+    have already carried is in the price, whatever its materiality score says."""
+    intel = {"tickers": {"AMD": {"materiality": "medium", "sentiment": 10, "is_fresh": True,
+                                 "crowding": "saturated", "catalyst": "guidance"}},
+             "macro_sentiment": 0}
+    assert news_intel.escalation_reasons(intel) == []
+
+
+def test_high_materiality_escalates_even_when_saturated():
+    """The exception that has to survive: an FOMC decision or an earnings miss moves the tape
+    whether or not the brain read it first."""
+    intel = {"tickers": {"AMD": {"materiality": "high", "sentiment": 5, "is_fresh": True,
+                                 "crowding": "saturated", "catalyst": "earnings"}},
+             "macro_sentiment": 0}
+    assert len(news_intel.escalation_reasons(intel)) == 1
+
+
+def test_stale_news_never_escalates_at_any_materiality():
+    intel = {"tickers": {"AMD": {"materiality": "high", "sentiment": 90, "is_fresh": False,
+                                 "crowding": "under-covered", "catalyst": "earnings"}},
+             "macro_sentiment": 0}
+    assert news_intel.escalation_reasons(intel) == []

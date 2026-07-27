@@ -247,3 +247,25 @@ def test_the_entry_reason_says_when_the_brain_will_trade_again():
     assert "09:30" in mh.entries_reason(et(*wed, 8, 0))
     assert "no new entries until tomorrow" in mh.entries_reason(et(*wed, 17, 0))
     assert "market closed" in mh.entries_reason(et(2026, 12, 25, 12, 0))
+
+
+# ── pace: how much week is left ─────────────────────────────────────────────────
+
+def test_sessions_left_counts_today_and_shrinks_across_the_week():
+    assert mh.sessions_left_this_week(date(2026, 7, 27)) == 5   # Monday
+    assert mh.sessions_left_this_week(date(2026, 7, 29)) == 3   # Wednesday
+    assert mh.sessions_left_this_week(date(2026, 7, 31)) == 1   # Friday: today still counts
+
+
+def test_a_weekend_reads_as_the_full_week_ahead():
+    # Follows last_trading_day_of_week(), which rolls a weekend forward to the coming Friday.
+    # Nothing calls this on a Saturday in practice — the gate has already refused the run — but
+    # the answer a Sunday would get should be "five sessions to work with", not "zero".
+    assert mh.sessions_left_this_week(date(2026, 8, 1)) == 5    # Saturday
+    assert mh.sessions_left_this_week(date(2026, 8, 2)) == 5    # Sunday
+
+
+def test_a_holiday_shortens_the_runway_it_does_not_promise_a_session():
+    # Thanksgiving week 2026: Thu Nov 26 is closed, Fri Nov 27 is a half day but still a session.
+    assert mh.sessions_left_this_week(date(2026, 11, 23)) == 4  # Mon, minus Thanksgiving
+    assert mh.sessions_left_this_week(date(2026, 11, 25)) == 2  # Wed + the Friday half day

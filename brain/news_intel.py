@@ -337,10 +337,14 @@ def _fallback(headlines, macro_headlines):
 def escalation_reasons(intel):
     """Which news findings justify spending an Opus deep run this cycle.
 
-    Materiality still escalates on its own — a saturated FOMC decision moves the tape whether or
-    not it is a scoop. The sentiment-only path does not: loud tone on a story ten outlets have
-    already run is the definition of news that is in the price, and paying for a deep run on it
-    is how the budget gets spent on nothing.
+    `high` materiality escalates on its own — a saturated FOMC decision moves the tape whether or
+    not it is a scoop. Everything below that must not already be saturated: loud tone, or merely
+    notable news, on a story ten outlets have run is the definition of news that is in the price,
+    and paying for a deep run on it is how the budget gets spent on nothing.
+
+    That distinction is what lets `medium` sit in NEWS_ESCALATE_MATERIALITY at all. Widening the
+    threshold to hit a ~1-trade-a-day pace only buys real looks if the extra volume is
+    under-covered; without this guard it would just buy deep runs on yesterday's headlines.
     """
     reasons = []
     for t, info in (intel.get("tickers") or {}).items():
@@ -348,7 +352,8 @@ def escalation_reasons(intel):
         sent = info.get("sentiment") or 0
         crowd = info.get("crowding") or "mixed"
         tag = f", {crowd}" + (f" via {info['source_tier']}" if info.get("source_tier") else "")
-        if mat in config.NEWS_ESCALATE_MATERIALITY and info.get("is_fresh"):
+        mat_ok = mat in config.NEWS_ESCALATE_MATERIALITY and (mat == "high" or crowd != "saturated")
+        if mat_ok and info.get("is_fresh"):
             reasons.append(f"{t}: {mat}-materiality {info.get('catalyst')} news "
                            f"(sentiment {sent:+d}{tag}) — {info.get('summary','')[:90]}")
         elif (abs(sent) >= config.NEWS_ESCALATE_ABS_SENTIMENT and info.get("is_fresh")

@@ -264,7 +264,8 @@ class Portfolio:
             price = action.get("entry") or prices.get(ticker)
             if not price:
                 return False, f"no price for {ticker}"
-            target_pct = min(action.get("target_weight_pct", 15.0), config.MAX_POSITION_PCT)
+            target_pct = min(action.get("target_weight_pct", config.DEFAULT_POSITION_PCT),
+                         config.MAX_POSITION_PCT)
             target_usd = eq * target_pct / 100
             if kind == "ADD":
                 cur = self.state["positions"].get(ticker)
@@ -293,7 +294,8 @@ class Portfolio:
         # BUY / ADD
         price = action.get("entry") or prices.get(ticker)
         eq = self.equity(prices)
-        target_pct = min(action.get("target_weight_pct", 15.0), config.MAX_POSITION_PCT)
+        target_pct = min(action.get("target_weight_pct", config.DEFAULT_POSITION_PCT),
+                         config.MAX_POSITION_PCT)
         target_usd = min(eq * target_pct / 100, self.state["cash"])
         shares = round(target_usd / price, 4)
         if shares <= 0:

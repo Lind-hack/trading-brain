@@ -188,3 +188,42 @@ def test_only_the_freshest_headlines_are_attached():
     intel = {"headlines": {"AAPL": [{"title": f"h{i}"} for i in range(12)]}}
     market_brain._attach_news(market, intel, limit=4)
     assert [h["title"] for h in market["AAPL"]["news"]] == ["h0", "h1", "h2", "h3"]
+
+
+# ── the pace block reaches the analyst ──────────────────────────────────────────
+
+def _packet(new_trades, now):
+    from brain import deep
+    return deep.build_packet("cycle", {}, {"triggers": [], "why": []}, {},
+                             {"new_trades_this_week": new_trades})["pace"]
+
+
+def test_the_packet_carries_the_week_against_the_pace_target(monkeypatch):
+    """Opus cannot pace itself against a number it never sees."""
+    monkeypatch.setattr(market_hours, "sessions_left_this_week", lambda d: 3)
+    pace = _packet(2, None)
+    assert pace["new_trades_this_week"] == 2
+    assert pace["weekly_target"] == config.WEEKLY_TRADE_TARGET
+    assert pace["weekly_cap"] == config.MAX_NEW_TRADES_PER_WEEK
+    assert pace["sessions_left_this_week"] == 3
+
+
+def test_the_cap_sits_above_the_target_so_it_never_blocks_the_pace():
+    """A cap at or below the target would refuse the very trade the target asks for."""
+    assert config.MAX_NEW_TRADES_PER_WEEK > config.WEEKLY_TRADE_TARGET
+
+
+def test_behind_pace_only_fires_when_the_week_is_actually_running_out(monkeypatch):
+    target = config.WEEKLY_TRADE_TARGET
+    monkeypatch.setattr(market_hours, "sessions_left_this_week", lambda d: target)
+    assert not _packet(0, None)["behind_pace"], "a full week left is not behind"
+    monkeypatch.setattr(market_hours, "sessions_left_this_week", lambda d: 1)
+    assert _packet(target - 2, None)["behind_pace"], "two short with one session left is behind"
+    assert not _packet(target, None)["behind_pace"], "target met is never behind"
+
+
+def test_a_missing_portfolio_summary_does_not_break_the_packet(monkeypatch):
+    """The pace block is context, not a dependency — it must never be the thing that kills a run."""
+    from brain import deep
+    monkeypatch.setattr(market_hours, "sessions_left_this_week", lambda d: 2)
+    assert deep.build_packet("cycle", {}, {}, {}, None)["pace"]["new_trades_this_week"] == 0

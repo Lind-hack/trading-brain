@@ -208,3 +208,50 @@ def test_the_lookback_covers_the_longest_cooldown():
     """A LONG_TERM repeat five days old must still be visible to classify()."""
     assert dedupe._lookback_h() >= max(config.SIGNAL_COOLDOWN_H.values())
     assert dedupe.stale_cutoff() < datetime.now(config.UTC)
+
+
+# ── the rescue: a repeat that is actually being taken ───────────────────────────
+
+def _analysis(**action_kw):
+    action = {"action": "BUY", "ticker": "AAPL", "entry": 200.0, "reason": "breakout"}
+    action.update(action_kw)
+    return {"signals": [sig()], "portfolio_actions": [action]}
+
+
+def test_a_repeat_the_gates_will_fill_is_published_not_suppressed():
+    """The earlier call never became a position. Suppressing it again is how a good idea that
+    the gates blocked at 10:00 never gets taken at all."""
+    analysis = _analysis()
+    suppressed = dedupe.apply(analysis, history=[rec(hours_ago=1, outcome="rejected")],
+                              now=NOW, can_execute=lambda a: True)
+    assert suppressed == []
+    assert [s["ticker"] for s in analysis["signals"]] == ["AAPL"]
+    assert analysis["portfolio_actions"], "the action that justified publishing was dropped"
+    assert analysis["signals"][0]["repeat_but_executing"] is True
+
+
+def test_a_repeat_the_gates_would_reject_stays_suppressed():
+    """The original complaint: a repeat that fills nothing must not reach the inbox."""
+    analysis = _analysis()
+    suppressed = dedupe.apply(analysis, history=[rec(hours_ago=1, outcome="rejected")],
+                              now=NOW, can_execute=lambda a: False)
+    assert len(suppressed) == 1
+    assert analysis["signals"] == []
+    assert analysis["portfolio_actions"] == []
+
+
+def test_a_repeat_with_no_buy_attached_is_still_suppressed():
+    """Nothing to execute means nothing to rescue — it is a bare re-recommendation."""
+    analysis = {"signals": [sig()], "portfolio_actions": [
+        {"action": "HOLD", "ticker": "AAPL", "reason": "still fine"}]}
+    suppressed = dedupe.apply(analysis, history=[rec(hours_ago=1)], now=NOW,
+                              can_execute=lambda a: True)
+    assert len(suppressed) == 1
+    assert analysis["signals"] == []
+
+
+def test_without_a_validator_the_old_strict_behaviour_holds():
+    analysis = _analysis()
+    suppressed = dedupe.apply(analysis, history=[rec(hours_ago=1)], now=NOW)
+    assert len(suppressed) == 1
+    assert analysis["signals"] == []

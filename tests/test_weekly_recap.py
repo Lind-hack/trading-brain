@@ -285,3 +285,21 @@ def test_the_obsidian_recap_note_mirrors_the_email(tmp_path, monkeypatch):
     assert "CPI m/m" in md
     assert "PLTR" in md
     assert "[[Trade Journal Index]]" in md
+
+
+# ── pace lands in the recap ──────────────────────────────────────────────────────
+
+def test_the_recap_email_reports_the_week_against_the_pace_target():
+    """A green week on one trade and a green week on five are different weeks. The recap has to
+    say which one it was, or the Friday review has nothing to diagnose."""
+    _, text, html = notify.build_weekly_email(_full_recap(), datetime(2026, 7, 24))
+    assert f"2 / {config.WEEKLY_TRADE_TARGET} target" in text
+    assert f"/ {config.WEEKLY_TRADE_TARGET} target" in html
+
+
+def test_a_recap_built_from_the_ledger_carries_the_pace_numbers(tmp_path):
+    from brain.portfolio import Portfolio
+    pf = Portfolio(path=tmp_path / "PORTFOLIO.json")
+    recap = journal.build_recap(pf, "2026-07-20T00:00:00", prices={})
+    assert recap["stats"]["weekly_trade_target"] == config.WEEKLY_TRADE_TARGET
+    assert recap["stats"]["pace_gap"] == -config.WEEKLY_TRADE_TARGET   # nothing opened

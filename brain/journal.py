@@ -710,6 +710,11 @@ def build_recap(portfolio, week_start_iso, prices=None, narrative=None, changes=
             if equity_start else 0.0,
             "realized_usd": realized,
             "n_closed": len(closed), "n_opened": len(opened), "n_open": summary["n_open"],
+            # Activity against the pace target, so the review judges how much the brain traded
+            # as well as how well. A week under target is not automatically a failure — a dead
+            # tape is a real answer — but it is a question the review has to answer explicitly.
+            "weekly_trade_target": config.WEEKLY_TRADE_TARGET,
+            "pace_gap": len(opened) - config.WEEKLY_TRADE_TARGET,
             "win_rate": round(len(wins) / len(closed) * 100, 1) if closed else None,
             "best": f"{best['ticker']} {best['pnl_pct']:+.1f}%" if best else "—",
             "worst": f"{worst['ticker']} {worst['pnl_pct']:+.1f}%" if worst else "—",

@@ -58,10 +58,18 @@ Finnhub fundamentals      Haiku 4.5 reads what survived  ───────�
   already sent, per horizon: 3 h for a scalp, 24 h for a swing, 120 h for a long-term call. It
   re-emits early only when the setup has genuinely changed — the entry has drifted more than 1.5%,
   confidence has moved 15 points, or the direction has flipped. Suppressed ideas still reach the
-  dashboard, marked `duplicate`; they just stop filling the inbox.
-- **Discipline in code.** `brain/portfolio.py` enforces max 6 positions, ≤20%/name, ≤3 new
+  dashboard, marked `duplicate`; they just stop filling the inbox. The one repeat that always gets
+  through is a repeat being **executed**: if the earlier call was blocked by the gates and never
+  became a position, the idea is not old news and the email is the first time you hear it was
+  taken. Suppression exists to stop repetition, not to stop trades.
+- **Discipline in code.** `brain/portfolio.py` enforces max 8 positions, ≤15%/name, ≤6 new
   trades/week, −7% hard stop, a tightening trailing stop, and sector lockouts. Claude only proposes;
   the code disposes.
+- **A pace target, not a quota.** The analyst is aimed at roughly 5 new trades a week — about one
+  per session — and every deep packet carries `pace`: trades taken, sessions left, and whether the
+  week is behind. It is shown, never enforced. No rule fires a trade to hit a number, because the
+  only way to guarantee a daily trade is to buy the least-bad thing on a dead tape. The caps sit
+  *above* the target so they brake churn instead of blocking a good Thursday setup.
 - **It only runs when the market is open.** See below — the crontab proposes, `brain/market_hours.py`
   decides.
 
@@ -156,7 +164,7 @@ matching the fill tape.
 | `brain/memory.py` | EVENT-LOG + historical analogs + git-as-memory |
 | `prompts/*.md` | per-mode deep-run prompt templates |
 | `brain-memory/` | **tracked** state: portfolio, event log, `STRATEGY.md`, `THESES.json`, logs (committed each run) |
-| `tests/` | 358 tests — gates, gate windows, run-log/DST, news quality, dedupe, theses, dashboard feed, bars cache, wiring |
+| `tests/` | 377 tests — gates, gate windows, run-log/DST, news quality, dedupe, theses, dashboard feed, bars cache, wiring |
 | `vps/` | `setup.sh`, `crontab.txt` (UTC), `brain.sql` |
 | `CLAUDE.md` | the analyst rulebook (auto-loads when `claude -p` runs here) |
 
@@ -167,7 +175,7 @@ pip install -r requirements.txt
 python market_brain.py --anchor mid --dry-run     # full pipeline, no email/dashboard/push
 python market_brain.py --research NVDA --dry-run   # single-ticker deep dive
 python market_brain.py --digest --dry-run --ignore-market-hours   # the week-ahead email
-python -m pytest tests/ -q                          # 358 tests
+python -m pytest tests/ -q                          # 377 tests
 ```
 
 Off-hours, every mode exits at the gate. Add `--ignore-market-hours` to run anyway:
@@ -195,6 +203,10 @@ subscription call and uses the deterministic fallback (handy with no `claude` CL
 | `BRAIN_BARS_CACHE` (default on), `BRAIN_YF_TIMEOUT` (default `20`) | daily-bar disk cache; per-fetch socket timeout | — |
 | `BRAIN_COOLDOWN_SCALP_H` (`3`), `BRAIN_COOLDOWN_SWING_H` (`24`), `BRAIN_COOLDOWN_LONG_H` (`120`) | how long a sent signal suppresses its repeat, per horizon | — |
 | `BRAIN_SIGNAL_DRIFT_PCT` (`1.5`), `BRAIN_SIGNAL_CONF_JUMP` (`15`) | what counts as a *changed* setup, so it may re-send inside the cooldown | — |
+| `BRAIN_WEEKLY_TRADE_TARGET` (`5`) | the pace shown to the analyst — displayed, never enforced | no pace context |
+| `BRAIN_MAX_POSITIONS` (`8`), `BRAIN_MAX_NEW_TRADES` (`6`), `BRAIN_MAX_POSITION_PCT` (`15`), `BRAIN_DEFAULT_POSITION_PCT` (`12`) | the portfolio gates and the fallback size for an unsized proposal | — |
+| `BRAIN_SCREEN_GAP_PCT` (`1.0`), `BRAIN_SCREEN_VOL_MULT` (`1.5`), `BRAIN_SCREEN_BREAKOUT` (`15`), `BRAIN_SCREEN_RSI_HOT`/`_COLD` (`70`/`30`) | how easily the screener escalates — wider means more looks, not looser trades | — |
+| `BRAIN_NEWS_ESCALATE_MATERIALITY` (`high,medium`), `BRAIN_NEWS_ESCALATE_SENTIMENT` (`45`) | when Haiku's read alone buys an Opus run | — |
 | `BRAIN_THESIS_MAX` (`8`), `BRAIN_THESIS_MIN_CONVICTION` (`55`), `BRAIN_THESIS_STALE_DAYS` (`45`) | thesis-board size, the conviction floor below which a thesis is retired, and how long without evidence makes one stale | — |
 
 See `brain/config.py` for the full list (thresholds, focus tickers, portfolio limits).

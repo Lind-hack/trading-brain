@@ -24,6 +24,11 @@ than merely persisted:
 A direction flip is never suppressed at all: LONG yesterday and SHORT today is the single most
 important thing the brain can tell you.
 
+There is a fourth, added when the pace target went in: an idea that is *actually being executed*
+this cycle. Suppression is about not repeating a recommendation; it was never meant to stop a
+trade. If the earlier call was blocked by the gates and never became a position, the repeat is
+the first time Lind hears the trade was taken — see apply().
+
 Suppressed signals are not discarded. They are written to the ledger with outcome `duplicate`,
 so the Friday recap can measure how often the analyst repeats itself — which is itself a
 signal about the screener's thresholds.
@@ -143,12 +148,32 @@ def _lookback_h():
     return max(config.SIGNAL_COOLDOWN_H.values())
 
 
-def apply(analysis, history=None, now=None):
+def _buy_action_for(analysis, ticker):
+    """The BUY/ADD this signal is asking the harness to execute, if there is one."""
+    for a in (analysis or {}).get("portfolio_actions") or []:
+        if ((a.get("ticker") or "").upper() == ticker
+                and (a.get("action") or "").upper() in ("BUY", "ADD")):
+            return a
+    return None
+
+
+def apply(analysis, history=None, now=None, can_execute=None):
     """Strip repeats out of `analysis` in place. Returns the list of suppressed records.
 
     Both the signal and any BUY/ADD action attached to the same ticker are removed: publishing
     the trade while hiding the reasoning would be worse than either. Exits are never touched —
     a SELL or a TRIM is a risk decision and always gets through, however often it repeats.
+
+    One exception, and it is the difference between "stop repeating yourself" and "stop trading".
+    A repeat whose earlier emission never became a position is not old news — nothing was ever
+    bought. Suppressing it a second and third time is how a good idea that the gates happened to
+    block at 10:00 (cap full, pre-market, no cash) never gets taken at all, and the week ends
+    under pace for a reason nobody can see. So when `can_execute` says the attached BUY/ADD would
+    actually fill right now, the signal is published and the action survives.
+
+    `can_execute` is the harness's own validator, not a guess — a rescue that the gates then
+    reject would put exactly the repeat email Lind complained about back in his inbox. Callers
+    that pass nothing keep the old strict behaviour.
     """
     signals = (analysis or {}).get("signals") or []
     if not signals:
@@ -160,6 +185,14 @@ def apply(analysis, history=None, now=None):
     kept, suppressed = [], []
     for sig in signals:
         status, reason = classify(sig, history, now=now)
+        if status == "repeat" and can_execute is not None:
+            action = _buy_action_for(analysis, (sig.get("ticker") or "").upper())
+            if action is not None and can_execute(action):
+                status = "new"
+                reason = f"repeat, but it is being taken this time — {reason}"
+                sig["repeat_but_executing"] = True
+                print(f"[dedupe] {sig.get('ticker')} repeats an earlier call but was never "
+                      f"filled; publishing because the gates accept it now")
         if status == "new":
             kept.append(sig)
             # A published signal joins the history immediately, so two cycles inside one run

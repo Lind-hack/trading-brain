@@ -205,6 +205,24 @@ def first_trading_day_of_week(d: date) -> date | None:
     return None
 
 
+def sessions_left_this_week(d: date) -> int:
+    """Trading days remaining in this week, counting today if the exchange is open today.
+
+    The pace context the analyst is measured against: "2 trades so far, 3 sessions left" is a
+    different situation from "2 trades so far, 1 session left", and the second one is the only
+    one that should make it lean into a marginal setup. Counts calendar reality, so a Thursday
+    holiday shortens the runway instead of quietly promising a session that never comes.
+
+    A weekend rolls forward to the coming week (last_trading_day_of_week does), reading as five
+    sessions rather than zero. Nothing calls this outside a session anyway — the gate has already
+    refused the run — but "no time left" would be the wrong answer to give on a Sunday.
+    """
+    last = last_trading_day_of_week(d)
+    if last is None or d > last:
+        return 0
+    return sum(1 for i in range((last - d).days + 1) if is_trading_day(d + timedelta(days=i)))
+
+
 def entries_allowed(now: datetime | None = None) -> bool:
     """May the brain open *new* positions right now?
 

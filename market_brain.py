@@ -360,7 +360,12 @@ def do_cycle(args, mode="cycle", force=False):
                                 intel=intel)
         # A persistent chart condition produces a persistent conclusion. Drop the ideas already
         # sent before they reach either the inbox or the gates — see brain/dedupe.py.
-        suppressed = dedupe.apply(analysis)
+        # An idea only stays suppressed while it stays hypothetical: if the gates would fill it
+        # now, the repeat is the first time Lind is told the trade was actually taken.
+        can_execute = None
+        if market_hours.entries_allowed(now_et):
+            can_execute = lambda a: portfolio.validate_action(a, prices)[0]  # noqa: E731
+        suppressed = dedupe.apply(analysis, can_execute=can_execute)
         if suppressed:
             print(f"[dedupe] {dedupe.summarize(suppressed)}")
             if persist:
