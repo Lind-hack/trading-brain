@@ -51,16 +51,40 @@ def _news_watchlist(market, screen_result, portfolio):
 
     Held names come first on purpose — news that threatens an open position matters more than
     news about a name we might buy.
+
+    The third group is the only way a *news-first* opportunity is ever found: a name whose chart
+    is saying nothing, so the screener never flags it, but which just filed an 8-K. Straight
+    priority order starves that group exactly when it matters most — a full book plus a busy tape
+    fills every place with held and triggered names, so the busier the day, the blinder the brain
+    is to news alone. That is backwards, so a few places are reserved for it.
+
+    The reserve is a floor, not a quota: if the focus list has nothing left to offer, or if held
+    names alone fill the cycle, the places go back to the screener's triggers.
     """
-    ordered = list(portfolio.held_tickers())
-    ordered += [t["ticker"] for t in screen_result.get("triggers", [])]
-    ordered += [t for t in config.FOCUS_TICKERS if t in market]
-    seen, out = set(), []
-    for t in ordered:
-        if t not in seen and t not in config.MARKET_CONTEXT:
-            seen.add(t)
-            out.append(t)
-    return out[:config.NEWS_TICKERS_PER_CYCLE]
+    limit = config.NEWS_TICKERS_PER_CYCLE
+
+    def _dedup(seq, seen):
+        out = []
+        for t in seq:
+            if t and t not in seen and t not in config.MARKET_CONTEXT:
+                seen.add(t)
+                out.append(t)
+        return out
+
+    seen = set()
+    held = _dedup(portfolio.held_tickers(), seen)
+    # Triggers arrive score-sorted, so a truncation here drops the weakest setups, not random ones.
+    triggered = _dedup((t.get("ticker") for t in screen_result.get("triggers", [])), seen)
+    quiet = _dedup((t for t in config.FOCUS_TICKERS if t in market), seen)
+
+    out = held[:limit]
+    room = limit - len(out)
+    reserved = min(config.NEWS_DISCOVERY_RESERVE, len(quiet), room)
+    out += triggered[:room - reserved]
+    out += quiet[:limit - len(out)]
+    # Whatever the reserve did not need goes back to the triggers rather than going unused.
+    out += [t for t in triggered if t not in out][:limit - len(out)]
+    return out[:limit]
 
 
 def _attach_news(market, intel, limit=4):

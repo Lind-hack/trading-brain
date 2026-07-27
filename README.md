@@ -164,7 +164,7 @@ matching the fill tape.
 | `brain/memory.py` | EVENT-LOG + historical analogs + git-as-memory |
 | `prompts/*.md` | per-mode deep-run prompt templates |
 | `brain-memory/` | **tracked** state: portfolio, event log, `STRATEGY.md`, `THESES.json`, logs (committed each run) |
-| `tests/` | 377 tests — gates, gate windows, run-log/DST, news quality, dedupe, theses, dashboard feed, bars cache, wiring |
+| `tests/` | 383 tests — gates, gate windows, run-log/DST, news quality, dedupe, theses, dashboard feed, bars cache, wiring |
 | `vps/` | `setup.sh`, `crontab.txt` (UTC), `brain.sql` |
 | `CLAUDE.md` | the analyst rulebook (auto-loads when `claude -p` runs here) |
 
@@ -175,7 +175,7 @@ pip install -r requirements.txt
 python market_brain.py --anchor mid --dry-run     # full pipeline, no email/dashboard/push
 python market_brain.py --research NVDA --dry-run   # single-ticker deep dive
 python market_brain.py --digest --dry-run --ignore-market-hours   # the week-ahead email
-python -m pytest tests/ -q                          # 377 tests
+python -m pytest tests/ -q                          # 383 tests
 ```
 
 Off-hours, every mode exits at the gate. Add `--ignore-market-hours` to run anyway:
@@ -207,6 +207,7 @@ subscription call and uses the deterministic fallback (handy with no `claude` CL
 | `BRAIN_MAX_POSITIONS` (`8`), `BRAIN_MAX_NEW_TRADES` (`6`), `BRAIN_MAX_POSITION_PCT` (`15`), `BRAIN_DEFAULT_POSITION_PCT` (`12`) | the portfolio gates and the fallback size for an unsized proposal | — |
 | `BRAIN_SCREEN_GAP_PCT` (`1.0`), `BRAIN_SCREEN_VOL_MULT` (`1.5`), `BRAIN_SCREEN_BREAKOUT` (`15`), `BRAIN_SCREEN_RSI_HOT`/`_COLD` (`70`/`30`) | how easily the screener escalates — wider means more looks, not looser trades | — |
 | `BRAIN_NEWS_ESCALATE_MATERIALITY` (`high,medium`), `BRAIN_NEWS_ESCALATE_SENTIMENT` (`45`) | when Haiku's read alone buys an Opus run | — |
+| `BRAIN_NEWS_TICKERS` (`20`), `BRAIN_NEWS_DISCOVERY_RESERVE` (`4`) | how many names Haiku reads per cycle, and how many of those places are held back for names the *chart* is silent about — the only route to a news-first idea | — |
 | `BRAIN_THESIS_MAX` (`8`), `BRAIN_THESIS_MIN_CONVICTION` (`55`), `BRAIN_THESIS_STALE_DAYS` (`45`) | thesis-board size, the conviction floor below which a thesis is retired, and how long without evidence makes one stale | — |
 
 See `brain/config.py` for the full list (thresholds, focus tickers, portfolio limits).

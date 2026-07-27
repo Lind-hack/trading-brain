@@ -227,3 +227,73 @@ def test_a_missing_portfolio_summary_does_not_break_the_packet(monkeypatch):
     from brain import deep
     monkeypatch.setattr(market_hours, "sessions_left_this_week", lambda d: 2)
     assert deep.build_packet("cycle", {}, {}, {}, None)["pace"]["new_trades_this_week"] == 0
+
+
+# ── the news watchlist: who Haiku is allowed to read about ────────────────────────
+
+class _FakePortfolio:
+    def __init__(self, held):
+        self._held = list(held)
+
+    def held_tickers(self):
+        return list(self._held)
+
+
+def _watchlist(held=(), triggered=(), monkeypatch=None, focus=None, limit=20, reserve=4):
+    """Run the real selector against a synthetic screen result."""
+    focus = list(focus if focus is not None else config.FOCUS_TICKERS)
+    if monkeypatch is not None:
+        monkeypatch.setattr(config, "FOCUS_TICKERS", focus)
+        monkeypatch.setattr(config, "NEWS_TICKERS_PER_CYCLE", limit)
+        monkeypatch.setattr(config, "NEWS_DISCOVERY_RESERVE", reserve)
+    market = {t: {} for t in focus}
+    screen_result = {"triggers": [{"ticker": t, "score": 9 - i} for i, t in enumerate(triggered)]}
+    return market_brain._news_watchlist(market, screen_result, _FakePortfolio(held))
+
+
+def test_open_positions_are_never_dropped_from_the_news_read(monkeypatch):
+    """News that threatens money already at risk outranks news about a maybe."""
+    focus = [f"F{i}" for i in range(40)]
+    held = focus[:8]
+    out = _watchlist(held=held, triggered=focus[8:34], monkeypatch=monkeypatch, focus=focus)
+    assert set(held) <= set(out)
+
+
+def test_a_busy_tape_cannot_starve_news_first_discovery(monkeypatch):
+    """The bug this fixes: 8 held + 18 triggered filled every place, so a name whose chart was
+    quiet but whose filing was fresh could not be found — on exactly the days that matter most."""
+    focus = [f"F{i}" for i in range(40)]
+    held, triggered = focus[:8], focus[8:26]
+    out = _watchlist(held=held, triggered=triggered, monkeypatch=monkeypatch, focus=focus)
+    quiet = [t for t in out if t not in held and t not in triggered]
+    assert len(quiet) == 4, f"discovery reserve was starved: {out}"
+    assert len(out) == 20
+
+
+def test_the_reserve_goes_back_to_the_screener_when_discovery_has_nothing_to_offer(monkeypatch):
+    """A floor, not a quota — an idle reserve would waste the cycle's most informative places."""
+    focus = [f"F{i}" for i in range(20)]
+    out = _watchlist(held=focus[:2], triggered=focus[2:], monkeypatch=monkeypatch, focus=focus)
+    assert len(out) == 20, "every place should be used when the focus list is exhausted"
+    assert set(out) == set(focus)
+
+
+def test_the_watchlist_never_exceeds_its_budget(monkeypatch):
+    """Each name costs three HTTP calls and a slice of the Haiku prompt. The cap is the budget."""
+    focus = [f"F{i}" for i in range(60)]
+    out = _watchlist(held=focus[:8], triggered=focus[8:40], monkeypatch=monkeypatch, focus=focus)
+    assert len(out) == 20
+    assert len(set(out)) == 20, "a name read twice is a call paid for twice"
+
+
+def test_market_context_tickers_are_never_read_for_news(monkeypatch):
+    """SPY/VIX set the regime; they are not trade candidates and must not eat a place."""
+    focus = list(config.MARKET_CONTEXT) + [f"F{i}" for i in range(10)]
+    out = _watchlist(triggered=config.MARKET_CONTEXT, monkeypatch=monkeypatch, focus=focus)
+    assert not (set(out) & set(config.MARKET_CONTEXT))
+
+
+def test_a_full_book_still_leaves_room_to_look_outward(monkeypatch):
+    """The real numbers, not synthetic ones: at MAX_POSITIONS held, the cycle must still be able
+    to read about names it does not own. Otherwise the brain can only ever manage what it has."""
+    assert config.NEWS_TICKERS_PER_CYCLE - config.MAX_POSITIONS >= config.NEWS_DISCOVERY_RESERVE

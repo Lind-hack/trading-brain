@@ -67,7 +67,15 @@ CLAUDE_TIMEOUT = int(os.environ.get("BRAIN_CLAUDE_TIMEOUT", "300"))   # seconds 
 CLAUDE_LITE_TIMEOUT = int(os.environ.get("BRAIN_LITE_TIMEOUT", "150"))  # seconds per news pass
 
 # ── News intelligence layer (Haiku 4.5, every cycle) ────────────────────────────
-NEWS_TICKERS_PER_CYCLE = int(os.environ.get("BRAIN_NEWS_TICKERS", "14"))
+# 14 was sized for a 6-position book and a tight screener that flagged 2-4 names a cycle. Raising
+# MAX_POSITIONS to 8 and loosening the screener (a live run now flags ~18) broke that arithmetic:
+# held + triggered filled every place, and the focus-list tail — the only group that can surface a
+# name the chart is silent about — got nothing. 20 restores it. The ceiling is not the API (20
+# Finnhub calls a cycle against a 55/min budget); the cost is Haiku tokens on every cycle.
+NEWS_TICKERS_PER_CYCLE = int(os.environ.get("BRAIN_NEWS_TICKERS", "20"))
+# Places held back for names with no position and no screener trigger, so a busy tape can never
+# make news-first discovery impossible. A floor, not a quota — see market_brain._news_watchlist.
+NEWS_DISCOVERY_RESERVE = int(os.environ.get("BRAIN_NEWS_DISCOVERY_RESERVE", "4"))
 NEWS_HEADLINES_PER_TICKER = 5
 # Haiku materiality/sentiment thresholds that escalate a cycle to an Opus deep run.
 # `medium` is included: at one entry per session the cost of missing a real setup outweighs the
