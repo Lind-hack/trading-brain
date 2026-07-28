@@ -86,9 +86,15 @@ LOGD=/root/signal-deck-logs
 # this system that closes it. Thinning this schedule overnight quietly turns a one-day trade back
 # into an open-ended one.
 #
-# :18/:48 keeps it clear of the stock engine (:07/:22/:37/:52) and of the brain's own equity
-# cycle (:03/:33). Deep run only when the screener or the Haiku news pass fires, same as equities.
-18,48 * * * *        flock -n /tmp/brain-crypto.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --crypto-cycle >> $LOGD/brain-crypto.log 2>&1'
+# :18 keeps it clear of the stock engine (:07/:22/:37/:52) and of the brain's own equity cycle
+# (:03/:33). Deep run only when the screener or the Haiku news pass fires, same as equities.
+#
+# Hourly, not half-hourly, since 2026-07-28. It ran :18/:48 — 336 cycles a week, each one paying
+# for a Haiku news pass — and the token bill was the complaint. Halving the cadence halves that
+# pass without touching the paragraph above: hourly is still often enough to enforce a -15% hard
+# stop and a 24-hour scalp clock, which were never checked tick-by-tick anyway. Thinning it
+# *further* is where the warning above starts to bite, so treat hourly as the floor.
+18 * * * *        flock -n /tmp/brain-crypto.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --crypto-cycle >> $LOGD/brain-crypto.log 2>&1'
 
 # Nothing else runs overnight or at the weekend: for the equity book the market is shut, so the
 # brain is too.

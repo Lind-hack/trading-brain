@@ -277,25 +277,38 @@ def test_high_materiality_escalates_even_when_everyone_has_it():
     assert len(news_intel.escalation_reasons(intel)) == 1
 
 
-# ── the widened gate: enough looks to hit ~1 entry a session ─────────────────────
+# ── the gate, re-narrowed after it was measured ─────────────────────────────────
 
-def test_merely_notable_news_now_buys_a_look():
-    """Medium materiality with unremarkable tone used to be ignored. At a one-entry-a-session
-    pace the cost of a deep run that concludes nothing is lower than the cost of never seeing
-    the setup at all."""
+def test_merely_notable_news_no_longer_buys_a_look():
+    """Medium materiality used to escalate, on the theory that a deep run concluding nothing was
+    cheaper than never seeing the setup. Measured on 2026-07-28: 30 of 30 cycles escalated, and 16
+    of them had no high-materiality reason at all. A gate that never closes is not rationing the
+    most expensive call in the pipeline, it is just spending it — so `medium` is out."""
     intel = {"tickers": {"AMD": {"materiality": "medium", "sentiment": 20, "is_fresh": True,
                                  "crowding": "mixed", "catalyst": "guidance"}},
              "macro_sentiment": 0}
-    assert len(news_intel.escalation_reasons(intel)) == 1
+    assert news_intel.escalation_reasons(intel) == []
 
 
 def test_medium_materiality_that_everyone_has_run_is_still_ignored():
-    """The widening must not reopen the hole the saturation guard closed: a story ten outlets
-    have already carried is in the price, whatever its materiality score says."""
+    """Belt and braces: saturated medium news was already blocked by the crowding guard, and it
+    stays blocked now that materiality alone would reject it. Two independent reasons, on purpose —
+    if the materiality gate is ever widened again the saturation hole must not reopen with it."""
     intel = {"tickers": {"AMD": {"materiality": "medium", "sentiment": 10, "is_fresh": True,
                                  "crowding": "saturated", "catalyst": "guidance"}},
              "macro_sentiment": 0}
     assert news_intel.escalation_reasons(intel) == []
+
+
+def test_loud_tone_alone_needs_to_be_genuinely_extreme():
+    """The sentiment-only path is the second front door. At 45 it stood wide open; at 70 a
+    tone-driven escalation is an outlier rather than a routine one."""
+    base = {"materiality": "low", "is_fresh": True, "crowding": "under-covered",
+            "catalyst": "guidance"}
+    warm = {"tickers": {"AMD": dict(base, sentiment=55)}, "macro_sentiment": 0}
+    extreme = {"tickers": {"AMD": dict(base, sentiment=80)}, "macro_sentiment": 0}
+    assert news_intel.escalation_reasons(warm) == []
+    assert len(news_intel.escalation_reasons(extreme)) == 1
 
 
 def test_high_materiality_escalates_even_when_saturated():

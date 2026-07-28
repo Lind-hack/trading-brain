@@ -78,13 +78,24 @@ NEWS_TICKERS_PER_CYCLE = int(os.environ.get("BRAIN_NEWS_TICKERS", "20"))
 NEWS_DISCOVERY_RESERVE = int(os.environ.get("BRAIN_NEWS_DISCOVERY_RESERVE", "4"))
 NEWS_HEADLINES_PER_TICKER = 5
 # Haiku materiality/sentiment thresholds that escalate a cycle to an Opus deep run.
-# `medium` is included: at one entry per session the cost of missing a real setup outweighs the
-# cost of an Opus run that concludes nothing. The saturation guard below still blocks the case
-# this was really protecting against — a loud story every outlet has already run.
+#
+# These were "high,medium" and 45, on the reasoning that at one entry per session the cost of
+# missing a real setup outweighs the cost of an Opus run that concludes nothing. The logs settled
+# it the other way on 2026-07-28: **30 of 30 cycles escalated.** A gate that never closes is not a
+# gate, and the deep run it was meant to ration is the most expensive call in the pipeline.
+#
+# The reason breakdown across those 30 runs — 34 medium-materiality, 26 high, 6 pure-sentiment,
+# with 16 runs carrying no high-materiality reason at all — is what picked the new values. `medium`
+# fires on essentially any news day, and the saturation guard in news_intel.escalation_reasons does
+# not save it: an under-covered story of middling importance still clears, and there is always one.
+# 70 on sentiment leaves the tone-only path as a genuine outlier rather than a second front door.
+#
+# The screener still escalates on its own triggers, so a chart setup with no news attached is
+# unaffected — this only stops news *alone* from buying a deep run.
 NEWS_ESCALATE_MATERIALITY = tuple(
-    s.strip() for s in os.environ.get("BRAIN_NEWS_ESCALATE_MATERIALITY", "high,medium").split(",")
+    s.strip() for s in os.environ.get("BRAIN_NEWS_ESCALATE_MATERIALITY", "high").split(",")
     if s.strip())
-NEWS_ESCALATE_ABS_SENTIMENT = int(os.environ.get("BRAIN_NEWS_ESCALATE_SENTIMENT", "45"))
+NEWS_ESCALATE_ABS_SENTIMENT = int(os.environ.get("BRAIN_NEWS_ESCALATE_SENTIMENT", "70"))
 
 # ── News quality gate (brain/news_quality.py) ───────────────────────────────────
 # Scrape wide, then keep only the least-saturated few. Candidates cost nothing extra at
