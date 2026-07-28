@@ -988,10 +988,14 @@ def forexfactory_calendar(include_next_week=False):
             if is_speech:
                 speeches.append(rec)
             events.append(rec)
-    # imminent = high-impact and inside the screener horizon, or a speech within 24h
+    # imminent = a US high-impact print inside the screener horizon. Country matters here and not
+    # in `events`: the keyword list matches titles, and "Spanish Unemployment Rate" and "BOJ Core
+    # CPI y/y" both matched it while tagged Low impact. Both forced deep runs. They stay in the
+    # packet — the analyst should see them — but they no longer buy a cycle.
     imminent = [e for e in events
                 if e["hours_away"] is not None
-                and -0.5 <= e["hours_away"] <= config.SCREEN_EVENT_HORIZON_H]
+                and -0.5 <= e["hours_away"] <= config.SCREEN_EVENT_HORIZON_H
+                and (e["country"] or "").upper() in config.CALENDAR_ESCALATE_COUNTRIES]
     trump_soon = [s for s in speeches
                   if s["hours_away"] is not None and -2 <= s["hours_away"] <= 24
                   and "trump" in s["title"].lower()]

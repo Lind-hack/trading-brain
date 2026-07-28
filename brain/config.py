@@ -451,6 +451,17 @@ FF_WATCH_KEYWORDS = [
 ]
 SPEECH_KEYWORDS = ["Speaks", "Speech", "Testimony", "Press Conference"]
 
+# Which currencies' events may *force* a deep run. The keyword list above matches on title alone,
+# and titles are not country-specific: "Unemployment Rate" caught EUR's Spanish print, "CPI" caught
+# JPY's BOJ Core CPI, and both were tagged Low impact. Each one forced an Opus cycle on the theory
+# that a eurozone regional release reprices Bitcoin. Foreign events stay in the packet as context —
+# this list only governs escalation.
+CALENDAR_ESCALATE_COUNTRIES = {
+    c.strip().upper()
+    for c in os.environ.get("BRAIN_CALENDAR_COUNTRIES", "USD").split(",")
+    if c.strip()
+}
+
 # ── Screener thresholds (deterministic; no LLM) ─────────────────────────────────
 # Loosened for a one-entry-per-session pace. These decide when Opus is allowed to *look*, not
 # what it may trade — a wider net costs deep runs that conclude "nothing here", which is the
@@ -478,6 +489,17 @@ CRYPTO_SCREEN_BREAKOUT_LOOKBACK = int(os.environ.get("BRAIN_CRYPTO_BREAKOUT", "2
 CRYPTO_SCREEN_RSI_HOT = int(os.environ.get("BRAIN_CRYPTO_RSI_HOT", "78"))
 CRYPTO_SCREEN_RSI_COLD = int(os.environ.get("BRAIN_CRYPTO_RSI_COLD", "22"))
 CRYPTO_SCREEN_52W_PROXIMITY = 0.05     # a token 5% off its year high is "at" it in practice
+
+# The score one token must reach before the *cycle* escalates. Distinct from the per-ticker flag
+# bar, which decides who appears on the ranked list handed to the analyst.
+#
+# "Any token flagged ⇒ escalate" was a real gate at four tokens and stopped being one at fifteen:
+# a Bollinger squeeze fires on most of the book at once whenever crypto vol compresses, so a score
+# of 3 became the resting state rather than an event. The floor asks for something that actually
+# happened — a breakout on volume plus corroboration, not a pending-breakout pattern and an RSI
+# reading. A held name still escalates at any score: a position under stress is the one case where
+# paying for a look is always worth it.
+CRYPTO_ESCALATE_SCORE = int(os.environ.get("BRAIN_CRYPTO_ESCALATE_SCORE", "5"))
 
 
 class Thresholds:

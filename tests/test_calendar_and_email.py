@@ -114,6 +114,31 @@ def test_an_event_with_no_usable_time_is_never_imminent(monkeypatch):
     assert cal["imminent"] == []
 
 
+def test_a_foreign_print_that_matched_a_keyword_does_not_force_a_deep_run(monkeypatch):
+    """Both of these are real rows that escalated real cycles.
+
+    "Unemployment Rate" and "CPI" are on the watch list because US titles vary. They also match
+    Spain's regional print and the BOJ's, neither of which reprices anything this book trades.
+    """
+    _feed(monkeypatch, [_ev("Spanish Unemployment Rate", impact="Low", country="EUR", hours=1),
+                        _ev("BOJ Core CPI y/y", impact="Low", country="JPY", hours=1)])
+    cal = collect.forexfactory_calendar()
+    assert len(cal["events"]) == 2, "the analyst should still see them in the packet"
+    assert cal["imminent"] == []
+
+
+def test_a_us_print_still_forces_one(monkeypatch):
+    _feed(monkeypatch, [_ev("Core CPI m/m", country="USD", hours=1),
+                        _ev("CPI y/y", country="AUD", hours=1)])
+    assert [e["title"] for e in collect.forexfactory_calendar()["imminent"]] == ["Core CPI m/m"]
+
+
+def test_the_escalating_countries_are_configurable(monkeypatch):
+    monkeypatch.setattr(config, "CALENDAR_ESCALATE_COUNTRIES", {"USD", "EUR"})
+    _feed(monkeypatch, [_ev("Main Refinancing Rate", country="EUR", hours=1)])
+    assert len(collect.forexfactory_calendar()["imminent"]) == 1
+
+
 def test_trump_soon_is_trump_within_a_day(monkeypatch):
     _feed(monkeypatch, [_ev("Trump Speaks", impact="Low", hours=6),
                         _ev("Trump Speaks", impact="Low", hours=100),

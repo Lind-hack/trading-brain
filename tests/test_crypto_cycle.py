@@ -48,7 +48,8 @@ def quiet_market(monkeypatch):
     monkeypatch.setattr(collect, "collect_crypto_market", lambda with_news=True: market)
     monkeypatch.setattr(collect, "forexfactory_calendar", lambda: {"imminent": [], "trump_soon": []})
     monkeypatch.setattr(screener, "screen",
-                        lambda m, calendar=None, held_tickers=None, force=False:
+                        lambda m, calendar=None, held_tickers=None, force=False,
+                        escalate_score=None:
                         {"escalate": False, "why": [], "triggers": [], "calendar_flags": []})
     monkeypatch.setattr(news_intel, "run",
                         lambda t, calendar=None, use_claude=True, venue="stock":
@@ -272,7 +273,8 @@ def test_the_calendar_is_read_into_the_packet_but_not_into_memory(monkeypatch, q
 
 def test_an_escalated_cycle_analyses_only_crypto_tickers(monkeypatch, quiet_market):
     monkeypatch.setattr(screener, "screen",
-                        lambda m, calendar=None, held_tickers=None, force=False:
+                        lambda m, calendar=None, held_tickers=None, force=False,
+                        escalate_score=None:
                         {"escalate": True, "why": ["BTC breakout"],
                          "triggers": [{"ticker": "BTC-USD", "score": 90, "reasons": []}],
                          "calendar_flags": []})
@@ -284,3 +286,62 @@ def test_an_escalated_cycle_analyses_only_crypto_tickers(monkeypatch, quiet_mark
     assert seen["mode"] == "crypto"
     assert set(seen["focus"]) == set(config.CRYPTO_TICKERS)
     assert seen["kw"]["with_fundamentals"] is False
+
+
+# ── the escalation floor ────────────────────────────────────────────────────────
+# "Any flagged ticker escalates" worked while the universe was four tokens. At fifteen it stopped
+# gating anything: a Bollinger squeeze fires across most of the book whenever crypto vol
+# compresses, so a score of 3 is the resting state. These tests pin the separation between being
+# on the ranked list and being worth an Opus run.
+
+def _scored(**by_ticker):
+    """A market of bare snapshots carrying one pattern each, weighted to hit a wanted score."""
+    market = {}
+    for ticker, score in by_ticker.items():
+        market[ticker] = {"ticker": ticker, "indicators": {},
+                          "patterns": [{"name": "test pattern", "detail": "d", "strength": score}]}
+    return market
+
+
+def test_a_drifting_book_no_longer_buys_a_deep_run():
+    market = _scored(**{"BTC-USD": 3, "SOL-USD": 3, "DOGE-USD": 4})
+    r = screener.screen(market, escalate_score=5)
+    assert len(r["triggers"]) == 3, "they still reach the packet"
+    assert r["escalate"] is False
+    assert any("escalation bar" in w for w in r["why"])
+
+
+def test_one_real_move_still_does():
+    r = screener.screen(_scored(**{"BTC-USD": 3, "SOL-USD": 6}), escalate_score=5)
+    assert r["escalate"] is True
+
+
+def test_a_held_name_escalates_at_any_score():
+    """A position under stress is the one case where paying for a look is always worth it."""
+    r = screener.screen(_scored(**{"BONK-USD": 2}), held_tickers=["BONK-USD"], escalate_score=5)
+    assert r["escalate"] is True
+
+
+def test_the_floor_does_not_override_a_forced_or_calendar_run():
+    quiet = _scored(**{"BTC-USD": 3})
+    assert screener.screen(quiet, force=True, escalate_score=5)["escalate"] is True
+    cal = {"imminent": [{"title": "Core CPI m/m", "impact": "High", "hours_away": 1.0}]}
+    assert screener.screen(quiet, calendar=cal, escalate_score=5)["escalate"] is True
+
+
+def test_the_equity_screener_is_untouched():
+    """No `escalate_score` means the original behaviour, exactly. The stock book did not change."""
+    r = screener.screen(_scored(**{"AAPL": 3}))
+    assert r["escalate"] is True
+
+
+def test_the_crypto_cycle_passes_its_floor_to_the_screener(monkeypatch, quiet_market):
+    seen = {}
+
+    def _screen(m, calendar=None, held_tickers=None, force=False, escalate_score=None):
+        seen["escalate_score"] = escalate_score
+        return {"escalate": False, "why": [], "triggers": [], "calendar_flags": []}
+
+    monkeypatch.setattr(screener, "screen", _screen)
+    market_brain.do_crypto_cycle(_Args())
+    assert seen["escalate_score"] == config.CRYPTO_ESCALATE_SCORE

@@ -505,7 +505,8 @@ def do_crypto_cycle(args, force=False):
         print(f"[memory] logged {logged} crypto event(s)")
 
     screen_result = screener.screen(market, calendar=calendar,
-                                    held_tickers=portfolio.held_tickers(), force=force)
+                                    held_tickers=portfolio.held_tickers(), force=force,
+                                    escalate_score=config.CRYPTO_ESCALATE_SCORE)
 
     watchlist = _crypto_news_watchlist(screen_result, portfolio)
     intel = news_intel.run(watchlist, calendar=calendar, use_claude=not args.no_claude,

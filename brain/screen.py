@@ -58,7 +58,8 @@ def _when(hours_away):
     return f"in {hours_away}h"
 
 
-def screen(market, calendar=None, held_tickers=None, force=False, threshold=3):
+def screen(market, calendar=None, held_tickers=None, force=False, threshold=3,
+           escalate_score=None):
     """Evaluate a full market snapshot.
 
     market        : dict ticker -> snapshot (from collect.collect_market)
@@ -66,6 +67,11 @@ def screen(market, calendar=None, held_tickers=None, force=False, threshold=3):
     held_tickers  : tickers currently in the paper portfolio (lower their trigger bar)
     force         : anchor run — always escalate (still returns the ranked context)
     threshold     : per-ticker score needed to flag when not forced
+    escalate_score: if set, a flagged ticker only *escalates* the cycle at this score or above.
+                    Flagging and escalating are separate questions once the universe is wide
+                    enough that something is always flagged; below this bar the triggers still
+                    reach the packet, they just do not buy a deep run on their own. A held name
+                    escalates at any score. None keeps the original "any trigger escalates".
 
     Returns dict: {escalate: bool, why: [...], triggers: [{ticker, score, reasons}], calendar_flags: [...]}.
     """
@@ -91,7 +97,13 @@ def screen(market, calendar=None, held_tickers=None, force=False, threshold=3):
 
     triggers.sort(key=lambda t: t["score"], reverse=True)
 
-    escalate = force or calendar_pressure or bool(triggers)
+    if escalate_score is None:
+        worth_a_deep_run = list(triggers)
+    else:
+        worth_a_deep_run = [t for t in triggers
+                            if t["score"] >= escalate_score or t["held"]]
+
+    escalate = force or calendar_pressure or bool(worth_a_deep_run)
     if force:
         why.append("scheduled anchor run")
     if calendar_pressure:
@@ -99,6 +111,8 @@ def screen(market, calendar=None, held_tickers=None, force=False, threshold=3):
     if triggers:
         top = triggers[0]
         why.append(f"{len(triggers)} ticker(s) flagged, top {top['ticker']} score {top['score']}")
+        if escalate_score is not None and not worth_a_deep_run:
+            why.append(f"none reached the escalation bar of {escalate_score}")
 
     return {
         "escalate": escalate,
