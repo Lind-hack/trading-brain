@@ -102,6 +102,10 @@ def _default_state(rules=None):
         "sector_fails": {},       # sector -> consecutive-loss count
         "week_trades": {},        # ISO "YYYY-Www" -> count of NEW buys opened
         "equity_curve": [],       # [{ts, equity}]
+        # Entries the broker never filled, backed out of the ledger. Deliberately NOT in
+        # closed_trades: a limit that never traded is not a trade, and counting it would put a
+        # 0.0% row into every win-rate, exit-mix and P&L number the recap computes.
+        "unfilled": [],           # [{ticker, shares, price, order_id, status, ts, reason}]
         "updated": None,
     }
 
@@ -247,7 +251,11 @@ class Portfolio:
             return None
         try:
             if kind == "buy":
-                res = broker.submit(ticker, kw["shares"], side="buy")
+                # The three numbers the email quotes go to the broker as well, so the account
+                # holds the plan rather than an approximation of it: a limit at `entry`, with
+                # `stop` and `target` attached as bracket legs.
+                res = broker.submit(ticker, kw["shares"], side="buy", entry=kw.get("entry"),
+                                    stop=kw.get("stop"), target=kw.get("target"))
             else:
                 res = broker.close(ticker)
         except Exception as e:                      # belt and braces — broker already catches
@@ -256,6 +264,114 @@ class Portfolio:
         ev.update(res or {})
         self.broker_events.append(ev)
         return res
+
+    # ── broker reconciliation ────────────────────────────────────────────────
+    #
+    # A market order is a fill; a limit order is a request. Once entries go out as limits at the
+    # quoted price, the ledger can no longer assume the trade happened just because it decided the
+    # trade should happen. This pass asks Alpaca what actually became of each pending entry, and
+    # it is the piece that makes the bracket safe to switch on: without it, a limit that never
+    # traded leaves the simulator holding a position that exists in no account anywhere.
+    #
+    # Ordering matters — run it *before* mark_to_market, so a phantom position is gone before the
+    # stops get a chance to price it and the equity curve gets a chance to record it.
+
+    _TERMINAL = ("canceled", "cancelled", "expired", "rejected", "done_for_day", "suspended")
+
+    def reconcile_broker(self):
+        """Settle every pending broker entry. Returns one record per order that resolved.
+
+        Three outcomes, and only the third changes the ledger:
+
+          filled       — record the *real* fill price and the slippage against the quoted entry.
+                         The simulator keeps booking the quoted price, on purpose: it is grading
+                         the analyst's plan, and a plan graded at a price the analyst did not
+                         choose grades the venue instead. The delta is recorded, not applied.
+          working      — left alone. A day limit is allowed to sit unfilled until the bell.
+          never filled — backed out. Cash returned, the week's trade count decremented, the
+                         attempt logged to state["unfilled"].
+
+        A broker that cannot be reached returns nothing and everything stays pending, which is
+        the safe direction: an unreadable order is not evidence that it failed.
+        """
+        if not self.mirror:
+            return []
+        out = []
+        for ticker in list(self.state["positions"].keys()):
+            pos = self.state["positions"].get(ticker)
+            if not pos:
+                continue
+            # The opening order first, then any ADD that is still pending. An ADD carries its own
+            # broker record inside pos["adds"], so it needs backing out at its own size rather
+            # than unwinding the whole position underneath it.
+            for slot, holder in [("open", pos)] + [
+                    ("add", a) for a in (pos.get("adds") or [])]:
+                b = holder.get("broker") or {}
+                if not (b.get("mirrored") and b.get("pending") and b.get("order_id")):
+                    continue
+                o = broker.order(b["order_id"])
+                if not o:
+                    continue
+                status = str(o.get("status") or "").lower()
+                filled = float(o.get("filled_qty") or 0)
+                if status == "filled" or filled > 0:
+                    b["pending"] = False
+                    b["filled_qty"] = filled
+                    b["fill_price"] = o.get("filled_avg_price")
+                    quoted = holder.get("price") if slot == "add" else pos.get("entry")
+                    if o.get("filled_avg_price") and quoted:
+                        b["slippage_pct"] = round(
+                            (o["filled_avg_price"] - quoted) / quoted * 100, 3)
+                    if status != "filled":
+                        b["partial"] = True
+                    out.append({"ticker": ticker, "slot": slot, "outcome": "filled",
+                                "fill_price": o.get("filled_avg_price"),
+                                "slippage_pct": b.get("slippage_pct"), "status": status})
+                elif status in self._TERMINAL:
+                    b["pending"] = False
+                    rec = self._unwind_unfilled(ticker, holder, slot, status)
+                    out.append(rec)
+                    if slot == "open":
+                        break       # the position is gone; its adds went with it
+        return out
+
+    def _unwind_unfilled(self, ticker, holder, slot, status):
+        """Back an entry the broker never filled out of the ledger."""
+        now = datetime.now(config.UTC).isoformat()
+        b = holder.get("broker") or {}
+        pos = self.state["positions"][ticker]
+        if slot == "add":
+            shares, price = holder["shares"], holder["price"]
+            remaining = pos["shares"] - shares
+            if remaining > 1e-9:
+                # Un-average the entry: back out exactly the cost this add put in.
+                pos["entry"] = round_px(
+                    (pos["entry"] * pos["shares"] - price * shares) / remaining, dp=4)
+                pos["shares"] = remaining
+                pos["adds"] = [a for a in pos.get("adds", []) if a is not holder]
+            else:
+                slot = "open"       # the add was the whole position; fall through and drop it
+        if slot == "open":
+            shares, price = pos["shares"], pos["entry"]
+            self.state["positions"].pop(ticker, None)
+            # The week's pace counter counted a trade that never happened. Credited back to the
+            # week the order was *placed* — a Friday limit reconciled on Monday belongs to Friday.
+            wk = self._iso_week()
+            try:
+                wk = self._iso_week(datetime.fromisoformat(pos["opened"]))
+            except (KeyError, TypeError, ValueError):
+                pass
+            if self.state["week_trades"].get(wk):
+                self.state["week_trades"][wk] -= 1
+        self.state["cash"] += shares * price
+        reason = (f"entry limit at {config.format_price(price)} never filled "
+                  f"(order {status})")
+        rec = {"ticker": ticker, "slot": slot, "outcome": "never_filled",
+               "shares": shares, "price": price, "order_id": b.get("order_id"),
+               "status": status, "ts": now, "reason": reason}
+        self.state.setdefault("unfilled", []).append(rec)
+        self.state["unfilled"] = self.state["unfilled"][-100:]
+        return rec
 
     def _close(self, ticker, price, reason, kind="model_sell"):
         """Close a position and hand back one record that carries the whole trade.
@@ -395,7 +511,10 @@ class Portfolio:
         # Reasoning snapshot taken at entry — the journal grades this against the exit.
         entry_meta = {k: action.get(k) for k in ENTRY_META_FIELDS}
         entry_meta["thesis"] = action.get("reason") or action.get("why")
-        mirror = self._mirror("buy", ticker, shares=shares)
+        # `hard_stop`, not the raw proposal: a scalp's stop was clamped above, and the broker has
+        # to hold the stop this book will actually honour rather than the one it was offered.
+        mirror = self._mirror("buy", ticker, shares=shares, entry=price, stop=hard_stop,
+                              target=action.get("target1") or action.get("target"))
         if kind == "ADD" and ticker in self.state["positions"]:
             pos = self.state["positions"][ticker]
             tot = pos["shares"] + shares
@@ -423,8 +542,20 @@ class Portfolio:
         msg = f"opened {ticker} {shares} sh @ {price:.2f}"
         if mirror and not mirror.get("mirrored"):
             msg += f" [paper broker not mirrored: {mirror.get('reason','')[:80]}]"
+        elif mirror and mirror.get("protected"):
+            # Say the three numbers back. The point of the bracket is that the account now holds
+            # the same plan the email quotes, and that is only checkable if the email says so.
+            tp = mirror.get("take_profit")
+            msg += (f" [Alpaca {mirror.get('order_class')}: limit "
+                    f"{config.format_price(mirror.get('limit_price'))}, stop "
+                    f"{config.format_price(mirror.get('stop_price'))}"
+                    + (f", target {config.format_price(tp)}" if tp else "")
+                    + f" · order {str(mirror.get('order_id'))[:8]} pending fill]")
+            if mirror.get("note"):
+                msg += f" ({mirror['note']})"
         elif mirror:
-            msg += f" [Alpaca paper order {str(mirror.get('order_id'))[:8]}]"
+            msg += (f" [Alpaca paper market order {str(mirror.get('order_id'))[:8]} — "
+                    f"no stop attached: {mirror.get('unprotected_because') or 'unknown'}]")
         return True, msg
 
     # ── reporting ─────────────────────────────────────────────────────────────

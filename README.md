@@ -65,6 +65,15 @@ Finnhub fundamentals      Haiku 4.5 reads what survived  ───────�
 - **Discipline in code.** `brain/portfolio.py` enforces max 8 positions, ≤15%/name, ≤6 new
   trades/week, −7% hard stop, a tightening trailing stop, and sector lockouts. Claude only proposes;
   the code disposes.
+- **The account holds the plan, not an approximation of it.** An approved equity buy reaches Alpaca
+  as a **bracket** — a limit at the quoted entry, `stop_loss` at the stop the book will honour,
+  `take_profit` at target1 — so the stop survives an overnight gap with no code running, instead of
+  existing only in a poll that fires every 30 minutes. Alpaca takes no bracket on crypto, under one
+  whole share, or with a stop the wrong side of the entry; those degrade to the previous market
+  order and the email names the reason. Because a limit is a request and not a fill, every cycle
+  reconciles the book against the broker before marking to market: an entry that never filled is
+  backed out — cash returned, pace credited back, logged to `unfilled` and deliberately kept out of
+  `closed_trades`, where a phantom 0.0% row would corrupt every win-rate the recap computes.
 - **A pace target, not a quota.** The analyst is aimed at roughly 5 new trades a week — about one
   per session — and every deep packet carries `pace`: trades taken, sessions left, and whether the
   week is behind. It is shown, never enforced. No rule fires a trade to hit a number, because the
@@ -156,7 +165,7 @@ matching the fill tape.
 | `brain/dedupe.py` | per-horizon signal cooldowns — stops the same idea being emailed twice |
 | `brain/thesis.py` | the long-term thesis board: 1–3 year structural bets, re-scored twice a week |
 | `brain/portfolio.py` | paper-portfolio gates + mechanical exits |
-| `brain/broker.py` | Alpaca **paper** mirror; paper host re-verified per request, fails closed |
+| `brain/broker.py` | Alpaca **paper** mirror — equity buys go as brackets (limit entry + stop + target); paper host re-verified per request, fails closed |
 | `brain/journal.py` | per-trade Obsidian notes, exit grading, weekly recap analytics |
 | `brain/notify.py` | detailed HTML email (scalp / short-term / long-term cards) |
 | `brain/obsidian.py` | writes every run to the Obsidian second brain |

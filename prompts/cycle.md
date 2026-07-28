@@ -31,6 +31,13 @@ worst thing you can do here — the pace target never overrides that.
    VWAP reclaim is a SCALP, not a LONG_TERM investment. Don't inflate the horizon.
 6. **Size the plan.** Give entry / stop / target1 / target2 with real levels from the data
    (pivots, prior day high/low, ATR-based stops). No stop = no trade.
+
+   These are not annotations any more. On an approved equity buy the harness sends Alpaca a
+   **bracket**: a limit at your `entry`, the stop as `stop_loss`, `target1` as `take_profit`. The
+   limit is the price paid — quote one you want filled, because a limit far from the tape does not
+   fill and the position is backed out of the ledger on the next cycle. The stop is what the account
+   actually holds overnight. `target1` is a live resting sell. Crypto takes no bracket on Alpaca, so
+   that book is still stopped by the harness's poll.
 7. **Price the entry, and do not chase.** This is a hard gate, not advice. The harness refuses a
    long whose `entry` sits above **85% of the 20-day range** (`indicators.range_pos`, 0 at
    `lo20` and 1 at `hi20`) or more than **2 ATR above `ma20`** (`indicators.ext_atr`), and

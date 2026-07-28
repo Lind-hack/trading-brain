@@ -149,7 +149,94 @@ def clock():
         return {"is_open": None, "next_open": None, "next_close": None}
 
 
+def order(order_id, nested=True):
+    """One order by id, with its bracket legs. Returns None if it cannot be read.
+
+    `filled_avg_price` is the only place the *real* fill price exists — the simulator books the
+    price the analyst asked for, which is why reconciliation needs this at all.
+    """
+    if not enabled() or not order_id:
+        return None
+    try:
+        o = _request("GET", f"/v2/orders/{quote(str(order_id), safe='')}"
+                            f"{'?nested=true' if nested else ''}")
+    except BrokerError as e:
+        print(f"[warn] broker order {order_id}: {e}", file=sys.stderr)
+        return None
+    return {
+        "id": o.get("id"),
+        "symbol": o.get("symbol"),
+        "status": o.get("status"),
+        "qty": float(o.get("qty") or 0),
+        "filled_qty": float(o.get("filled_qty") or 0),
+        "filled_avg_price": float(o.get("filled_avg_price") or 0) or None,
+        "limit_price": float(o.get("limit_price") or 0) or None,
+        "order_class": o.get("order_class"),
+        "legs": [{"id": l.get("id"), "type": l.get("type"), "status": l.get("status"),
+                  "limit_price": l.get("limit_price"), "stop_price": l.get("stop_price")}
+                 for l in (o.get("legs") or [])],
+    }
+
+
+def cancel_open(symbol):
+    """Cancel every working order on a symbol. Returns how many were cancelled.
+
+    Flattening a position does **not** retire the bracket legs still resting against it. Leave
+    them and a filled take-profit or stop on a position that no longer exists opens a short in
+    the other direction — the one way this module could hold something nobody decided to hold.
+    So every exit cancels first and closes second.
+    """
+    if not enabled():
+        return 0
+    want = _alpaca_symbol(symbol)
+    n = 0
+    try:
+        for o in _request("GET", "/v2/orders?status=open&limit=500&nested=false") or []:
+            if not isinstance(o, dict) or o.get("symbol") != want:
+                continue
+            try:
+                _request("DELETE", f"/v2/orders/{quote(str(o.get('id')), safe='')}")
+                n += 1
+            except BrokerError as e:
+                print(f"[warn] broker cancel {o.get('id')}: {e}", file=sys.stderr)
+    except BrokerError as e:
+        print(f"[warn] broker list open orders {want}: {e}", file=sys.stderr)
+    return n
+
+
 # ── Write ───────────────────────────────────────────────────────────────────────
+
+def _tick(px):
+    """A price Alpaca will accept. Sub-dollar equities take four decimals, everything else two."""
+    px = float(px)
+    return round(px, 2) if px >= 1 else round(px, 4)
+
+
+def _protection(side, entry, stop, target):
+    """The advanced-order block for a protected entry, or None if the levels do not support one.
+
+    These are Alpaca's constraints rather than ours. A buy bracket needs `take_profit.limit_price`
+    strictly above `stop_loss.stop_price`, and both have to sit the right side of the entry or the
+    order is rejected outright — a "stop" above the price you are paying is not a stop.
+
+    A stop with no usable target still gets sent, as an `oto`. Half of a bracket is the half that
+    matters: the take-profit is an optimisation, the stop is the reason any of this exists.
+    """
+    if side != "buy":
+        return None
+    e = float(entry or 0)
+    s = float(stop or 0)
+    t = float(target or 0)
+    if e <= 0 or s <= 0 or s >= e:
+        return None
+    legs = {"stop_loss": {"stop_price": str(_tick(s))}}
+    if t > e:
+        legs["take_profit"] = {"limit_price": str(_tick(t))}
+        legs["order_class"] = "bracket"
+    else:
+        legs["order_class"] = "oto"
+    return legs
+
 
 def _submit(symbol, qty, side, extra=None):
     # A venue that never closes has no concept of a day order: Alpaca accepts only `gtc` or `ioc`
@@ -163,8 +250,23 @@ def _submit(symbol, qty, side, extra=None):
     return _request("POST", "/v2/orders", json=body)
 
 
-def submit(symbol, shares, side="buy"):
+def submit(symbol, shares, side="buy", entry=None, stop=None, target=None):
     """Mirror a gate-approved decision into the paper account.
+
+    `entry`, `stop` and `target` are the levels the email quotes. Given them, an equity buy goes
+    out as a **limit order at `entry` with the stop and target attached as bracket legs**, so the
+    account holds the same three numbers Lind was told about. Without them — or on crypto, where
+    Alpaca supports no advanced order class at all — it degrades to the plain market order this
+    used to always send, and the position stays protected only by the simulator's polled stop.
+
+    Two consequences worth stating, both reported back in the returned dict:
+
+    - **Whole shares.** Alpaca refuses a fractional bracket. A protected order is worth more than
+      the fraction, so the quantity floors; under one share there is nothing to floor to and the
+      order goes out fractional and naked.
+    - **It can go unfilled.** A limit at a pullback is exactly the order that does not fill on a
+      day the price never comes back. That is the honest outcome, and `portfolio.reconcile_broker`
+      is what notices it — the simulator must not keep a position the broker never opened.
 
     Alpaca only fills fractional quantities during regular market hours. The brain's anchors
     deliberately run pre-market and after the close too, so a fractional order outside RTH is
@@ -185,11 +287,49 @@ def submit(symbol, shares, side="buy"):
         if listed and pair not in listed:
             return {"mirrored": False,
                     "reason": f"{pair} is not tradable on Alpaca — simulator only"}
+
+    # The protected path. Crypto never takes it: Alpaca rejects bracket/oto/oco on every pair,
+    # so a token's stop stays where it has always been, in the simulator's per-cycle poll.
+    legs = None if crypto else _protection(side, entry, stop, target)
+    whole = int(math.floor(shares))
+    if crypto:
+        naked = "crypto — Alpaca supports no bracket, OTO or OCO order class on any pair"
+    elif not legs:
+        naked = "no usable stop below the entry on the action — nothing to attach"
+    elif whole < 1:
+        naked = f"{shares} sh is under one share and a bracket cannot be fractional"
+    else:
+        naked = None
+    if legs and whole >= 1:
+        klass = legs.pop("order_class")
+        body = {"type": "limit", "limit_price": str(_tick(entry)), "time_in_force": "day",
+                "order_class": klass, **legs}
+        try:
+            o = _submit(symbol, whole, side, extra=body)
+            out = {"mirrored": True, "order_id": o.get("id"), "qty": whole,
+                   "status": o.get("status"), "fractional": False, "protected": True,
+                   "order_class": klass, "limit_price": _tick(entry),
+                   "stop_price": _tick(stop),
+                   "take_profit": _tick(target) if klass == "bracket" else None,
+                   # Read by reconcile_broker: a limit order is a request, not a fill, and until
+                   # this flips the simulator's position is provisional.
+                   "pending": True}
+            if whole != shares:
+                out["note"] = (f"bracket orders are whole-share only — sent {whole} of "
+                               f"{shares} sh")
+            return out
+        except BrokerError as e:
+            # A rejected bracket must not cost the mirror entirely: fall through to the plain
+            # market order, unprotected but real, and say which one was sent.
+            print(f"[warn] broker bracket {side} {symbol}: {e}", file=sys.stderr)
+            naked = f"Alpaca rejected the bracket ({str(e)[:120]}) — sent unprotected instead"
+
     is_fractional = abs(shares - round(shares)) > 1e-6
     try:
         o = _submit(symbol, shares, side)
         return {"mirrored": True, "order_id": o.get("id"), "qty": shares,
-                "status": o.get("status"), "fractional": is_fractional}
+                "status": o.get("status"), "fractional": is_fractional,
+                "protected": False, "unprotected_because": naked}
     except BrokerError as e:
         first = str(e)
         whole = int(math.floor(shares)) if side == "buy" else int(math.floor(shares))
@@ -201,6 +341,7 @@ def submit(symbol, shares, side="buy"):
                 o = _submit(symbol, whole, side)
                 return {"mirrored": True, "order_id": o.get("id"), "qty": whole,
                         "status": o.get("status"), "fractional": False,
+                        "protected": False, "unprotected_because": naked,
                         "note": "fractional rejected (outside market hours); "
                                 "queued whole shares instead"}
             except BrokerError as e2:
@@ -210,17 +351,26 @@ def submit(symbol, shares, side="buy"):
 
 
 def close(symbol):
-    """Flatten a symbol in the paper account (mirrors a simulator exit)."""
+    """Flatten a symbol in the paper account (mirrors a simulator exit).
+
+    Cancels first. A bracket's take-profit and stop legs go on resting after the position they
+    protect is gone, and one of them filling later would open a short nobody asked for.
+    """
     if not enabled():
         return {"mirrored": False, "reason": "no paper keys configured"}
+    cancelled = cancel_open(symbol)
     try:
         # The slash in a crypto pair is a path separator until it is encoded.
         o = _request("DELETE", f"/v2/positions/{quote(_alpaca_symbol(symbol), safe='')}")
-        return {"mirrored": True, "order_id": (o or {}).get("id"), "status": (o or {}).get("status")}
+        return {"mirrored": True, "order_id": (o or {}).get("id"),
+                "status": (o or {}).get("status"), "cancelled_orders": cancelled}
     except BrokerError as e:
         msg = str(e)
         if "position does not exist" in msg.lower() or "404" in msg:
-            return {"mirrored": False, "reason": "no paper position to close"}
+            # Not always a no-op: an entry limit that never filled has no position but does have
+            # a working order, and cancelling it is the whole exit.
+            return {"mirrored": False, "reason": "no paper position to close",
+                    "cancelled_orders": cancelled}
         print(f"[warn] broker close {symbol}: {msg}", file=sys.stderr)
         return {"mirrored": False, "reason": msg[:300]}
 

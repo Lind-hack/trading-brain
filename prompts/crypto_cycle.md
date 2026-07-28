@@ -16,6 +16,12 @@ fill is still screened, still analysed, and still emailed — the harness record
 rather than dropping the signal. Never decline to propose a token on the grounds that Alpaca lacks
 it; you have no way to know what it lists, and it is not the question being asked of you.
 
+One execution fact that does change how you write a stop here: the equity book now attaches its stop
+to the broker order, so that stop survives a gap with no code running. **Alpaca accepts no stop,
+bracket or OCO order on any crypto pair**, so every stop in this book is still the harness comparing
+the price to your level on its own cycle — hourly, around the clock. A stop only a flash wick would
+reach is a stop that will not be seen.
+
 **A screener trigger is a reason to *look*, not automatically a reason to *trade*.** This book's
 pace target is roughly three entries a week, and `packet.pace` shows where the week stands. A quiet
 crypto week is a real result; a manufactured trade is not. If nothing clears the evidence bar,

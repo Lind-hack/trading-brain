@@ -176,6 +176,7 @@ def test_closing_a_crypto_position_encodes_the_slash(monkeypatch, paper_keys):
                         lambda m, u, **kw: (seen.update(url=u), _Resp())[1])
     broker.close("BTC-USD")
     # An un-encoded slash would address /v2/positions/BTC/USD, which is a different route.
+    # `close` sweeps working orders before flattening, so the DELETE is the last call, not the only one.
     assert seen["url"].endswith("/v2/positions/BTC%2FUSD")
 
 
@@ -221,8 +222,8 @@ def test_mirror_off_records_no_broker_events(tmp_path):
 def test_mirror_on_records_the_fill(tmp_path, monkeypatch):
     monkeypatch.setattr(broker, "enabled", lambda: True)
     monkeypatch.setattr(broker, "submit",
-                        lambda s, q, side="buy": {"mirrored": True, "order_id": "o1",
-                                                  "qty": q, "status": "accepted"})
+                        lambda s, q, side="buy", **kw: {"mirrored": True, "order_id": "o1",
+                                                       "qty": q, "status": "accepted"})
     monkeypatch.setattr(broker, "close", lambda s: {"mirrored": True, "order_id": "o2"})
     pf = _pf(tmp_path, mirror=True)
     assert _buy(pf, "NVDA", 100)[0]

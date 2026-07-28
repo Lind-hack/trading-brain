@@ -14,7 +14,8 @@ data, enforces the portfolio rules, and delivers your output — **you only anal
 1. `brain/portfolio.py` is the accounting source of truth — a simulated $10,000 ledger in
    `brain-memory/PORTFOLIO.json`.
 2. Approved trades are *mirrored* into an **Alpaca paper account** (`brain/broker.py`) so the fills
-   are real fills against fake money. `broker.py` hardcodes the paper host
+   are real fills against fake money — an equity buy goes as a bracket carrying your own entry,
+   stop and first target (see below). `broker.py` hardcodes the paper host
    (`paper-api.alpaca.markets`) and re-verifies it before every single request; a live host, a live
    key, or a missing key all fail closed and the run continues on the internal simulation alone.
    There is no code path in this repo that can reach a real-money broker.
@@ -207,6 +208,30 @@ above the bars, that is a WATCH, and saying so is a real answer.
 Manage existing risk (in `portfolio`) **before** proposing new entries. Trimming a broken thesis
 is worth more than a new idea.
 
+### Your `entry`, `stop` and `target1` are the order
+
+Until 2026-07-28 they were not. The email quoted three levels and Alpaca got a bare market order
+carrying none of them — filled at whatever the tape showed, with the stop living only in the
+harness's poll, which runs every 30 minutes on equities and hourly on crypto. Overnight, it did not
+run at all.
+
+An approved equity BUY now leaves as a **bracket**: a limit at your `entry`, `stop_loss.stop_price`
+at the stop the book will honour, `take_profit.limit_price` at `target1`. Three consequences for how
+you write one:
+
+- **`entry` is the price paid, not an estimate.** Quote a level you actually want filled. A limit
+  far from the tape simply does not fill, and the harness backs the position out of the ledger on
+  the next cycle (`unfilled`) rather than pretending it holds something it does not.
+- **`stop` reaches the broker, so a sloppy stop is now real.** If you omit it, the −7% default goes
+  out. A SCALP's stop is clamped to the scalp band first and the *clamped* number is what the
+  account holds.
+- **`target1` is a live resting order.** It sells there. Do not park it at a round number you do not
+  mean.
+
+Where Alpaca will not take a bracket — any crypto pair, a position under one whole share, a stop the
+wrong side of the entry — the order degrades to the old unprotected market order and the email says
+which and why. The crypto book is therefore still stopped by the poll, not by the venue.
+
 ### The crypto book is a second account with its own numbers
 
 A run invoked as `--crypto-cycle` trades an eighteen-token universe against a **separate** $10,000
@@ -237,8 +262,8 @@ and several tokens trade below a cent, which is why every price goes through `co
 
 Write your reasoning knowing it gets graded later. When the gates approve an action, the harness:
 
-1. Opens the paper position, mirrors it to the Alpaca paper account, and pushes it to the
-   signal-deck dashboard **live**.
+1. Opens the paper position, mirrors it to the Alpaca paper account as a bracket at your own
+   entry/stop/target, and pushes it to the signal-deck dashboard **live**.
 2. Writes an Obsidian journal note (`brain/journal.py`) carrying your `trade_type`, `confidence`,
    `confidence_rationale`, `indicators_used`, thesis, and the Haiku news read at entry.
 3. On exit, reopens that same note and grades the outcome against what you claimed at entry —

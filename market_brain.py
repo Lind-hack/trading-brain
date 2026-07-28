@@ -328,7 +328,15 @@ def mark_exits(portfolio, prices, persist=True):
 
     Deliberately separate from apply_actions(): mark_to_market appends an equity-curve point,
     so running it twice in one cycle would double-count the curve.
+
+    Reconciliation goes first. Entries leave as limit orders now, so a position on the book is a
+    claim until Alpaca confirms it — marking a phantom to market would price it, stop it, and
+    write it into the equity curve before anything noticed it was never bought.
     """
+    settled = portfolio.reconcile_broker()
+    for s in settled:
+        if s.get("outcome") == "never_filled":
+            print(f"[broker] {s['ticker']}: {s['reason']} — backed out of the ledger")
     exits = portfolio.mark_to_market(prices)
     if persist:
         portfolio.save()
