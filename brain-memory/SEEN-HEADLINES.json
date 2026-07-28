@@ -42,7 +42,7 @@
   },
   "00000371 breakout deeper massive prediction trigger": {
    "first_seen": "2026-05-20T15:06:47+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "brave new coin": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -63,7 +63,7 @@
   },
   "1000x know next potential prediction ventureburn": {
    "first_seen": "2026-05-15T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:17:58.363530+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "ventureburn": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -84,7 +84,7 @@
   },
   "100x 2026 altcoin best bitcoin foundation": {
    "first_seen": "2026-07-22T06:55:59+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -105,7 +105,7 @@
   },
   "10am 2026 market prediction range robinhood": {
    "first_seen": "2026-07-26T21:07:12+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "robinhood": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -127,7 +127,7 @@
   },
   "2025 2026 2030 curve prediction ventureburn": {
    "first_seen": "2025-12-10T08:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "ventureburn": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -148,7 +148,7 @@
   },
   "2026 2030 analysi between bureau reach": {
    "first_seen": "2026-04-13T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "coin bureau": "2026-07-28T08:17:58.342526+00:00"
    },
@@ -190,7 +190,7 @@
   },
   "2026 2030 prediction stealthex trump worth": {
    "first_seen": "2026-06-25T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "stealthex": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -232,7 +232,7 @@
   },
   "2026 bear coindcx fall market reason": {
    "first_seen": "2026-07-24T09:20:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "coindcx": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -253,7 +253,7 @@
   },
   "2026 beginner bitcoin foundation guide solana": {
    "first_seen": "2026-05-27T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-28T08:17:58.355012+00:00"
    },
@@ -316,7 +316,7 @@
   },
   "2026 bitcoin everyth foundation know proposal": {
    "first_seen": "2026-07-08T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -357,10 +357,12 @@
    ]
   },
   "2026 break coinpedia curve prediction range": {
-   "first_seen": "2026-07-24T07:45:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "first_seen": "2026-04-30T07:00:00+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
-    "coinpedia": "2026-07-28T08:17:58.351543+00:00"
+    "coinpedia": "2026-07-28T08:17:58.351543+00:00",
+    "coinpedia fintech news": "2026-07-28T08:59:53.879840+00:00",
+    "cryptorank": "2026-07-28T08:59:53.879840+00:00"
    },
    "tickers": [
     "CRV-USD"
@@ -400,7 +402,7 @@
   },
   "2026 coindcx curve daily prediction weekly": {
    "first_seen": "2026-07-14T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "coindcx": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -481,7 +483,7 @@
   },
   "2026 earn holder investinglive loss trump": {
    "first_seen": "2026-07-02T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "investinglive": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -521,7 +523,7 @@
   },
   "2026 massive model prediction reveal surge": {
    "first_seen": "2026-06-14T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "ccn.com": "2026-07-27T22:08:37.006963+00:00"
    },
@@ -685,7 +687,7 @@
   },
   "573m hyperliq liquidation market pluang se": {
    "first_seen": "2026-07-27T23:32:53+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "pluang": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -725,7 +727,7 @@
   },
   "700 ahead cryptopotato fomc liquidation plunge": {
    "first_seen": "2026-07-28T04:31:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "cryptopotato": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -950,7 +952,7 @@
   },
   "about bureau current finance recovery review": {
    "first_seen": "2026-01-23T08:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "coin bureau": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -1032,7 +1034,7 @@
   },
   "above analyst breakout dogecoin finance resistance": {
    "first_seen": "2026-07-28T06:21:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "yahoo finance": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -1074,7 +1076,7 @@
   },
   "above bitcoin decision market outlook tradingview": {
    "first_seen": "2026-07-27T12:21:46+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "tradingview": "2026-07-27T22:09:04.280992+00:00"
    },
@@ -1116,7 +1118,7 @@
   },
   "above cryptorank extend prediction rebound solana": {
    "first_seen": "2026-07-21T12:21:50+00:00",
-   "last_seen": "2026-07-27T22:08:37.006963+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "cryptorank": "2026-07-27T22:08:37.006963+00:00"
    },
@@ -1158,7 +1160,7 @@
   },
   "academy all learn phemex topic": {
    "first_seen": "2026-05-12T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "phemex": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -1219,7 +1221,7 @@
   },
   "acquir africa coinhako holding marketforc partner": {
    "first_seen": "2026-07-18T09:53:41+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "marketforces africa": "2026-07-27T22:08:37.006963+00:00"
    },
@@ -1240,7 +1242,7 @@
   },
   "across analyst bullish dogecoin thestreet timeframe": {
    "first_seen": "2026-07-27T18:51:51+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "thestreet.com": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -1261,7 +1263,7 @@
   },
   "across cfotech hashkey launch market regulat": {
    "first_seen": "2026-07-28T01:30:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "cfotech asia": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -1345,7 +1347,7 @@
   },
   "actually clarity insider market stand structure": {
    "first_seen": "2026-07-24T13:01:53+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "tech-insider.org": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -1490,7 +1492,7 @@
   },
   "again binance chance cofounder prediction rally": {
    "first_seen": "2026-04-16T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "binance": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -1553,7 +1555,7 @@
   },
   "against benzinga dogecoin measur shiba standard": {
    "first_seen": "2026-07-27T20:39:17+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "benzinga": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -2547,7 +2549,7 @@
   },
   "alphapepe become momentum prediction recover streetinsider": {
    "first_seen": "2026-06-01T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "streetinsider": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -2589,7 +2591,7 @@
   },
   "altcoin analysi bitcoin deeper face world": {
    "first_seen": "2026-07-28T05:45:11+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "bitcoin world": "2026-07-28T08:17:58.355012+00:00"
    },
@@ -2945,7 +2947,7 @@
   },
   "ambcrypto could prediction reason solana three": {
    "first_seen": "2026-07-23T16:30:57+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "ambcrypto": "2026-07-27T22:08:37.006963+00:00"
    },
@@ -3274,7 +3276,7 @@
   },
   "analysi analyz cryptorank curve market outlook": {
    "first_seen": "2026-06-23T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "cryptorank": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -3296,7 +3298,7 @@
   },
   "analysi bitcoin foundation rally ready solana": {
    "first_seen": "2026-05-25T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-27T22:08:37.006963+00:00"
    },
@@ -3380,7 +3382,7 @@
   },
   "analyst bitcoin coindesk demand elusive nansen": {
    "first_seen": "2026-07-27T19:59:21+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "coindesk": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -3401,7 +3403,7 @@
   },
   "analyst bitcoin dogecoin ethereum finance plummet": {
    "first_seen": "2026-07-23T01:55:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "yahoo finance": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -3422,7 +3424,7 @@
   },
   "analyst break dogecoin pluang resistance surge": {
    "first_seen": "2026-07-28T07:28:42+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "pluang": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -3464,7 +3466,7 @@
   },
   "analyst could finance hit prediction yahoo": {
    "first_seen": "2026-07-25T20:44:50+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "24/7 wall st.": "2026-07-28T08:18:03.244285+00:00",
     "yahoo finance": "2026-07-27T22:09:04.280992+00:00"
@@ -3527,7 +3529,7 @@
   },
   "analyst incrypt market memecoin previou transfer": {
    "first_seen": "2026-07-25T12:15:16+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "incrypted": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -3569,7 +3571,7 @@
   },
   "announc bonk coinmarketcap partnership sharp technology": {
    "first_seen": "2026-07-25T04:40:36+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "coinmarketcap": "2026-07-28T08:17:58.342526+00:00"
    },
@@ -3589,7 +3591,7 @@
   },
   "announc chainwire invest partnership retail strategic": {
    "first_seen": "2026-04-30T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "investing.com": "2026-07-28T08:17:58.342526+00:00"
    },
@@ -3652,7 +3654,7 @@
   },
   "another bonk extend fxstreet hacker remain": {
    "first_seen": "2026-07-17T06:34:48+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "fxstreet": "2026-07-28T08:17:58.342526+00:00"
    },
@@ -3694,7 +3696,7 @@
   },
   "another could dogecoin finance happen prediction": {
    "first_seen": "2026-07-27T20:46:42+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "yahoo finance": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -3799,7 +3801,7 @@
   },
   "any down month pepe recovery tradingview": {
    "first_seen": "2026-02-10T08:00:00+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "tradingview": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -4150,7 +4152,7 @@
   },
   "asset bonk look remittix shiba utility": {
    "first_seen": "2026-03-16T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "crypto news": "2026-07-28T08:17:58.342526+00:00"
    },
@@ -4192,7 +4194,7 @@
   },
   "asset coindesk curve finance income pitch": {
    "first_seen": "2025-09-17T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "coindesk": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -4234,7 +4236,7 @@
   },
   "asset framework howey sec under wilmerhale": {
    "first_seen": "2026-03-24T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "wilmerhale": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -4253,7 +4255,7 @@
   },
   "asset groundbreak interpretation mcdermott regulation schulte": {
    "first_seen": "2026-03-24T15:20:57+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "mcdermott will & schulte": "2026-07-27T22:09:04.280992+00:00"
    },
@@ -4274,7 +4276,7 @@
   },
   "attack bonk fall finance governance yahoo": {
    "first_seen": "2026-07-06T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "yahoo finance": "2026-07-28T08:17:58.342526+00:00"
    },
@@ -4295,7 +4297,7 @@
   },
   "attack finance governance maliciou solana treasury": {
    "first_seen": "2026-07-06T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "decrypt": "2026-07-28T08:17:58.342526+00:00",
     "yahoo finance": "2026-07-28T08:17:58.342526+00:00"
@@ -4317,7 +4319,7 @@
   },
   "attacker coindesk drain maliciou proposal treasury": {
    "first_seen": "2026-07-06T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "coindesk": "2026-07-28T08:17:58.342526+00:00"
    },
@@ -4338,7 +4340,7 @@
   },
   "attract bitcoin blockhead ether flow institutional": {
    "first_seen": "2026-07-28T03:23:16+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "blockhead.co": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -4587,7 +4589,7 @@
   },
   "banklesstim bonk dogecoin here pepe shiba": {
    "first_seen": "2026-07-04T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "banklesstimes": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -4982,7 +4984,7 @@
   },
   "beginner cryptoslate curve finance lend pool": {
    "first_seen": "2026-06-10T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "cryptoslate": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -5003,7 +5005,7 @@
   },
   "behind coindesk creator legendary parlay solana": {
    "first_seen": "2026-05-06T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "coindesk": "2026-07-28T08:17:58.342526+00:00"
    },
@@ -5101,7 +5103,7 @@
   },
   "below confirm flow lead reclaim trust": {
    "first_seen": "2026-07-28T02:32:25+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "hex trust": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -5144,7 +5146,7 @@
   },
   "benzinga bitcoin dogecoin ethereum position wednesday": {
    "first_seen": "2026-07-27T18:53:54+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "benzinga": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -5451,7 +5453,7 @@
   },
   "bigger expect modestly solana trader tradingview": {
    "first_seen": "2026-05-12T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "tradingview": "2026-07-27T22:08:37.006963+00:00"
    },
@@ -5512,7 +5514,7 @@
   },
   "binance curve finance revenue strong volume": {
    "first_seen": "2025-11-11T08:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "binance": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -5594,6 +5596,26 @@
     "test"
    ]
   },
+  "bitcoin cautiou ethereum flow pluang show": {
+   "first_seen": "2026-07-28T08:34:39+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
+   "sources": {
+    "pluang": "2026-07-28T08:59:58.893404+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "Bitcoin and Ethereum ETF flows show cautious in... - Pluang",
+   "tokens": [
+    "ethereum",
+    "bitcoin",
+    "cautiou",
+    "pluang",
+    "flow",
+    "show",
+    "etf"
+   ]
+  },
   "bitcoin challeng forecast forex major reversal": {
    "first_seen": "2026-07-23T14:54:25+00:00",
    "last_seen": "2026-07-27T22:08:37.003445+00:00",
@@ -5617,7 +5639,7 @@
   },
   "bitcoin clarity fall market motley today": {
    "first_seen": "2026-07-23T22:57:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "the motley fool": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -5660,7 +5682,7 @@
   },
   "bitcoin coindesk despite inflow straight weekly": {
    "first_seen": "2026-07-27T11:05:32+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "coindesk": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -5723,7 +5745,7 @@
   },
   "bitcoin cointribune fad momentum rejection shock": {
    "first_seen": "2026-07-28T07:05:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "cointribune": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -5868,7 +5890,7 @@
   },
   "bitcoin cryptorank hour liquidation long spike": {
    "first_seen": "2026-07-26T13:49:11+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "cryptorank": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -5951,7 +5973,7 @@
   },
   "bitcoin dogecoin ethereum outpace stocktwit trillion": {
    "first_seen": "2026-07-22T00:50:03+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "stocktwits": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -5972,7 +5994,7 @@
   },
   "bitcoin dogecoin foundation investment prediction still": {
    "first_seen": "2026-07-01T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -5993,7 +6015,7 @@
   },
   "bitcoin downside reach streak three trader": {
    "first_seen": "2026-07-27T14:59:30+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "tech times": "2026-07-27T22:09:04.280992+00:00"
    },
@@ -6014,7 +6036,7 @@
   },
   "bitcoin ethereum foundation fund month outperform": {
    "first_seen": "2026-07-27T12:46:09+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-27T14:49:39.361215+00:00"
    },
@@ -6079,7 +6101,7 @@
   },
   "bitcoin fortune liquidation outflow pressure startup": {
    "first_seen": "2026-07-26T05:17:40+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "startup fortune": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -6100,7 +6122,7 @@
   },
   "bitcoin foundation market prediction reach would": {
    "first_seen": "2026-07-11T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "bitcoin foundation": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -6184,7 +6206,7 @@
   },
   "bitget chart claw clawpepe live market": {
    "first_seen": "2026-07-27T21:29:01+00:00",
-   "last_seen": "2026-07-28T08:17:58.363530+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "bitget": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -6205,7 +6227,7 @@
   },
   "bitget controversy investor memecoin memetoro presale": {
    "first_seen": "2026-07-21T01:41:35+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "bitget": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -6348,7 +6370,7 @@
   },
   "bonk circu cryptonew launch net robinhood": {
    "first_seen": "2026-07-23T09:07:15+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "cryptonews.net": "2026-07-28T08:17:58.342526+00:00"
    },
@@ -6410,7 +6432,7 @@
   },
   "breakout bullish fxempire prediction solana support": {
    "first_seen": "2026-07-23T15:20:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "fxempire": "2026-07-27T22:08:37.006963+00:00"
    },
@@ -6431,7 +6453,7 @@
   },
   "breakout coinmarketcap drop ethereum liquidation trigger": {
    "first_seen": "2026-07-28T01:04:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "coinmarketcap": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -6489,7 +6511,7 @@
   },
   "broad declin dogecoin market pluang volume": {
    "first_seen": "2026-07-26T09:53:49+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "pluang": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -6595,7 +6617,7 @@
   },
   "broader coinmarketcap pepe rebound surg": {
    "first_seen": "2026-07-10T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "coinmarketcap": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -6653,7 +6675,7 @@
   },
   "bullish pepe": {
    "first_seen": "2026-04-24T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "bullish": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -6962,7 +6984,7 @@
   },
   "canary capital ever first kucoin pepe": {
    "first_seen": "2026-04-09T18:12:07+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "kucoin": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -6983,7 +7005,7 @@
   },
   "canary capital finance frontier further yahoo": {
    "first_seen": "2026-04-08T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "yahoo finance": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -7004,7 +7026,7 @@
   },
   "capital decision etf flow prediction ripple": {
    "first_seen": "2026-07-28T07:58:14+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "capital.com": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -7025,7 +7047,7 @@
   },
   "capital etf inflow prediction sell solana": {
    "first_seen": "2026-06-08T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "capital.com": "2026-07-27T22:08:37.006963+00:00"
    },
@@ -7153,7 +7175,7 @@
   },
   "caution onchain peirce securiti supra trigger": {
    "first_seen": "2026-07-27T15:18:50+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "jd supra": "2026-07-27T22:09:04.280992+00:00"
    },
@@ -7590,7 +7612,7 @@
   },
   "citation launch membership memecoin prepar president": {
    "first_seen": "2026-04-29T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "citation needed by molly white": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -7632,7 +7654,7 @@
   },
   "clarity debate official pluang trump unlock": {
    "first_seen": "2026-07-25T05:19:21+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "pluang": "2026-07-28T08:17:58.347184+00:00",
     "tokenpost.com": "2026-07-28T08:17:58.347184+00:00"
@@ -7654,7 +7676,7 @@
   },
   "clarity insight invest network pressure senate": {
    "first_seen": "2026-07-24T21:05:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "investing news network": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -7822,7 +7844,7 @@
   },
   "coingape doge meme pepe pump today": {
    "first_seen": "2026-04-29T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "coingape": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -7843,7 +7865,7 @@
   },
   "coinmarketcap development dip negative official trump": {
    "first_seen": "2026-07-17T14:06:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "coinmarketcap": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -7862,7 +7884,7 @@
   },
   "collapse cryptonew extract insider memecoin retail": {
    "first_seen": "2026-07-04T22:05:44+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "cryptonews.net": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -7883,7 +7905,7 @@
   },
   "collective fortune investor memecoin nearly trump": {
    "first_seen": "2026-07-07T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "fortune": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -8030,7 +8052,7 @@
   },
   "crash finance investor memecoin trump yahoo": {
    "first_seen": "2026-07-07T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "yahoo finance": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -8127,9 +8149,30 @@
     "why"
    ]
   },
+  "crush defeat liquidat market position suffer": {
+   "first_seen": "2026-07-28T08:41:55+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
+   "sources": {
+    "\u5bcc\u9014\u725b\u725b": "2026-07-28T08:59:58.893404+00:00"
+   },
+   "tickers": [
+    "_MACRO_CRYPTO"
+   ],
+   "title": "$3 Billion Liquidated in 24 Hours: Why Did Long Positions Suffer a Crushing Defeat in the Crypto Market? - \u5bcc\u9014\u725b\u725b",
+   "tokens": [
+    "liquidat",
+    "position",
+    "defeat",
+    "market",
+    "suffer",
+    "crush",
+    "hour",
+    "long"
+   ]
+  },
   "crv curve dao how what work": {
    "first_seen": "2025-12-12T08:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "okx": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -8149,7 +8192,7 @@
   },
   "crv curve good investment prediction stealthex": {
    "first_seen": "2025-12-24T08:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "stealthex": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -8169,7 +8212,7 @@
   },
   "crvusd curve launch mainnet newswire proposal": {
    "first_seen": "2025-09-24T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "pr newswire": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -8211,7 +8254,7 @@
   },
   "cryptonew house nomine schumer source submit": {
    "first_seen": "2026-07-28T02:55:18+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "cryptonews.net": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -8232,7 +8275,7 @@
   },
   "cryptonew key rebound solana support test": {
    "first_seen": "2026-07-17T19:26:52+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "cryptonews.net": "2026-07-27T22:08:37.006963+00:00"
    },
@@ -8274,7 +8317,7 @@
   },
   "curve defiant proposal reject stake swiss": {
    "first_seen": "2025-12-22T08:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.311810+00:00",
+   "last_seen": "2026-07-28T08:59:53.879840+00:00",
    "sources": {
     "the defiant": "2026-07-28T08:17:58.351543+00:00"
    },
@@ -8397,7 +8440,7 @@
   },
   "decade donelson interpretation policy potential regulation": {
    "first_seen": "2026-03-30T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "baker donelson": "2026-07-27T14:49:45.839953+00:00"
    },
@@ -8478,6 +8521,27 @@
     "month"
    ]
   },
+  "demand directional lack move prediction solana": {
+   "first_seen": "2026-07-27T09:00:24+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
+   "sources": {
+    "tmgm trading": "2026-07-28T08:59:53.881964+00:00"
+   },
+   "tickers": [
+    "SOL-USD"
+   ],
+   "title": "Solana Price Prediction: SOL lacks directional move amid weak demand - TMGM trading",
+   "tokens": [
+    "directional",
+    "prediction",
+    "demand",
+    "solana",
+    "lack",
+    "move",
+    "tmgm",
+    "trad"
+   ]
+  },
   "demand earning overvalu palantir simplywall technologi": {
    "first_seen": "2026-07-28T03:34:09+00:00",
    "last_seen": "2026-07-28T08:28:25.102698+00:00",
@@ -8501,7 +8565,7 @@
   },
   "despite explode past slide solana yellow": {
    "first_seen": "2026-06-11T04:02:41+00:00",
-   "last_seen": "2026-07-28T08:27:38.319842+00:00",
+   "last_seen": "2026-07-28T08:59:53.881964+00:00",
    "sources": {
     "yellow.com": "2026-07-27T22:08:37.006963+00:00"
    },
@@ -8642,7 +8706,7 @@
   },
   "dogecoin historic prediction reversal sequential trigger": {
    "first_seen": "2026-07-27T21:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.378672+00:00",
+   "last_seen": "2026-07-28T08:59:53.887629+00:00",
    "sources": {
     "brave new coin": "2026-07-28T08:17:58.360018+00:00"
    },
@@ -8704,7 +8768,7 @@
   },
   "drain fresh raise since tradingview treasury": {
    "first_seen": "2026-07-18T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "cryptorank": "2026-07-28T08:17:58.342526+00:00",
     "tradingview": "2026-07-28T08:17:58.342526+00:00"
@@ -8826,7 +8890,7 @@
   },
   "earn investor lose memecoin ndtv trump": {
    "first_seen": "2026-07-05T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "ndtv": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -9173,7 +9237,7 @@
   },
   "explain kucoin official trump": {
    "first_seen": "2026-07-27T04:19:08+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "kucoin": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -9410,7 +9474,7 @@
   },
   "finance issue regulator street wall yahoo": {
    "first_seen": "2026-07-07T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "yahoo finance": "2026-07-28T08:18:03.244285+00:00"
    },
@@ -9472,7 +9536,7 @@
   },
   "fool foot here motley touch wouldn": {
    "first_seen": "2026-05-22T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.283805+00:00",
+   "last_seen": "2026-07-28T08:59:53.869383+00:00",
    "sources": {
     "the motley fool": "2026-07-28T08:17:58.342526+00:00"
    },
@@ -9777,7 +9841,7 @@
   },
   "investor lost nearly total trump york": {
    "first_seen": "2026-07-06T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:27:38.293841+00:00",
+   "last_seen": "2026-07-28T08:59:53.876829+00:00",
    "sources": {
     "the new york times": "2026-07-28T08:17:58.347184+00:00"
    },
@@ -9839,7 +9903,7 @@
   },
   "jump metric pattern pepe point rare": {
    "first_seen": "2026-02-18T08:00:00+00:00",
-   "last_seen": "2026-07-28T08:22:25.316544+00:00",
+   "last_seen": "2026-07-28T08:59:53.892201+00:00",
    "sources": {
     "crypto news": "2026-07-28T08:17:58.363530+00:00"
    },
@@ -9860,7 +9924,7 @@
   },
   "liquidation long market position tokenpost unwind": {
    "first_seen": "2026-07-27T15:16:33+00:00",
-   "last_seen": "2026-07-28T08:27:43.009077+00:00",
+   "last_seen": "2026-07-28T08:59:58.893404+00:00",
    "sources": {
     "tokenpost.com": "2026-07-28T08:18:03.244285+00:00"
    },
