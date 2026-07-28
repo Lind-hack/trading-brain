@@ -97,8 +97,8 @@ def _crypto_news_watchlist(screen_result, portfolio, now=None):
     """Which tokens Haiku reads on a crypto cycle: held, then screener hits, then a rotating slice.
 
     This used to read the entire universe every cycle and said so — with four tokens and a budget
-    larger than that there was genuinely nothing to ration. The universe is fifteen now, and that
-    same code would have quadrupled the tier-1 bill on a track that runs every hour of every day,
+    larger than that there was genuinely nothing to ration. The universe is eighteen now, and that
+    same code would have quintupled the tier-1 bill on a track that runs every hour of every day,
     which is the opposite of what the expansion was allowed on.
 
     So it rations, with one asymmetry that matters: `CRYPTO_NEWS_TICKERS_PER_CYCLE` is a floor for
@@ -109,7 +109,7 @@ def _crypto_news_watchlist(screen_result, portfolio, now=None):
 
     The tail rotates rather than truncating. A fixed slice would mean the tokens at the bottom of
     the table are never read at all, so the last places walk through the rest of the universe one
-    cycle at a time — hourly cron, fifteen tokens, so every quiet token gets a read within about
+    cycle at a time — hourly cron, eighteen tokens, so every quiet token gets a read within about
     half a day. The offset is derived from the clock rather than a counter on disk: a state file is
     one more thing to lose, and if a cycle is skipped the rotation should carry on from where the
     wall clock is, not resume from where the last successful run stopped.
@@ -335,7 +335,7 @@ def mark_exits(portfolio, prices, persist=True):
     return exits
 
 
-def apply_actions(analysis, portfolio, prices, persist=True, mode="cycle"):
+def apply_actions(analysis, portfolio, prices, persist=True, mode="cycle", market=None):
     """Run the model's proposed actions through the gates.
 
     Returns (applied, opened) — `opened` is the tickers that actually got a fill, so the caller
@@ -344,6 +344,9 @@ def apply_actions(analysis, portfolio, prices, persist=True, mode="cycle"):
     Every proposal is written to the signal ledger with its gate verdict, whether it filled or
     not. Rejections used to be a printed line and nothing else, so "what did you recommend but
     not take, and why" had no answer anywhere in the system.
+
+    `market` is this cycle's collected snapshots. The entry gate reads each ticker's indicators
+    out of it to price-check the fill; passing None keeps every other gate and skips that one.
     """
     applied, opened, outcomes = [], [], {}
     before = set(portfolio.state["positions"])
@@ -362,7 +365,7 @@ def apply_actions(analysis, portfolio, prices, persist=True, mode="cycle"):
                 action["news_at_entry"] = sig.get("news")
             if action.get("why") is None:
                 action["why"] = sig.get("why")
-        ok, msg = portfolio.apply_action(action, prices)
+        ok, msg = portfolio.apply_action(action, prices, market=market)
         outcomes[ticker] = {"action": action.get("action"), "ok": ok, "msg": msg}
         tag = "" if ok else "REJECTED: "
         line = f"{tag}{action.get('action','')} {ticker} — {msg}"
@@ -444,7 +447,7 @@ def do_cycle(args, mode="cycle", force=False):
         # now, the repeat is the first time Lind is told the trade was actually taken.
         can_execute = None
         if market_hours.entries_allowed(now_et):
-            can_execute = lambda a: portfolio.validate_action(a, prices)[0]  # noqa: E731
+            can_execute = lambda a: portfolio.validate_action(a, prices, market=market)[0]  # noqa: E731
         suppressed = dedupe.apply(analysis, can_execute=can_execute)
         if suppressed:
             print(f"[dedupe] {dedupe.summarize(suppressed)}")
@@ -457,7 +460,8 @@ def do_cycle(args, mode="cycle", force=False):
             if held:
                 print(f"[gate] {held} new-entry proposal(s) held: "
                       f"{market_hours.entries_reason(now_et)}")
-        applied, opened = apply_actions(analysis, portfolio, prices, persist=persist, mode=mode)
+        applied, opened = apply_actions(analysis, portfolio, prices, persist=persist,
+                                        mode=mode, market=market)
 
     record_trades(portfolio, portfolio.exits_this_run, opened, analysis, intel, now_et,
                   prices, persist)
@@ -534,13 +538,14 @@ def do_crypto_cycle(args, force=False):
         # Entries are always allowed on this venue, so the suppression check has a live executor
         # on every cycle — unlike the equity path, where an out-of-session repeat stays hypothetical.
         suppressed = dedupe.apply(
-            analysis, can_execute=lambda a: portfolio.validate_action(a, prices)[0])
+            analysis, can_execute=lambda a: portfolio.validate_action(
+                a, prices, market=market)[0])
         if suppressed:
             print(f"[dedupe] {dedupe.summarize(suppressed)}")
             if persist:
                 memory.log_suppressed(suppressed, "crypto", prices=prices)
         applied, opened = apply_actions(analysis, portfolio, prices, persist=persist,
-                                        mode="crypto")
+                                        mode="crypto", market=market)
 
     record_trades(portfolio, portfolio.exits_this_run, opened, analysis, intel, now_et,
                   prices, persist)
@@ -578,7 +583,7 @@ def do_research(args):
     if not args.no_apply:
         exits = mark_exits(portfolio, prices, persist=persist)
         applied, opened = apply_actions(analysis, portfolio, prices, persist=persist,
-                                        mode="research")
+                                        mode="research", market=market)
     record_trades(portfolio, portfolio.exits_this_run, opened, analysis, intel, now_et,
                   prices, persist)
     psum = portfolio.summary(prices)

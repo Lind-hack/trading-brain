@@ -85,9 +85,19 @@ def test_crypto_universe_uses_the_working_yahoo_symbols():
     token from every cycle, and the only symptom is a name that stops appearing in emails.
     """
     for plain, live in (("SUI-USD", "SUI20947-USD"), ("UNI-USD", "UNI7083-USD"),
-                        ("PEPE-USD", "PEPE24478-USD"), ("TRUMP-USD", "TRUMP35336-USD")):
+                        ("PEPE-USD", "PEPE24478-USD"), ("TRUMP-USD", "TRUMP35336-USD"),
+                        ("JUP-USD", "JUP29210-USD")):
         assert live in config.CRYPTO_TICKERS
         assert plain not in config.CRYPTO_TICKERS
+
+
+def test_the_jupiter_impostor_is_the_one_the_name_check_cannot_catch():
+    """`JUP-USD` resolves, and its `shortName` is "Jupiter USD" — the same string the real one
+    carries. The Ondo and Polygon near-misses were caught by reading the name; this pair cannot be.
+    It printed $0.00026 against BingX's $0.183 on 2026-07-28, so price is the only tell, and the
+    plain form is the one a tidy-up would reach for."""
+    assert "JUP29210-USD" in config.CRYPTO_TICKERS
+    assert config.CRYPTO_LABELS["JUP29210-USD"] == "JUP"
 
 
 def test_the_four_crypto_maps_cannot_drift_apart():
@@ -105,8 +115,18 @@ def test_every_requested_sector_is_actually_populated():
     sectors = set(config.CRYPTO_SECTORS.values())
     assert {"Meme", "DeFi", "LST", "DePIN"} <= sectors
     # Solana-native coverage specifically: SOL itself plus the branches that live on it.
-    for t in ("SOL-USD", "BONK-USD", "WIF-USD", "TRUMP35336-USD", "RENDER-USD"):
+    for t in ("SOL-USD", "BONK-USD", "WIF-USD", "TRUMP35336-USD", "RENDER-USD",
+              "JUP29210-USD", "JTO-USD", "PYTH-USD"):
         assert t in config.CRYPTO_TICKERS
+
+
+def test_a_token_alpaca_cannot_fill_is_still_in_the_universe():
+    """JUP, JTO and PYTH were cut once for being unlisted on Alpaca. Wrong test: Lind trades this
+    book on BingX and Alpaca is only the paper mirror, so an unfillable name still has to be
+    screened, analysed and emailed. `broker.submit` is the *only* place a listing may be checked."""
+    for t in ("JUP29210-USD", "JTO-USD", "PYTH-USD"):
+        assert t in config.CRYPTO_TICKERS
+        assert t in config.CRYPTO_NEWS_QUERIES
 
 
 def test_crypto_position_rides_out_a_drop_that_would_stop_out_a_stock(crypto_pf):
@@ -170,7 +190,7 @@ def test_a_stock_too_dear_for_the_slot_is_still_rejected(stock_pf):
 
 def test_crypto_position_cap_is_eight_not_the_size_of_the_universe(crypto_pf):
     """The cap used to be `len(CRYPTO_TICKERS)`, which was honest at four tokens and became a lie at
-    fifteen — the $10k book cannot fund fifteen positions at any legal weight. Small weights here so
+    eighteen — the $10k book cannot fund eighteen positions at any legal weight. Small weights here so
     cash is not what stops it: the ninth buy must be refused by the position cap itself."""
     for t in config.CRYPTO_TICKERS[:8]:
         ok, msg = _buy(crypto_pf, t, 100.0, weight=5)
@@ -196,7 +216,7 @@ def test_the_sector_brake_is_a_brake_now_rather_than_a_shutdown(crypto_pf):
     """Every token used to be its own sector, because at four tokens a shared "Crypto" label meant
     two losers anywhere locked the entire book. That was a kill switch wearing a brake's name.
 
-    Real sectors only work above a certain size, and fifteen tokens across six sectors is above it:
+    Real sectors only work above a certain size, and eighteen tokens across six sectors is above it:
     two losing meme trades stop meme trades, and DeFi carries on. The BTC/ETH pair sharing "Major"
     is deliberate too — after two losing majors, "buy the other major" is the same trade."""
     assert config.CRYPTO_RULES.sector_of("BONK-USD") == "Meme"

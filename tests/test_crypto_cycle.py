@@ -174,8 +174,8 @@ def test_the_crypto_cycle_leaves_the_equity_book_alone(monkeypatch, quiet_market
 
 
 def test_the_news_pass_is_rationed_and_is_told_the_venue(monkeypatch, quiet_market):
-    """This asserted the whole universe was read, which was true and free at four tokens. At fifteen
-    it would be four times the tier-1 bill on a job that runs every hour of every day, so the pass
+    """This asserted the whole universe was read, which was true and free at four tokens. At eighteen
+    it would be five times the tier-1 bill on a job that runs every hour of every day, so the pass
     is now bounded — and the bound is the thing worth testing."""
     seen = {}
     monkeypatch.setattr(news_intel, "run",
@@ -289,7 +289,7 @@ def test_an_escalated_cycle_analyses_only_crypto_tickers(monkeypatch, quiet_mark
 
 
 # ── the escalation floor ────────────────────────────────────────────────────────
-# "Any flagged ticker escalates" worked while the universe was four tokens. At fifteen it stopped
+# "Any flagged ticker escalates" worked while the universe was four tokens. At eighteen it stopped
 # gating anything: a Bollinger squeeze fires across most of the book whenever crypto vol
 # compresses, so a score of 3 is the resting state. These tests pin the separation between being
 # on the ranked list and being worth an Opus run.

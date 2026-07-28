@@ -479,6 +479,18 @@ def indicator_snapshot(daily, intraday):
         snap["ma20"] = _num(close.rolling(20).mean().iloc[-1])
         snap["ma50"] = _num(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else None
         snap["atr14"] = _num(atr(daily).iloc[-1])
+        # Where the tape sits in its own recent range, and how stretched it is from the mean.
+        # The entry gate (brain/entry.py) refuses a fill on these two numbers, so they have to
+        # reach the packet — and the analyst needs them anyway to propose an entry that passes.
+        snap["hi20"] = _num(close.rolling(20).max().iloc[-1])
+        snap["lo20"] = _num(close.rolling(20).min().iloc[-1])
+        # Ratios, not prices: rounded plainly rather than through round_price, which would give a
+        # sub-cent token a range position of 0.0.
+        span = (snap["hi20"] or 0) - (snap["lo20"] or 0)
+        if span > 0 and snap["price"] is not None:
+            snap["range_pos"] = round((snap["price"] - snap["lo20"]) / span, 3)
+        if snap["atr14"] and snap["ma20"] is not None and snap["price"] is not None:
+            snap["ext_atr"] = round((snap["price"] - snap["ma20"]) / snap["atr14"], 2)
         vol = daily["Volume"]
         avg = float(vol.tail(20).mean()) if vol.tail(20).sum() else 0.0
         snap["vol_vs_avg"] = _num(float(vol.iloc[-1]) / avg) if avg else None

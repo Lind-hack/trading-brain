@@ -185,6 +185,43 @@ SCALP_TRAIL_PCT = float(os.environ.get("BRAIN_SCALP_TRAIL_PCT", "4"))
 SCALP_POSITION_PCT = float(os.environ.get("BRAIN_SCALP_POSITION_PCT", "6"))
 
 
+# ── Entry quality ───────────────────────────────────────────────────────────────
+#
+# Lind's read of the first losing week, 2026-07-28: "the news and technical analysis were good, it
+# was just that the position entry wasn't good." The ledger, in full — four fills, all four
+# underwater:
+#
+#   JPM  357.50  2026-07-27   20d hi 356.20   range_pos 1.045   ext_atr +2.36   open   -0.4%
+#   BAC   62.50  2026-07-27   20d hi  62.13   range_pos 1.072   ext_atr +2.02   open   -0.6%
+#   CRM  174.00  2026-07-27   20d hi 173.79   range_pos 1.012   ext_atr +1.00   open   -0.2%
+#   CRM  163.66  2026-07-24   20d hi 173.79   range_pos 0.409   ext_atr -0.22   stopped -4.1%
+#
+# Be honest about what that does and does not show. It does *not* show that range-top entries lose
+# more: the only trade closed so far is the mid-range one, and it is the biggest loser of the four.
+# Four trades is not a sample and no correlation should be read out of it. What it does show is
+# structural and is Lind's actual point — three of the four were bought at the one price on the
+# chart with no room left above and the whole 20-day range below as downside. That is a risk shape,
+# visible at the moment of entry, independent of how these particular four resolve. The thesis is
+# not what these gates check; the analyst and the screener already did that. They check the *price
+# being paid for it*.
+#
+# `range_pos` is where the entry sits in the last 20 daily closes: 0 at the low, 1 at the high.
+# `ext_atr` is how far above the 20-day mean it sits, measured in ATRs, which is the same question
+# asked in a way that does not care whether the range happens to be wide or narrow. A rejection
+# needs only one of them; they fail in different market shapes and catching CRM took the range one.
+#
+# The cost of this is real and worth stating: a genuine 20-day breakout has `range_pos >= 1.0` by
+# construction, so this book will no longer buy breakouts at the breakout. It buys the retest or it
+# does not buy. That is the trade-off Lind asked for, and the ledger above is the argument for it.
+# Nothing is silently dropped — a refused entry still emails, carrying the price that would pass.
+ENTRY_MAX_RANGE_POS = float(os.environ.get("BRAIN_ENTRY_MAX_RANGE_POS", "0.85"))
+ENTRY_MAX_EXT_ATR = float(os.environ.get("BRAIN_ENTRY_MAX_EXT_ATR", "2.0"))
+# Paying above the last print is a different mistake: not "the chart is extended" but "this quote
+# is stale or aspirational". The four real fills came in between 1.16% below and 0.03% above the
+# tape, so this bar never fires on an entry that was priced off the packet it was given.
+ENTRY_MAX_CHASE_PCT = float(os.environ.get("BRAIN_ENTRY_MAX_CHASE_PCT", "0.25"))
+
+
 # ── Rule sets: one book per asset class ─────────────────────────────────────────
 # The constants above stay exactly as they were — they are the stock book's rules and half the
 # codebase reads them directly. What changes is that the *portfolio* no longer reads them from
@@ -202,7 +239,9 @@ class RuleSet:
                  hard_stop_pct, trail_base_pct, trail_tight_15, trail_tight_20,
                  sector_fail_limit, sectors, tickers, always_open,
                  scalp_max_hold_h=SCALP_MAX_HOLD_H, scalp_hard_stop_pct=SCALP_HARD_STOP_PCT,
-                 scalp_trail_pct=SCALP_TRAIL_PCT, scalp_position_pct=SCALP_POSITION_PCT):
+                 scalp_trail_pct=SCALP_TRAIL_PCT, scalp_position_pct=SCALP_POSITION_PCT,
+                 entry_max_range_pos=ENTRY_MAX_RANGE_POS, entry_max_ext_atr=ENTRY_MAX_EXT_ATR,
+                 entry_max_chase_pct=ENTRY_MAX_CHASE_PCT):
         self.name = name
         self.ledger = ledger                       # filename inside MEMORY_DIR
         self.starting_cash = starting_cash
@@ -225,6 +264,10 @@ class RuleSet:
         self.scalp_hard_stop_pct = scalp_hard_stop_pct
         self.scalp_trail_pct = scalp_trail_pct
         self.scalp_position_pct = scalp_position_pct
+        # Entry quality. See the ENTRY_* block for the trades that bought these numbers.
+        self.entry_max_range_pos = entry_max_range_pos
+        self.entry_max_ext_atr = entry_max_ext_atr
+        self.entry_max_chase_pct = entry_max_chase_pct
 
     def sector_of(self, ticker):
         return self.sectors.get(ticker, "Other")
@@ -283,13 +326,15 @@ STOCK_SECTORS = {
 #
 # On sector labels — the four-token book gave every token its own sector, because a shared "Crypto"
 # label meant two consecutive losers anywhere locked the whole book out of new entries. That was a
-# shutdown, not a brake. At fifteen tokens across six sectors the brake is a brake again: two
+# shutdown, not a brake. At eighteen tokens across six sectors the brake is a brake again: two
 # losing meme trades stop meme trades and leave DeFi, DePIN and the majors open.
 #
-# On coverage — Lind asked for Solana and its branches. The Solana-native names here are SOL, BONK,
-# WIF, TRUMP and RENDER. JUP, JTO and PYTH are the obvious other Solana picks and they are
-# deliberately absent: Alpaca lists none of them, so the broker mirror could never fill one and the
-# book would be carrying a position that exists nowhere but the simulator.
+# On coverage — Lind asked for Solana and its branches. The Solana-native names are SOL, BONK, WIF,
+# TRUMP, RENDER, JUP, JTO and PYTH. The last three were briefly left out because Alpaca lists none
+# of them, which was the wrong test: Lind trades this book on BingX, where all eighteen are listed
+# (checked against the exchange's own symbol feed, 2237 spot pairs, 2026-07-28). Alpaca is the
+# auto-execution mirror, not the venue — a name it cannot fill still gets screened, analysed and
+# emailed, and broker.submit already declines those with "simulator only" rather than dropping them.
 #
 # Search strings are for Google News RSS. Finnhub's company-news endpoint is keyed on an equity
 # symbol and returns nothing for a token, so this is the only headline source the crypto track has
@@ -316,11 +361,19 @@ _CRYPTO_UNIVERSE = (
     ("AAVE-USD",        "AAVE",   "DeFi",   "Aave AAVE (DeFi OR lending OR protocol)"),
     ("UNI7083-USD",     "UNI",    "DeFi",   "Uniswap UNI (DeFi OR DEX OR protocol)"),
     ("CRV-USD",         "CRV",    "DeFi",   "\"Curve Finance\" CRV (DeFi OR stablecoin OR protocol)"),
-    # Liquid staking. One name, so its lockout behaves exactly as the old per-token one did.
+    # `JUP-USD` resolves on Yahoo and is a *different* Jupiter — it prints $0.00026 against the
+    # live $0.183. Both listings carry the shortName "Jupiter USD", so the name check that caught
+    # the Ondo and Polygon impostors does not separate these two. The price does.
+    ("JUP29210-USD",    "JUP",    "DeFi",   "Jupiter JUP (Solana OR DEX OR perps OR protocol)"),
+    # Liquid staking.
     ("LDO-USD",         "LDO",    "LST",    "Lido LDO (liquid staking OR stETH OR protocol)"),
-    # DePIN.
+    ("JTO-USD",         "JTO",    "LST",    "Jito JTO (Solana OR liquid staking OR MEV)"),
+    # DePIN. Pyth is an oracle rather than physical infrastructure, but it trades as Solana data
+    # infra and correlates with this group far more than with DeFi — and correlation is the only
+    # thing the sector brake is trying to model.
     ("RENDER-USD",      "RENDER", "DePIN",  "\"Render Network\" RENDER (DePIN OR GPU OR token)"),
     ("FIL-USD",         "FIL",    "DePIN",  "Filecoin FIL (DePIN OR storage OR crypto)"),
+    ("PYTH-USD",        "PYTH",   "DePIN",  "\"Pyth Network\" PYTH (oracle OR Solana OR token)"),
 )
 
 # `BRAIN_<LABEL>_TICKER` still overrides any symbol — the four that existed before this table
@@ -343,7 +396,7 @@ CRYPTO_NEWS_QUERIES = {_crypto_symbol(s, lbl): q for s, lbl, _sec, q in _CRYPTO_
 CRYPTO_MARKET_CONTEXT = ["BTC-USD", "ETH-USD", "DX-Y.NYB", "^VIX"]
 
 # How many tokens Haiku reads per crypto cycle. This number is the whole reason the universe could
-# grow at all: reading all fifteen every hour would have quadrupled the tier-1 bill and undone the
+# grow at all: reading all eighteen every hour would have quintupled the tier-1 bill and undone the
 # cut made on 2026-07-28. It is a floor for held names rather than a hard cap — see
 # market_brain._crypto_news_watchlist, which never drops a token the book is actually holding.
 CRYPTO_NEWS_TICKERS_PER_CYCLE = int(os.environ.get("BRAIN_CRYPTO_NEWS_TICKERS", "6"))
@@ -374,8 +427,8 @@ CRYPTO_RULES = RuleSet(
     # comparable and a crypto drawdown can never consume a slot an equity setup needed.
     starting_cash=float(os.environ.get("BRAIN_CRYPTO_START_CASH", "10000")),
     # This was `len(CRYPTO_TICKERS)` while the universe was four tokens, on the reasoning that a
-    # cap below the universe silently refuses the last token's entries. That inverts at fifteen:
-    # the same expression now reads as headroom for fifteen positions the $10k could not fund
+    # cap below the universe silently refuses the last token's entries. That inverts at eighteen:
+    # the same expression now reads as headroom for eighteen positions the $10k could not fund
     # anyway, and at a 20% default weight cash binds at five. Pinned to 8, matching the equity
     # book, so the number states a diversification limit rather than restating the table above.
     max_positions=int(os.environ.get("BRAIN_CRYPTO_MAX_POSITIONS", "8")),
@@ -407,6 +460,14 @@ CRYPTO_RULES = RuleSet(
     scalp_hard_stop_pct=float(os.environ.get("BRAIN_CRYPTO_SCALP_HARD_STOP_PCT", "-6")),
     scalp_trail_pct=float(os.environ.get("BRAIN_CRYPTO_SCALP_TRAIL_PCT", "7")),
     scalp_position_pct=float(os.environ.get("BRAIN_CRYPTO_SCALP_POSITION_PCT", "12")),
+    # A token holds the top of its 20-day range for weeks in a trend where an equity would have
+    # mean-reverted twice, and its ATR is a larger fraction of price, so both bars sit looser here.
+    # Same rule, re-derived for the venue rather than copied across — as with every other number
+    # on this book. The only crypto entry so far (ETH 1877, range_pos 0.634, ext_atr +0.23) clears
+    # both bars comfortably, so these are not fitted to it.
+    entry_max_range_pos=float(os.environ.get("BRAIN_CRYPTO_ENTRY_MAX_RANGE_POS", "0.90")),
+    entry_max_ext_atr=float(os.environ.get("BRAIN_CRYPTO_ENTRY_MAX_EXT_ATR", "2.5")),
+    entry_max_chase_pct=float(os.environ.get("BRAIN_CRYPTO_ENTRY_MAX_CHASE_PCT", "0.5")),
 )
 
 RULE_SETS = {"stock": STOCK_RULES, "crypto": CRYPTO_RULES}
@@ -493,7 +554,7 @@ CRYPTO_SCREEN_52W_PROXIMITY = 0.05     # a token 5% off its year high is "at" it
 # The score one token must reach before the *cycle* escalates. Distinct from the per-ticker flag
 # bar, which decides who appears on the ranked list handed to the analyst.
 #
-# "Any token flagged ⇒ escalate" was a real gate at four tokens and stopped being one at fifteen:
+# "Any token flagged ⇒ escalate" was a real gate at four tokens and stopped being one at eighteen:
 # a Bollinger squeeze fires on most of the book at once whenever crypto vol compresses, so a score
 # of 3 became the resting state rather than an event. The floor asks for something that actually
 # happened — a breakout on volume plus corroboration, not a pending-breakout pattern and an RSI

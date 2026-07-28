@@ -18,7 +18,7 @@ import math
 from datetime import datetime
 from pathlib import Path
 
-from . import broker, config
+from . import broker, config, entry
 from .jsonio import dumps as _dumps
 
 
@@ -297,11 +297,13 @@ class Portfolio:
         return out
 
     # ── proposed-action gates ────────────────────────────────────────────────
-    def validate_action(self, action, prices):
+    def validate_action(self, action, prices, market=None):
         """Check a proposed action against every hard rule.
 
         action: {"action": "BUY"|"SELL"|"ADD"|"HOLD", "ticker": str,
                  "entry": float?, "stop": float?, "target_weight_pct": float?}
+        market: the cycle's collected snapshots, keyed by ticker. Optional, and only the entry
+                gate uses it — without it every other rule below still applies exactly as before.
         Returns (ok: bool, message: str).
         """
         kind = (action.get("action") or "").upper()
@@ -328,6 +330,15 @@ class Portfolio:
             price = action.get("entry") or prices.get(ticker)
             if not price:
                 return False, f"no price for {ticker}"
+            # The price being paid, checked against the chart it was read off. Last of the hard
+            # gates on purpose: a name that is already capped, locked out or unaffordable should
+            # say so rather than report an entry problem it never got far enough to have.
+            snap = (market or {}).get(ticker) or {}
+            good, why, level = entry.check(action, snap.get("indicators"), self.rules,
+                                           last_price=prices.get(ticker))
+            if not good:
+                at = f"; wait for {config.format_price(level)}" if level else ""
+                return False, f"{why}{at}"
             tt = action.get("trade_type")
             target_pct = min(action.get("target_weight_pct", self.rules.default_pct_for(tt)),
                          self.rules.weight_cap_for(tt))
@@ -349,9 +360,9 @@ class Portfolio:
             return True, f"buy ~${target_usd:.0f} ({target_pct:.0f}% target)"
         return False, f"unknown action '{kind}'"
 
-    def apply_action(self, action, prices):
+    def apply_action(self, action, prices, market=None):
         """Validate then apply. Returns (applied: bool, message: str)."""
-        ok, msg = self.validate_action(action, prices)
+        ok, msg = self.validate_action(action, prices, market=market)
         if not ok:
             return False, msg
         kind = (action.get("action") or "").upper()

@@ -31,7 +31,23 @@ worst thing you can do here — the pace target never overrides that.
    VWAP reclaim is a SCALP, not a LONG_TERM investment. Don't inflate the horizon.
 6. **Size the plan.** Give entry / stop / target1 / target2 with real levels from the data
    (pivots, prior day high/low, ATR-based stops). No stop = no trade.
-7. **Apply your own past lessons.** `strategy_lessons` is what your weekly reviews concluded. If a
+7. **Price the entry, and do not chase.** This is a hard gate, not advice. The harness refuses a
+   long whose `entry` sits above **85% of the 20-day range** (`indicators.range_pos`, 0 at
+   `lo20` and 1 at `hi20`) or more than **2 ATR above `ma20`** (`indicators.ext_atr`), and
+   refuses any entry quoted more than 0.25% above the last print. Shorts are the mirror.
+
+   The week of 2026-07-27 is why. Three theses that were sound on the news and sound on the chart
+   were entered above the prior 20-day high — JPM at 104% of its range, BAC at 107%, CRM at 101%.
+   Not one of them had any room left above it, and each carried the whole 20-day range below it as
+   downside. Being right about direction and wrong about price is still a losing trade.
+
+   So on a name that has already run: **name the pullback, not the high.** Set `entry` at a level
+   that clears both bars — the retest of the broken high, the 20-day mean plus an ATR, the prior
+   pivot — and say in `why` that it is a limit-entry on a pullback rather than a market order. An
+   idea whose only workable entry is above the bars is a WATCH, and saying so is a real answer. A
+   refused entry is still emailed with the price that would have passed, so nothing is lost by
+   pricing it honestly; what is lost by chasing is the trade.
+8. **Apply your own past lessons.** `strategy_lessons` is what your weekly reviews concluded. If a
    lesson applies to this setup, follow it and say you did.
 
 Fill **every** field in the schema. The four Lind reads first:
