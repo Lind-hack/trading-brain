@@ -9,7 +9,7 @@ and the scalp time stop would have nothing running at 03:00 UTC to fire it.
 Run:  python -m pytest tests/test_crypto_cycle.py -q
 """
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -172,7 +172,10 @@ def test_the_crypto_cycle_leaves_the_equity_book_alone(monkeypatch, quiet_market
     assert "NVDA" in after.state["positions"]
 
 
-def test_the_news_pass_reads_every_token_and_is_told_the_venue(monkeypatch, quiet_market):
+def test_the_news_pass_is_rationed_and_is_told_the_venue(monkeypatch, quiet_market):
+    """This asserted the whole universe was read, which was true and free at four tokens. At fifteen
+    it would be four times the tier-1 bill on a job that runs every hour of every day, so the pass
+    is now bounded — and the bound is the thing worth testing."""
     seen = {}
     monkeypatch.setattr(news_intel, "run",
                         lambda t, calendar=None, use_claude=True, venue="stock":
@@ -180,7 +183,65 @@ def test_the_news_pass_reads_every_token_and_is_told_the_venue(monkeypatch, quie
                         {"tickers": {}, "degraded": False})
     market_brain.do_crypto_cycle(_Args())
     assert seen["venue"] == "crypto"
-    assert set(seen["tickers"]) == set(config.CRYPTO_TICKERS)
+    assert len(seen["tickers"]) == config.CRYPTO_NEWS_TICKERS_PER_CYCLE
+    assert set(seen["tickers"]) <= set(config.CRYPTO_TICKERS)
+
+
+# ── how the tier-1 budget is spent ──────────────────────────────────────────────
+
+class _Book:
+    """Just enough Portfolio for the watchlist. It reads held_tickers() and nothing else."""
+    def __init__(self, *held):
+        self._held = list(held)
+
+    def held_tickers(self):
+        return self._held
+
+
+def _at(hour):
+    return datetime(2026, 7, 28, hour, 18, tzinfo=timezone.utc)
+
+
+def test_a_held_token_is_read_even_when_the_budget_is_full():
+    """The one asymmetry in the rationing. Missing news on a token we might buy costs an entry we
+    would likely get next cycle; missing it on a token we are holding means the -15% stop is the
+    first thing that tells us the thesis broke. So the budget is a floor for held names, not a cap
+    — a book fuller than the budget reads the whole book."""
+    held = config.CRYPTO_TICKERS[:config.CRYPTO_NEWS_TICKERS_PER_CYCLE + 2]
+    out = market_brain._crypto_news_watchlist({"triggers": []}, _Book(*held), now=_at(9))
+    assert set(held) <= set(out)
+
+
+def test_screener_hits_outrank_the_rotation():
+    trig = {"triggers": [{"ticker": "BONK-USD", "score": 90},
+                         {"ticker": "RENDER-USD", "score": 80}]}
+    out = market_brain._crypto_news_watchlist(trig, _Book("BTC-USD"), now=_at(9))
+    assert out[0] == "BTC-USD"                       # held leads
+    assert out[1:3] == ["BONK-USD", "RENDER-USD"]    # then triggers, score-sorted
+    assert len(out) == config.CRYPTO_NEWS_TICKERS_PER_CYCLE
+
+
+def test_the_quiet_tail_rotates_so_no_token_is_never_read():
+    """A fixed slice would mean the bottom of the table is read literally never — the tokens most
+    likely to be sitting on unpriced news are the ones nothing else is pointing at."""
+    reads = set()
+    for hour in range(24):
+        reads |= set(market_brain._crypto_news_watchlist({"triggers": []}, _Book(), now=_at(hour)))
+    assert reads == set(config.CRYPTO_TICKERS)
+
+
+def test_the_rotation_does_not_repeat_a_token_within_a_cycle():
+    trig = {"triggers": [{"ticker": "SOL-USD", "score": 90}]}
+    out = market_brain._crypto_news_watchlist(trig, _Book("SOL-USD", "BTC-USD"), now=_at(3))
+    assert len(out) == len(set(out))
+
+
+def test_an_equity_ticker_never_reaches_the_crypto_news_pass():
+    """Belt and braces on the venue split — a stray NVDA here would send Haiku off to read equity
+    headlines on a crypto cycle and file them against the crypto book."""
+    trig = {"triggers": [{"ticker": "NVDA", "score": 99}]}
+    out = market_brain._crypto_news_watchlist(trig, _Book("AMD"), now=_at(9))
+    assert "NVDA" not in out and "AMD" not in out
 
 
 def test_the_macro_context_is_not_sent_to_the_news_pass(monkeypatch, quiet_market):

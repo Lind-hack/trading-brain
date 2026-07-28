@@ -326,14 +326,14 @@ def detect_patterns(ticker, daily, intraday):
     if price > prior_high:
         patterns.append({
             "name": f"{lb}-day breakout",
-            "detail": f"close {price:.2f} > prior {lb}d high {prior_high:.2f}"
+            "detail": f"close {_p(price)} > prior {lb}d high {_p(prior_high)}"
                       + (f" on {vol_mult:.1f}x volume" if vol_mult else ""),
             "bias": "bullish", "strength": 3 if vol_mult >= th.vol_mult else 2,
         })
     elif price < prior_low:
         patterns.append({
             "name": f"{lb}-day breakdown",
-            "detail": f"close {price:.2f} < prior {lb}d low {prior_low:.2f}"
+            "detail": f"close {_p(price)} < prior {lb}d low {_p(prior_low)}"
                       + (f" on {vol_mult:.1f}x volume" if vol_mult else ""),
             "bias": "bearish", "strength": 3 if vol_mult >= th.vol_mult else 2,
         })
@@ -346,7 +346,7 @@ def detect_patterns(ticker, daily, intraday):
         if abs(gap) >= th.gap_pct:
             patterns.append({
                 "name": f"gap {'up' if gap > 0 else 'down'}",
-                "detail": f"{gap:+.1f}% open gap ({prev_close:.2f} -> {today_open:.2f})",
+                "detail": f"{gap:+.1f}% open gap ({_p(prev_close)} -> {_p(today_open)})",
                 "bias": "bullish" if gap > 0 else "bearish", "strength": 2,
             })
 
@@ -363,7 +363,7 @@ def detect_patterns(ticker, daily, intraday):
                 and math.isfinite(ma50.iloc[-1]):
             patterns.append({
                 "name": f"MA20/50 {'golden' if above.iloc[-1] else 'death'} cross",
-                "detail": f"{age} day(s) ago; MA20 {ma20.iloc[-1]:.2f} vs MA50 {ma50.iloc[-1]:.2f}",
+                "detail": f"{age} day(s) ago; MA20 {_p(ma20.iloc[-1])} vs MA50 {_p(ma50.iloc[-1])}",
                 "bias": "bullish" if above.iloc[-1] else "bearish", "strength": 2,
             })
 
@@ -406,13 +406,13 @@ def detect_patterns(ticker, daily, intraday):
     if hi52 and (hi52 - price) / hi52 <= th.prox_52w:
         patterns.append({
             "name": "near 52-week high",
-            "detail": f"{price:.2f} within {(hi52-price)/hi52*100:.1f}% of 52w high {hi52:.2f}",
+            "detail": f"{_p(price)} within {(hi52-price)/hi52*100:.1f}% of 52w high {_p(hi52)}",
             "bias": "bullish", "strength": 1,
         })
     elif lo52 and (price - lo52) / lo52 <= th.prox_52w:
         patterns.append({
             "name": "near 52-week low",
-            "detail": f"{price:.2f} within {(price-lo52)/lo52*100:.1f}% of 52w low {lo52:.2f}",
+            "detail": f"{_p(price)} within {(price-lo52)/lo52*100:.1f}% of 52w low {_p(lo52)}",
             "bias": "bearish", "strength": 1,
         })
 
@@ -421,7 +421,7 @@ def detect_patterns(ticker, daily, intraday):
         if lvl and abs(price - lvl) / lvl < 0.01:
             patterns.append({
                 "name": f"testing {'resistance' if kind == 'R' else 'support'}",
-                "detail": f"price {price:.2f} at {'resistance' if kind == 'R' else 'support'} {lvl:.2f}",
+                "detail": f"price {_p(price)} at {'resistance' if kind == 'R' else 'support'} {_p(lvl)}",
                 "bias": "bearish" if kind == "R" else "bullish", "strength": 1,
             })
             break
@@ -435,12 +435,36 @@ def _num(v, digits=2):
     A NaN reaches here whenever yfinance serves a halted symbol or a gappy session, and
     round(nan) is still nan. Letting that through puts "nan" in the model's packet and, via
     indicators.price, into the portfolio's mark-to-market. None is the honest answer.
+
+    The rounding is magnitude-aware because the meme sector trades five and six decimals below a
+    cent: a flat `round(f, 2)` handed the model an indicator block of pure zeros for BONK and PEPE —
+    price 0.0, ma20 0.0, ATR 0.0 — and the screener then made confident chart claims out of
+    arithmetic on nothing. Nothing at or above $1 changes. See config.round_price.
     """
     try:
         f = float(v)
     except (TypeError, ValueError):
         return None
-    return round(f, digits) if math.isfinite(f) else None
+    return config.round_price(f, digits) if math.isfinite(f) else None
+
+
+def _p(x):
+    """A price inside a human-readable pattern detail. See config.format_price.
+
+    Every one of these strings used to be `:.2f`, which on a sub-cent token produced details like
+    "close 0.00 < prior 20d low 0.00" — the detail is the only evidence the email carries for a
+    rules-only signal, so a row of zeros there is not a cosmetic problem.
+    """
+    return config.format_price(x)
+
+
+def _signed(x):
+    """Same, for a MACD histogram, which is meaningful only with its sign."""
+    try:
+        f = float(x)
+    except (TypeError, ValueError):
+        return "—"
+    return f"{'+' if f >= 0 else '-'}{config.format_price(abs(f))}"
 
 
 def indicator_snapshot(daily, intraday):
@@ -451,7 +475,7 @@ def indicator_snapshot(daily, intraday):
         snap["price"] = _num(close.iloc[-1])
         snap["rsi14_d"] = _num(rsi(close).iloc[-1], 1)
         line, sigl, hist = macd(close)
-        snap["macd_d"] = f"{'bullish' if line.iloc[-1] > sigl.iloc[-1] else 'bearish'}, hist {hist.iloc[-1]:+.2f}"
+        snap["macd_d"] = f"{'bullish' if line.iloc[-1] > sigl.iloc[-1] else 'bearish'}, hist {_signed(hist.iloc[-1])}"
         snap["ma20"] = _num(close.rolling(20).mean().iloc[-1])
         snap["ma50"] = _num(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else None
         snap["atr14"] = _num(atr(daily).iloc[-1])

@@ -36,7 +36,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from brain import (config, collect, dedupe, screen as screener, deep, journal, market_hours, memory,
                    runlog, news_intel, notify, obsidian, supabase, thesis)
@@ -93,24 +93,52 @@ def _news_watchlist(market, screen_result, portfolio):
     return out[:limit]
 
 
-def _crypto_news_watchlist(screen_result, portfolio):
-    """Which tokens Haiku reads on a crypto cycle.
+def _crypto_news_watchlist(screen_result, portfolio, now=None):
+    """Which tokens Haiku reads on a crypto cycle: held, then screener hits, then a rotating slice.
 
-    Far simpler than the equity version, and deliberately so: that one rations a ~50-name sweep
-    down to a handful and reserves places so a news-first idea is not crowded out by the screener.
-    Here the universe is four tokens and the cycle budget is larger than that, so there is nothing
-    to ration — every token gets read every cycle. Held names lead only so the ordering matches the
-    equity path for anyone reading both logs.
+    This used to read the entire universe every cycle and said so — with four tokens and a budget
+    larger than that there was genuinely nothing to ration. The universe is fifteen now, and that
+    same code would have quadrupled the tier-1 bill on a track that runs every hour of every day,
+    which is the opposite of what the expansion was allowed on.
+
+    So it rations, with one asymmetry that matters: `CRYPTO_NEWS_TICKERS_PER_CYCLE` is a floor for
+    held names, not a cap on them. Missing news on a token we might buy costs an entry we would
+    probably get on the next cycle anyway. Missing news on a token we are *holding* means a -15%
+    stop is the first thing that tells us the thesis broke. A full book therefore reads a full
+    book, budget or no budget.
+
+    The tail rotates rather than truncating. A fixed slice would mean the tokens at the bottom of
+    the table are never read at all, so the last places walk through the rest of the universe one
+    cycle at a time — hourly cron, fifteen tokens, so every quiet token gets a read within about
+    half a day. The offset is derived from the clock rather than a counter on disk: a state file is
+    one more thing to lose, and if a cycle is skipped the rotation should carry on from where the
+    wall clock is, not resume from where the last successful run stopped.
     """
-    seen, out = set(), []
-    for t in list(portfolio.held_tickers()) + \
-            [x.get("ticker") for x in screen_result.get("triggers", [])] + \
-            list(config.CRYPTO_TICKERS):
-        # `is_crypto` rather than a MARKET_CONTEXT exclusion list: DXY and the VIX ride along in
-        # the crypto packet as context and there is no headline sweep to run on either of them.
-        if t and t not in seen and config.is_crypto(t):
-            seen.add(t)
-            out.append(t)
+    budget = config.CRYPTO_NEWS_TICKERS_PER_CYCLE
+
+    def _dedup(seq, seen):
+        out = []
+        for t in seq:
+            # `is_crypto` rather than a MARKET_CONTEXT exclusion list: DXY and the VIX ride along
+            # in the crypto packet as context and there is no headline sweep to run on either.
+            if t and t not in seen and config.is_crypto(t):
+                seen.add(t)
+                out.append(t)
+        return out
+
+    seen = set()
+    out = _dedup(portfolio.held_tickers(), seen)
+    # Triggers arrive score-sorted, so a truncation here drops the weakest setups, not random ones.
+    triggered = _dedup((x.get("ticker") for x in screen_result.get("triggers", [])), seen)
+    out += triggered[:max(0, budget - len(out))]
+
+    room = budget - len(out)
+    if room > 0:
+        rest = _dedup(config.CRYPTO_TICKERS, seen)
+        if rest:
+            now = now or datetime.now(timezone.utc)
+            offset = int(now.timestamp() // 3600) % len(rest)
+            out += (rest[offset:] + rest[:offset])[:room]
     return out
 
 

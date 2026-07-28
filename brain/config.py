@@ -4,6 +4,7 @@ All secrets come from environment variables (loaded from /root/.secrets/signal.e
 VPS, or the user's shell locally). Nothing here is a hard dependency: every consumer
 degrades gracefully when a key is absent, so the brain still runs on free data alone.
 """
+import math
 import os
 import sys
 from datetime import datetime, timezone
@@ -267,41 +268,85 @@ STOCK_SECTORS = {
 }
 
 # ── Crypto universe ─────────────────────────────────────────────────────────────
-# Yahoo tickers, verified live 2026-07-27. Note SUI: the obvious `SUI-USD` resolves to nothing
-# ("possibly delisted"), because Yahoo disambiguates the token from an unrelated listing by
-# appending its CoinMarketCap id. `SUI20947-USD` is the working symbol and returns a full year of
-# daily bars. Anyone "correcting" this back to SUI-USD silently drops SUI from every run.
-CRYPTO_TICKERS = [
-    os.environ.get("BRAIN_BTC_TICKER", "BTC-USD"),
-    os.environ.get("BRAIN_ETH_TICKER", "ETH-USD"),
-    os.environ.get("BRAIN_SOL_TICKER", "SOL-USD"),
-    os.environ.get("BRAIN_SUI_TICKER", "SUI20947-USD"),
-]
+# ONE table, four maps derived from it. They used to be four hand-written literals and
+# tests/test_crypto_book.py already had to assert two of them agreed, which is the tell that they
+# were one thing pretending to be four. Adding a token now means adding a row, and a row that is
+# missing a field will not import.
+#
+# On the Yahoo symbols — this is the part that silently breaks. When a plain ticker is already
+# taken on Yahoo, it disambiguates the token by appending its CoinMarketCap id, so the obvious
+# `SUI-USD` / `UNI-USD` / `PEPE-USD` form resolves to nothing or, worse, to an unrelated listing.
+# Every symbol below was resolved through yf.Search and then verified against its `shortName` on
+# 2026-07-28. Two near-misses from that pass, recorded so nobody repeats them: picking the
+# highest-volume match for "Ondo" returns AVGOON-USD ("Broadcom Tokenized Stock") and for "Polygon"
+# returns MMF21370-USD ("MM Finance"). Volume is not identity — check the name.
+#
+# On sector labels — the four-token book gave every token its own sector, because a shared "Crypto"
+# label meant two consecutive losers anywhere locked the whole book out of new entries. That was a
+# shutdown, not a brake. At fifteen tokens across six sectors the brake is a brake again: two
+# losing meme trades stop meme trades and leave DeFi, DePIN and the majors open.
+#
+# On coverage — Lind asked for Solana and its branches. The Solana-native names here are SOL, BONK,
+# WIF, TRUMP and RENDER. JUP, JTO and PYTH are the obvious other Solana picks and they are
+# deliberately absent: Alpaca lists none of them, so the broker mirror could never fill one and the
+# book would be carrying a position that exists nowhere but the simulator.
+#
+# Search strings are for Google News RSS. Finnhub's company-news endpoint is keyed on an equity
+# symbol and returns nothing for a token, so this is the only headline source the crypto track has
+# and the query has to carry the work. Each pairs the full project name with the ticker: the name
+# alone drags in unrelated stories (SUI, WIF and PEPE are all ordinary words, DOGE is also a US
+# federal agency, and TRUMP is a minefield), the ticker alone is too sparse to fill a packet.
+# `-stock` on the majors keeps out MSTR/COIN/ETF coverage, which is an equity reacting to crypto
+# rather than the token itself.
+_CRYPTO_UNIVERSE = (
+    # Yahoo symbol      label     sector    Google News RSS query
+    ("BTC-USD",         "BTC",    "Major",  "Bitcoin BTC price OR analysis -stock"),
+    ("ETH-USD",         "ETH",    "Major",  "Ethereum ETH price OR analysis -stock"),
+    ("SOL-USD",         "SOL",    "L1",     "Solana SOL price OR analysis -stock"),
+    ("SUI20947-USD",    "SUI",    "L1",     "\"Sui\" (SUI crypto OR blockchain OR token)"),
+    # Meme. Sub-cent prices make `close × volume` read as a few hundred dollars a day and look
+    # broken; raw unit volume is healthy (BONK median 37.5M units, max/median 4.2×) and the
+    # screener's trigger is a 2× *ratio*, so absolute scale never enters into it.
+    ("BONK-USD",        "BONK",   "Meme",   "Bonk BONK (Solana OR memecoin OR token)"),
+    ("WIF-USD",         "WIF",    "Meme",   "dogwifhat WIF (Solana OR memecoin OR token)"),
+    ("TRUMP35336-USD",  "TRUMP",  "Meme",   "\"TRUMP memecoin\" OR \"Official Trump\" token"),
+    ("DOGE-USD",        "DOGE",   "Meme",   "Dogecoin DOGE (crypto OR token) -\"Government Efficiency\""),
+    ("PEPE24478-USD",   "PEPE",   "Meme",   "\"Pepe coin\" PEPE (crypto OR memecoin OR token)"),
+    # DeFi.
+    ("AAVE-USD",        "AAVE",   "DeFi",   "Aave AAVE (DeFi OR lending OR protocol)"),
+    ("UNI7083-USD",     "UNI",    "DeFi",   "Uniswap UNI (DeFi OR DEX OR protocol)"),
+    ("CRV-USD",         "CRV",    "DeFi",   "\"Curve Finance\" CRV (DeFi OR stablecoin OR protocol)"),
+    # Liquid staking. One name, so its lockout behaves exactly as the old per-token one did.
+    ("LDO-USD",         "LDO",    "LST",    "Lido LDO (liquid staking OR stETH OR protocol)"),
+    # DePIN.
+    ("RENDER-USD",      "RENDER", "DePIN",  "\"Render Network\" RENDER (DePIN OR GPU OR token)"),
+    ("FIL-USD",         "FIL",    "DePIN",  "Filecoin FIL (DePIN OR storage OR crypto)"),
+)
+
+# `BRAIN_<LABEL>_TICKER` still overrides any symbol — the four that existed before this table
+# (BRAIN_BTC_TICKER and friends) keep working unchanged, and the new rows get the same escape
+# hatch for the day Yahoo renames one of them mid-week.
+def _crypto_symbol(symbol, label):
+    return os.environ.get(f"BRAIN_{label}_TICKER", symbol)
+
+
+CRYPTO_TICKERS = [_crypto_symbol(s, lbl) for s, lbl, _sec, _q in _CRYPTO_UNIVERSE]
 # Display names, because "SUI20947-USD" in an email subject line is unreadable.
-CRYPTO_LABELS = {"BTC-USD": "BTC", "ETH-USD": "ETH", "SOL-USD": "SOL", "SUI20947-USD": "SUI"}
-# BTC and ETH are the crypto tape's own regime indicators — neither SOL nor SUI trades
-# independently of them in a risk-off hour. DXY and the VIX stay because crypto still reacts to
-# dollar and equity risk appetite, which is exactly the kind of cross-asset read a token-only
-# packet would miss.
+CRYPTO_LABELS = {_crypto_symbol(s, lbl): lbl for s, lbl, _sec, _q in _CRYPTO_UNIVERSE}
+CRYPTO_SECTORS = {_crypto_symbol(s, lbl): sec for s, lbl, sec, _q in _CRYPTO_UNIVERSE}
+CRYPTO_NEWS_QUERIES = {_crypto_symbol(s, lbl): q for s, lbl, _sec, q in _CRYPTO_UNIVERSE}
+
+# BTC and ETH are the crypto tape's own regime indicators — nothing in the table above trades
+# independently of them in a risk-off hour, and that goes double for the meme sector. DXY and the
+# VIX stay because crypto still reacts to dollar and equity risk appetite, which is exactly the
+# kind of cross-asset read a token-only packet would miss.
 CRYPTO_MARKET_CONTEXT = ["BTC-USD", "ETH-USD", "DX-Y.NYB", "^VIX"]
 
-# Each token is its own sector. The alternative — labelling them all "Crypto" — means two
-# consecutive losers anywhere locks the entire book out of new entries, which on a four-asset
-# universe is not a sector brake, it is a shutdown.
-CRYPTO_SECTORS = {"BTC-USD": "BTC", "ETH-USD": "ETH", "SOL-USD": "SOL", "SUI20947-USD": "SUI"}
-
-# Search strings for Google News RSS. Finnhub's company-news endpoint is keyed on an equity symbol
-# and returns nothing for a token, so this is the only headline source the crypto track has — the
-# query has to carry the work. Each pairs the full name with the ticker because the name alone
-# drags in unrelated stories ("Sui" is a common word) and the ticker alone is too sparse to fill a
-# packet. `-stock` on BTC/ETH keeps out the MSTR/COIN/ETF coverage that is about an equity
-# reacting to crypto rather than about the token itself.
-CRYPTO_NEWS_QUERIES = {
-    "BTC-USD": "Bitcoin BTC price OR analysis -stock",
-    "ETH-USD": "Ethereum ETH price OR analysis -stock",
-    "SOL-USD": "Solana SOL price OR analysis -stock",
-    "SUI20947-USD": "\"Sui\" (SUI crypto OR blockchain OR token)",
-}
+# How many tokens Haiku reads per crypto cycle. This number is the whole reason the universe could
+# grow at all: reading all fifteen every hour would have quadrupled the tier-1 bill and undone the
+# cut made on 2026-07-28. It is a floor for held names rather than a hard cap — see
+# market_brain._crypto_news_watchlist, which never drops a token the book is actually holding.
+CRYPTO_NEWS_TICKERS_PER_CYCLE = int(os.environ.get("BRAIN_CRYPTO_NEWS_TICKERS", "6"))
 
 STOCK_RULES = RuleSet(
     name="stock",
@@ -328,12 +373,15 @@ CRYPTO_RULES = RuleSet(
     # Its own $10k rather than a share of the stock book's, so the two equity curves are directly
     # comparable and a crypto drawdown can never consume a slot an equity setup needed.
     starting_cash=float(os.environ.get("BRAIN_CRYPTO_START_CASH", "10000")),
-    # Four assets, so "max positions" is nearly moot — but matching the cap to the universe makes
-    # it state the universe rather than imply headroom that does not exist. Keep this in step
-    # with CRYPTO_TICKERS: a cap below the universe silently refuses the last token's entries.
-    max_positions=int(os.environ.get("BRAIN_CRYPTO_MAX_POSITIONS", str(len(CRYPTO_TICKERS)))),
-    # Higher per name than equities *because* the universe is shallow: at 15% the book would
-    # sit 55% in cash permanently and never express a view it actually held.
+    # This was `len(CRYPTO_TICKERS)` while the universe was four tokens, on the reasoning that a
+    # cap below the universe silently refuses the last token's entries. That inverts at fifteen:
+    # the same expression now reads as headroom for fifteen positions the $10k could not fund
+    # anyway, and at a 20% default weight cash binds at five. Pinned to 8, matching the equity
+    # book, so the number states a diversification limit rather than restating the table above.
+    max_positions=int(os.environ.get("BRAIN_CRYPTO_MAX_POSITIONS", "8")),
+    # Higher per name than equities because the *tradeable* set on any given day is shallow —
+    # conviction here concentrates in a handful of tokens. At 15% the book would sit deep in cash
+    # permanently and never express a view it actually held.
     max_position_pct=float(os.environ.get("BRAIN_CRYPTO_MAX_POSITION_PCT", "25")),
     default_position_pct=float(os.environ.get("BRAIN_CRYPTO_DEFAULT_POSITION_PCT", "20")),
     # A 24/7 venue offers roughly three times the equity market's decision hours, so the weekly
@@ -453,6 +501,58 @@ STOCK_SCREEN = Thresholds("stock", SCREEN_GAP_PCT, SCREEN_VOL_MULT, SCREEN_BREAK
 CRYPTO_SCREEN = Thresholds("crypto", CRYPTO_SCREEN_GAP_PCT, CRYPTO_SCREEN_VOL_MULT,
                            CRYPTO_SCREEN_BREAKOUT_LOOKBACK, CRYPTO_SCREEN_RSI_HOT,
                            CRYPTO_SCREEN_RSI_COLD, CRYPTO_SCREEN_52W_PROXIMITY)
+
+
+def round_price(px, dp=2):
+    """Round a price without rounding a sub-cent token down to nothing.
+
+    Lives here rather than in portfolio.py because the collector needs the same rule: `config` is
+    the leaf module everything already imports, and two copies of this would drift.
+
+    Two decimals is right for every equity, and was right for a crypto book of BTC, ETH, SOL and
+    SUI. It stops being right the moment a token trades below a cent, and it fails in the worst
+    available direction. BONK at $0.00000296 rounds to **0.0**, which means:
+
+      - `indicators.price` is 0.0, so the screener's whole indicator block for the token is zeros
+        and every chart claim it makes is arithmetic on nothing;
+      - the -15% hard stop is `round(0.00000252, 2)` = 0.0, and a stop of zero is not a tight stop,
+        it is no stop — `gain <= stop_pct` can never fire, so the position rides to zero;
+      - the averaged entry on an ADD becomes 0.0, and then every P&L line divides by zero.
+
+    Below $1 the rounding is significant-figure based instead: enough decimal places to keep six
+    meaningful digits wherever the exponent lands. At or above $1 nothing changes at all — this
+    must not quietly re-round an equity price that has been correct since the first commit.
+    """
+    try:
+        f = float(px)
+    except (TypeError, ValueError):
+        return px
+    if not math.isfinite(f) or f == 0:
+        return px if not math.isfinite(f) else f
+    if abs(f) >= 1:
+        return round(f, dp)
+    return round(f, -math.floor(math.log10(abs(f))) + 5)
+
+
+def format_price(px):
+    """A price as a human reads it: "142.11", "65,000.46", "0.00000296".
+
+    The display counterpart to round_price, and it exists for the same reason. `:,.2f` renders
+    every number on a BONK or PEPE card as "0.00" — a trade card with no trade on it, and pattern
+    details that read "close 0.00 < prior 20d low 0.00", which look like an engine fault rather
+    than a formatting choice. Four significant figures below a cent, two decimals at or above it.
+    """
+    try:
+        f = float(px)
+    except (TypeError, ValueError):
+        return "—"
+    if not math.isfinite(f):
+        return "—"
+    if f and abs(f) < 0.01:
+        # Capped so a rogue value cannot render a forty-character number into the middle of a card.
+        digits = min(12, -math.floor(math.log10(abs(f))) + 3)
+        return f"{f:,.{digits}f}".rstrip("0").rstrip(".")
+    return f"{f:,.2f}"
 
 
 def is_crypto(ticker):

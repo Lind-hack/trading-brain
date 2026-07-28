@@ -77,11 +77,36 @@ def test_crypto_rules_are_re_derived_not_inherited():
     assert r.ledger != config.STOCK_RULES.ledger       # a separate file, so separate money
 
 
-def test_crypto_universe_uses_the_working_sui_symbol():
-    """SUI-USD resolves to nothing on Yahoo; the CoinMarketCap-id form is the live one."""
-    assert "SUI20947-USD" in config.CRYPTO_TICKERS
-    assert "SUI-USD" not in config.CRYPTO_TICKERS
+def test_crypto_universe_uses_the_working_yahoo_symbols():
+    """The symbols Yahoo disambiguates with a CoinMarketCap id, which is where this silently breaks.
+
+    `SUI-USD` resolves to nothing at all; the others resolve to something, which is worse — a run
+    that "works" on an unrelated listing. Anyone tidying these back to the plain form drops the
+    token from every cycle, and the only symptom is a name that stops appearing in emails.
+    """
+    for plain, live in (("SUI-USD", "SUI20947-USD"), ("UNI-USD", "UNI7083-USD"),
+                        ("PEPE-USD", "PEPE24478-USD"), ("TRUMP-USD", "TRUMP35336-USD")):
+        assert live in config.CRYPTO_TICKERS
+        assert plain not in config.CRYPTO_TICKERS
+
+
+def test_the_four_crypto_maps_cannot_drift_apart():
+    """They are derived from one table now. This is what that table is for."""
     assert set(config.CRYPTO_TICKERS) == set(config.CRYPTO_SECTORS)
+    assert set(config.CRYPTO_TICKERS) == set(config.CRYPTO_LABELS)
+    assert set(config.CRYPTO_TICKERS) == set(config.CRYPTO_NEWS_QUERIES)
+    assert len(config.CRYPTO_TICKERS) == len(set(config.CRYPTO_TICKERS))
+
+
+def test_every_requested_sector_is_actually_populated():
+    """Lind asked for meme / DeFi / liquid staking / DePIN by name. A sector with no token in it is
+    a label, not exposure — and the failure is invisible, since nothing errors, the book just never
+    trades that branch."""
+    sectors = set(config.CRYPTO_SECTORS.values())
+    assert {"Meme", "DeFi", "LST", "DePIN"} <= sectors
+    # Solana-native coverage specifically: SOL itself plus the branches that live on it.
+    for t in ("SOL-USD", "BONK-USD", "WIF-USD", "TRUMP35336-USD", "RENDER-USD"):
+        assert t in config.CRYPTO_TICKERS
 
 
 def test_crypto_position_rides_out_a_drop_that_would_stop_out_a_stock(crypto_pf):
@@ -143,11 +168,14 @@ def test_a_stock_too_dear_for_the_slot_is_still_rejected(stock_pf):
     assert not ok and "insufficient cash" in msg
 
 
-def test_crypto_position_cap_is_the_size_of_the_universe(crypto_pf):
-    for t in config.CRYPTO_TICKERS:
-        ok, msg = _buy(crypto_pf, t, 100.0)
+def test_crypto_position_cap_is_eight_not_the_size_of_the_universe(crypto_pf):
+    """The cap used to be `len(CRYPTO_TICKERS)`, which was honest at four tokens and became a lie at
+    fifteen — the $10k book cannot fund fifteen positions at any legal weight. Small weights here so
+    cash is not what stops it: the ninth buy must be refused by the position cap itself."""
+    for t in config.CRYPTO_TICKERS[:8]:
+        ok, msg = _buy(crypto_pf, t, 100.0, weight=5)
         assert ok, msg
-    ok, msg = _buy(crypto_pf, "DOGE-USD", 100.0)
+    ok, msg = _buy(crypto_pf, config.CRYPTO_TICKERS[8], 100.0, weight=5)
     assert not ok and "cap" in msg
 
 
@@ -164,16 +192,88 @@ def test_a_stock_sector_lockout_does_not_touch_the_crypto_book(stock_pf, crypto_
     assert ok, msg
 
 
-def test_each_token_is_its_own_sector(crypto_pf):
-    """All three labelled 'Crypto' would mean two losers anywhere shut the entire book."""
-    assert config.CRYPTO_RULES.sector_of("BTC-USD") == "BTC"
-    assert config.CRYPTO_RULES.sector_of("ETH-USD") == "ETH"
-    _buy(crypto_pf, "BTC-USD", 100.0)
-    crypto_pf._close("BTC-USD", 80.0, "test loss")
-    _buy(crypto_pf, "BTC-USD", 100.0)
-    crypto_pf._close("BTC-USD", 80.0, "test loss")
-    ok, msg = _buy(crypto_pf, "ETH-USD", 100.0)
-    assert ok, f"a BTC lockout must not block ETH: {msg}"
+def test_the_sector_brake_is_a_brake_now_rather_than_a_shutdown(crypto_pf):
+    """Every token used to be its own sector, because at four tokens a shared "Crypto" label meant
+    two losers anywhere locked the entire book. That was a kill switch wearing a brake's name.
+
+    Real sectors only work above a certain size, and fifteen tokens across six sectors is above it:
+    two losing meme trades stop meme trades, and DeFi carries on. The BTC/ETH pair sharing "Major"
+    is deliberate too — after two losing majors, "buy the other major" is the same trade."""
+    assert config.CRYPTO_RULES.sector_of("BONK-USD") == "Meme"
+    assert config.CRYPTO_RULES.sector_of("AAVE-USD") == "DeFi"
+    for t in ("BONK-USD", "WIF-USD"):
+        _buy(crypto_pf, t, 100.0, weight=5)
+        crypto_pf._close(t, 80.0, "test loss")
+    ok, msg = _buy(crypto_pf, "DOGE-USD", 100.0, weight=5)
+    assert not ok and "sector" in msg.lower(), f"two meme losers must stop a third: {msg}"
+    ok, msg = _buy(crypto_pf, "AAVE-USD", 100.0, weight=5)
+    assert ok, f"a meme lockout must not block DeFi: {msg}"
+
+
+# ── sub-cent tokens ─────────────────────────────────────────────────────────────
+# The meme sector brought prices four to six decimal places below anything this repo had held
+# before, and every one of these is a two-decimal rounding that was correct until it wasn't.
+
+def test_a_sub_cent_token_gets_a_real_hard_stop(crypto_pf):
+    """The expensive one. `round(price * 0.85, 2)` on BONK at $0.00000296 is **0.0**, and a stop of
+    zero is not a tight stop — `gain <= stop_pct` can never fire against it, so the position rides
+    all the way to nothing while the ledger shows a stop is in place."""
+    _buy(crypto_pf, "BONK-USD", 0.00000296, weight=5)
+    pos = crypto_pf.state["positions"]["BONK-USD"]
+    assert pos["hard_stop"] > 0
+    assert pos["hard_stop"] == pytest.approx(0.00000296 * 0.85, rel=1e-3)
+
+
+def test_a_sub_cent_token_still_stops_out(crypto_pf):
+    """End to end, because the stop existing and the stop firing are two different bugs."""
+    _buy(crypto_pf, "BONK-USD", 0.00000296, weight=5)
+    crypto_pf.mark_to_market({"BONK-USD": 0.00000240})        # -19%, past the -15 gate
+    assert "BONK-USD" not in crypto_pf.state["positions"]
+
+
+def test_adding_to_a_sub_cent_position_does_not_zero_the_entry(crypto_pf):
+    """The averaged entry rounded to 4 dp, so an ADD on PEPE set entry to 0.0 — after which every
+    P&L line on the position divides by zero."""
+    _buy(crypto_pf, "PEPE24478-USD", 0.0000028, weight=5)
+    ok, msg = crypto_pf.apply_action(
+        {"action": "ADD", "ticker": "PEPE24478-USD", "entry": 0.0000030,
+         "target_weight_pct": 15, "reason": "test"},     # a real increase, not the same weight
+        prices={"PEPE24478-USD": 0.0000030})
+    assert ok, msg
+    pos = crypto_pf.state["positions"]["PEPE24478-USD"]
+    assert pos["entry"] > 0
+    crypto_pf.mark_to_market({"PEPE24478-USD": 0.0000031})    # would raise on a zero entry
+
+
+def test_a_meme_coin_card_shows_actual_numbers():
+    """`:,.2f` rendered every price on a BONK card as "0.00" — a trade card with no trade on it,
+    which reads as a broken engine rather than a formatting choice."""
+    from brain import notify
+    card = notify.build_card(
+        {"ticker": "BONK-USD", "direction": "LONG", "trade_type": "SCALP", "confidence": 60,
+         "entry": 0.00000296, "stop": 0.00000252, "target1": 0.0000034, "target2": 0.0000041},
+        datetime(2026, 7, 28, 9, 30, tzinfo=timezone.utc))
+    assert "0.00000296" in card
+    assert "0.00000252" in card
+    assert ">0.00<" not in card
+
+
+def test_an_ordinary_price_is_still_two_decimals():
+    from brain import notify
+    card = notify.build_card(
+        {"ticker": "BTC-USD", "direction": "LONG", "entry": 65_000.4567, "stop": 55_250.39},
+        datetime(2026, 7, 28, 9, 30, tzinfo=timezone.utc))
+    assert "65,000.46" in card
+    assert "55,250.39" in card
+
+
+def test_equity_prices_round_exactly_as_they_always_did():
+    """This must not have reached the stock book. Anything at or above $1 keeps two decimals."""
+    from brain.portfolio import round_px
+    assert round_px(142.10999) == 142.11
+    assert round_px(1.0) == 1.0
+    assert round_px(65_000.4567) == 65_000.46
+    assert round_px(None) is None
 
 
 def test_rules_lookup_fails_loudly_on_a_typo():

@@ -36,6 +36,11 @@ def usable_price(px):
     except (TypeError, ValueError):
         return False
 
+
+# Sub-cent tokens cannot take a two-decimal rounding — see config.round_price for what breaks.
+# Re-exported under the name this module's callers already use.
+round_px = config.round_price
+
 # The sector map now lives with the rule set that owns it (config.STOCK_SECTORS), because a
 # second book needs a second map and a module-level dict cannot serve both. Re-exported here so
 # existing importers keep working.
@@ -194,7 +199,7 @@ class Portfolio:
                     trail = self.rules.trail_tight_15
             pos["trail_pct"] = trail
             trail_level = pos["high_water"] * (1 - trail / 100)
-            pos["stop_level"] = round(max(trail_level, pos.get("hard_stop", 0)), 2)
+            pos["stop_level"] = round_px(max(trail_level, pos.get("hard_stop", 0)))
 
             # The deadline written at entry wins over the current rules, so re-tuning the window
             # never retroactively times out (or reprieves) a position already on the book.
@@ -368,13 +373,13 @@ class Portfolio:
         if shares <= 0:
             return False, "sized to zero shares"
         stop_pct = self.rules.stop_pct_for(trade_type)
-        hard_stop = action.get("stop") or round(price * (1 + stop_pct / 100), 2)
+        hard_stop = action.get("stop") or round_px(price * (1 + stop_pct / 100))
         # A scalp's proposed stop is clamped to the scalp band. The model routinely attaches the
         # swing-width stop it was thinking in to an idea it then labels SCALP, and an un-clamped
         # −12% stop on a position meant to live four hours is the mislabel this whole block
         # exists to stop. Wider than the band is refused; tighter than it is the model's call.
         if self.rules.is_scalp(trade_type):
-            hard_stop = max(hard_stop, round(price * (1 + stop_pct / 100), 2))
+            hard_stop = max(hard_stop, round_px(price * (1 + stop_pct / 100)))
         now = datetime.now(config.UTC).isoformat()
         # Reasoning snapshot taken at entry — the journal grades this against the exit.
         entry_meta = {k: action.get(k) for k in ENTRY_META_FIELDS}
@@ -383,7 +388,7 @@ class Portfolio:
         if kind == "ADD" and ticker in self.state["positions"]:
             pos = self.state["positions"][ticker]
             tot = pos["shares"] + shares
-            pos["entry"] = round((pos["entry"] * pos["shares"] + price * shares) / tot, 4)
+            pos["entry"] = round_px((pos["entry"] * pos["shares"] + price * shares) / tot, dp=4)
             pos["shares"] = tot
             pos["adds"] = (pos.get("adds") or []) + [
                 {"ts": now, "shares": shares, "price": price, "broker": mirror}]

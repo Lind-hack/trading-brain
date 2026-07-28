@@ -107,7 +107,11 @@ def build_card(sig, now_et, intel_ticker=None):
     hold = sig.get("holding_period") or default_hold
 
     def fmt(x):
-        return f"{x:,.2f}" if isinstance(x, (int, float)) else "—"
+        # Not `:,.2f`: BONK trades at $0.00000296, and two decimals renders every number on its
+        # card as "0.00". See config.format_price.
+        if not isinstance(x, (int, float)) or isinstance(x, bool):
+            return "—"
+        return config.format_price(x)
 
     plan_rows = "".join([
         _row("Entry", fmt(sig.get("entry"))),
@@ -320,7 +324,11 @@ def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=N
                      f"(conf {s.get('confidence')}) — hold {s.get('holding_period')}")
         lines.append(f"  Why: {s.get('why','')}")
         lines.append(f"  Confidence: {s.get('confidence')} — {s.get('confidence_rationale','')}")
-        lines.append(f"  Plan: entry {s.get('entry')} stop {s.get('stop')} T1 {s.get('target1')} T2 {s.get('target2')}")
+        # format_price rather than the raw value: a sub-cent token's entry repr's as "2.95e-06",
+        # which is correct and unreadable. The HTML card already goes through the same formatter.
+        _pl = lambda v: config.format_price(v) if isinstance(v, (int, float)) else (v or "—")
+        lines.append(f"  Plan: entry {_pl(s.get('entry'))} stop {_pl(s.get('stop'))} "
+                     f"T1 {_pl(s.get('target1'))} T2 {_pl(s.get('target2'))}")
         lines.append(f"  Indicators used: {', '.join(str(i) for i in (s.get('indicators_used') or []))}")
         lines.append(f"  Indicators: {s.get('indicators','')}")
         lines.append(f"  Charts: {s.get('chart_read','')}")
