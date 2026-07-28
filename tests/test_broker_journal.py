@@ -101,6 +101,93 @@ def test_fractional_rejection_retries_whole_shares(monkeypatch, paper_keys):
     assert calls == ["4.37", "4"]
 
 
+# ── crypto reaches the paper account too ────────────────────────────────────────
+
+@pytest.fixture
+def crypto_listed(monkeypatch):
+    """Pretend the asset lookup already ran. SUI is absent on Alpaca — that is not a test fixture
+    convenience, it is what /v2/assets returns."""
+    monkeypatch.setattr(broker, "_crypto_assets",
+                        {"BTC/USD", "ETH/USD", "SOL/USD"}, raising=False)
+
+
+def test_yahoo_crypto_names_become_alpaca_pairs():
+    assert broker._alpaca_symbol("BTC-USD") == "BTC/USD"
+    assert broker._alpaca_symbol("ETH-USD") == "ETH/USD"
+    # The CoinMarketCap id Yahoo wedges in when the plain ticker is taken must not survive.
+    assert broker._alpaca_symbol("SUI20947-USD") == "SUI/USD"
+
+
+def test_equity_symbols_pass_through_untouched():
+    for t in ("NVDA", "AAPL", "BRK-B"):
+        assert broker._alpaca_symbol(t) == t
+
+
+def test_crypto_order_uses_the_slash_pair_and_gtc(monkeypatch, paper_keys, crypto_listed):
+    seen = {}
+
+    def _fake(method, url, **kw):
+        seen.update(kw.get("json") or {})
+        return _Resp()
+
+    monkeypatch.setattr(broker.requests, "request", _fake)
+    res = broker.submit("BTC-USD", 0.0154, side="buy")
+    assert res["mirrored"] is True
+    assert seen["symbol"] == "BTC/USD"
+    # `day` is rejected outright on a venue with no close.
+    assert seen["time_in_force"] == "gtc"
+    assert seen["qty"] == "0.0154"
+
+
+def test_equity_order_still_uses_day(monkeypatch, paper_keys):
+    seen = {}
+    monkeypatch.setattr(broker.requests, "request",
+                        lambda m, u, **kw: (seen.update(kw.get("json") or {}), _Resp())[1])
+    broker.submit("NVDA", 3, side="buy")
+    assert seen["time_in_force"] == "day"
+
+
+def test_a_rejected_crypto_order_is_not_retried_whole(monkeypatch, paper_keys, crypto_listed):
+    """0.53 ETH rounded down is no position at all. The RTH retry belongs to equities only."""
+    calls = []
+
+    def _fake(method, url, **kw):
+        calls.append((kw.get("json") or {}).get("qty"))
+        return _Resp(status=422, payload={})
+
+    monkeypatch.setattr(broker.requests, "request", _fake)
+    res = broker.submit("ETH-USD", 0.5295, side="buy")
+    assert res["mirrored"] is False
+    assert calls == ["0.5295"]
+
+
+def test_an_unlisted_token_never_leaves_the_simulator(monkeypatch, paper_keys, crypto_listed):
+    """Alpaca does not list SUI. Firing a doomed order every cycle reads like a broken mirror."""
+    monkeypatch.setattr(broker.requests, "request",
+                        lambda *a, **kw: (_ for _ in ()).throw(AssertionError("order sent")))
+    res = broker.submit("SUI20947-USD", 120.0, side="buy")
+    assert res["mirrored"] is False
+    assert "not tradable on Alpaca" in res["reason"]
+
+
+def test_closing_a_crypto_position_encodes_the_slash(monkeypatch, paper_keys):
+    seen = {}
+    monkeypatch.setattr(broker.requests, "request",
+                        lambda m, u, **kw: (seen.update(url=u), _Resp())[1])
+    broker.close("BTC-USD")
+    # An un-encoded slash would address /v2/positions/BTC/USD, which is a different route.
+    assert seen["url"].endswith("/v2/positions/BTC%2FUSD")
+
+
+def test_crypto_orders_still_cannot_reach_the_live_host(monkeypatch, paper_keys, crypto_listed):
+    monkeypatch.setattr(config, "ALPACA_PAPER_BASE", "https://api.alpaca.markets", raising=False)
+    monkeypatch.setattr(broker.requests, "request",
+                        lambda *a, **kw: (_ for _ in ()).throw(AssertionError("request sent")))
+    res = broker.submit("BTC-USD", 0.01, side="buy")
+    assert res["mirrored"] is False
+    assert "not the Alpaca paper host" in res["reason"]
+
+
 def test_no_keys_is_a_clean_noop(monkeypatch):
     monkeypatch.setattr(config, "ALPACA_KEY_ID", "", raising=False)
     monkeypatch.setattr(config, "ALPACA_SECRET", "", raising=False)
@@ -293,3 +380,41 @@ def test_recap_packet_is_json(tmp_path):
     packet = _json.loads(journal.recap_packet(journal.build_recap(pf, week_start)))
     assert set(packet) == {"stats", "closed_trades", "still_open", "rule_based_gradings",
                            "measured_performance", "week_ahead"}
+
+
+def test_a_crypto_buy_mirrors_end_to_end(monkeypatch, paper_keys, crypto_listed, tmp_path):
+    """The whole path: gate approves, ledger opens, Alpaca gets a slash pair at a gtc TIF.
+
+    The crypto book ran with mirror=False until 2026-07-28 because the symbol spelling and the
+    unlisted-SUI problem made a half-working mirror worse than none. Both are handled now, so
+    this asserts the path is actually joined up rather than merely capable.
+    """
+    sent = []
+    monkeypatch.setattr(broker.requests, "request",
+                        lambda m, u, **kw: (sent.append(kw.get("json") or {}), _Resp())[1])
+    pf = Portfolio(path=tmp_path / "PORTFOLIO_CRYPTO.json", mirror=True,
+                   rules=config.CRYPTO_RULES)
+    ok, msg = pf.apply_action(
+        {"action": "BUY", "ticker": "BTC-USD", "entry": 65_000.0, "target_weight_pct": 10},
+        prices={"BTC-USD": 65_000.0})
+    assert ok, msg
+    assert sent and sent[0]["symbol"] == "BTC/USD" and sent[0]["time_in_force"] == "gtc"
+    assert pf.broker_events[0]["mirrored"] is True
+    # The ledger is still the accounting truth, in our spelling, not Alpaca's.
+    assert "BTC-USD" in pf.state["positions"]
+
+
+def test_an_unlisted_token_still_opens_in_the_ledger(monkeypatch, paper_keys, crypto_listed,
+                                                     tmp_path):
+    """SUI is not on Alpaca. The sim must still take the trade — the mirror is best-effort."""
+    monkeypatch.setattr(broker.requests, "request",
+                        lambda *a, **kw: (_ for _ in ()).throw(AssertionError("order sent")))
+    pf = Portfolio(path=tmp_path / "PORTFOLIO_CRYPTO.json", mirror=True,
+                   rules=config.CRYPTO_RULES)
+    ok, _msg = pf.apply_action(
+        {"action": "BUY", "ticker": "SUI20947-USD", "entry": 3.10, "target_weight_pct": 10},
+        prices={"SUI20947-USD": 3.10})
+    assert ok
+    assert "SUI20947-USD" in pf.state["positions"]
+    assert pf.broker_events[0]["mirrored"] is False
+    assert "not tradable" in pf.broker_events[0]["reason"]

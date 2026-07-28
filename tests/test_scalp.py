@@ -210,3 +210,58 @@ def test_journal_does_not_call_a_time_stopped_scalp_a_mislabel():
     notes = " ".join(notes)
     assert "longer than a SCALP" not in notes
     assert "time stop" in notes
+
+
+# ── the dated scalp-focus tilt ──────────────────────────────────────────────────
+#
+# Lind asked for intraday trades on a specific day (2026-07-28). The tilt therefore has to be a
+# window, not a setting: a permanent scalp bias would turn a book meant to hold multi-week
+# positions into a day-trading account, one reasonable-looking run at a time.
+
+from brain import deep                                        # noqa: E402
+
+
+def _focus(monkeypatch, value):
+    monkeypatch.setattr(config, "SCALP_FOCUS_UNTIL", value, raising=False)
+
+
+def test_focus_is_off_when_unset(monkeypatch):
+    _focus(monkeypatch, "")
+    assert config.scalp_focus_active() is False
+
+
+def test_focus_is_on_up_to_and_including_the_last_day(monkeypatch):
+    _focus(monkeypatch, "2026-07-28")
+    on_the_day = datetime(2026, 7, 28, 15, 30, tzinfo=config.ET)
+    assert config.scalp_focus_active(on_the_day) is True
+
+
+def test_focus_expires_by_itself(monkeypatch):
+    _focus(monkeypatch, "2026-07-28")
+    next_morning = datetime(2026, 7, 29, 9, 31, tzinfo=config.ET)
+    assert config.scalp_focus_active(next_morning) is False
+
+
+def test_a_broken_date_turns_the_tilt_off_rather_than_crashing(monkeypatch):
+    _focus(monkeypatch, "tomorrow")
+    assert config.scalp_focus_active() is False
+
+
+def test_an_active_window_reaches_the_prompt(monkeypatch):
+    _focus(monkeypatch, "2026-07-28")
+    monkeypatch.setattr(config, "scalp_focus_active", lambda *_a: True, raising=False)
+    text = deep.build_prompt("cycle", {})
+    assert "SCALP FOCUS IS ON" in text
+    # The tilt changes what is looked at first, never the evidence bar.
+    assert "does NOT change what qualifies" in text.replace("It ", "")
+
+
+def test_no_window_means_no_note(monkeypatch):
+    monkeypatch.setattr(config, "scalp_focus_active", lambda *_a: False, raising=False)
+    assert "SCALP FOCUS IS ON" not in deep.build_prompt("cycle", {})
+
+
+def test_the_tilt_reaches_the_crypto_book_too(monkeypatch):
+    monkeypatch.setattr(config, "scalp_focus_active", lambda *_a: True, raising=False)
+    text = deep.build_prompt("crypto", {})
+    assert "SCALP FOCUS IS ON" in text and "THIS RUN IS THE CRYPTO BOOK" in text

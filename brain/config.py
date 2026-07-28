@@ -6,7 +6,7 @@ degrades gracefully when a key is absent, so the brain still runs on free data a
 """
 import os
 import sys
-from datetime import timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -104,6 +104,27 @@ SEC_CONTACT = os.environ.get("BRAIN_SEC_CONTACT", RECIPIENT)
 ALPACA_PAPER_BASE = "https://paper-api.alpaca.markets"
 ALPACA_KEY_ID = os.environ.get("ALPACA_PAPER_KEY_ID", "")
 ALPACA_SECRET = os.environ.get("ALPACA_PAPER_SECRET_KEY", "")
+
+# ── Scalp focus window ──────────────────────────────────────────────────────────
+# A dated tilt toward intraday ideas, not a permanent one. Set BRAIN_SCALP_FOCUS_UNTIL to an ET
+# date (YYYY-MM-DD, inclusive) and every prompt built up to the end of that day asks the analyst
+# to look at intraday setups first. It expires by itself: a standing scalp bias would quietly turn
+# a book meant to hold multi-week positions into a day-trading account, and nobody would notice
+# the drift because each individual run would look reasonable.
+SCALP_FOCUS_UNTIL = os.environ.get("BRAIN_SCALP_FOCUS_UNTIL", "").strip()
+
+
+def scalp_focus_active(now_et=None):
+    """Is the dated scalp tilt in force right now? Unparseable dates are treated as off."""
+    if not SCALP_FOCUS_UNTIL:
+        return False
+    try:
+        until = datetime.strptime(SCALP_FOCUS_UNTIL, "%Y-%m-%d").date()
+    except ValueError:
+        print(f"[warn] BRAIN_SCALP_FOCUS_UNTIL={SCALP_FOCUS_UNTIL!r} is not YYYY-MM-DD — ignoring",
+              file=sys.stderr)
+        return False
+    return (now_et or datetime.now(ET)).date() <= until
 
 # ── Paper portfolio (PDF Part 2 discipline rules) ───────────────────────────────
 STARTING_CASH = float(os.environ.get("BRAIN_START_CASH", "10000"))

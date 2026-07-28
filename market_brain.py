@@ -444,21 +444,27 @@ def do_crypto_cycle(args, force=False):
 
     Written as its own function rather than a `venue=` flag through do_cycle() because almost
     every line differs in a way a flag would have to branch on anyway: a different portfolio, a
-    different collector, a different watchlist, no fundamentals, no broker mirror, no session
-    gate. A flag would read as "mostly the same" and the one thing that must never happen here is
-    a crypto run silently picking up an equity default.
+    different collector, a different watchlist, no fundamentals, no session gate. A flag would
+    read as "mostly the same" and the one thing that must never happen here is a crypto run
+    silently picking up an equity default.
 
-    Three deliberate omissions, each with a reason:
-      * No broker mirror. Alpaca paper does not list SUI at all and spells the others `BTC/USD`,
-        so a mirror attempt would half-succeed — two of four tokens filled — and the ledger would
-        stop matching the paper account. The JSON ledger is the whole truth for this book.
+    Two deliberate omissions, each with a reason:
       * No calendar rows into the events memory. CPI is one event; the equity cycle already files
         it. See memory.log_events(with_calendar=...).
       * No fundamentals. There are none.
+
+    This book DOES mirror to the Alpaca paper account (2026-07-28, at Lind's request). It did not
+    until then, for two reasons that have both since been dealt with in broker.py: Alpaca spells
+    the pairs `BTC/USD` where Yahoo says `BTC-USD`, and it does not list SUI at all. The symbol
+    translation handles the first; an asset-list check handles the second by declining SUI locally
+    instead of firing an order that would 422. So the mirror is partial by construction — three of
+    the four tokens reach the paper account and SUI never does — and that is the same contract the
+    equity book already runs under: the JSON ledger is the accounting truth, the mirror is
+    best-effort, and a broker failure never touches the ledger.
     """
     now_et = datetime.now(config.ET)
     persist = not args.dry_run
-    portfolio = Portfolio(mirror=False, rules=config.CRYPTO_RULES)
+    portfolio = Portfolio(mirror=persist, rules=config.CRYPTO_RULES)
     market = collect.collect_crypto_market(with_news=False)
     prices = _price_lookup(market)
     # The macro calendar still matters — CPI and the FOMC move the dollar, and the dollar moves

@@ -17,7 +17,9 @@ exactly as it did before.
 from __future__ import annotations
 
 import math
+import re
 import sys
+from urllib.parse import quote
 
 import requests
 
@@ -44,6 +46,46 @@ def _guard():
 def enabled():
     """True when paper keys are configured. Everything degrades to sim-only when False."""
     return bool(config.ALPACA_KEY_ID and config.ALPACA_SECRET)
+
+
+def _alpaca_symbol(ticker):
+    """Alpaca's name for one of our symbols. Equities pass through untouched.
+
+    The two venues do not spell crypto the same way. Yahoo — which is where every price in this
+    repo comes from — names spot pairs `BTC-USD`, and disambiguates a token whose plain ticker was
+    already taken by wedging its CoinMarketCap id in: `SUI20947-USD`. Alpaca wants `BTC/USD` and
+    `SUI/USD`. Sending the Yahoo spelling is a 422, which is why crypto mirroring never worked.
+    """
+    t = str(ticker or "").upper()
+    if not config.is_crypto(t):
+        return t
+    base = config.CRYPTO_LABELS.get(ticker) or config.CRYPTO_LABELS.get(t)
+    if not base:
+        base = re.sub(r"\d+$", "", t[:-4])          # drop "-USD", then the disambiguating digits
+    return f"{base.upper()}/USD"
+
+
+_crypto_assets = None
+
+
+def tradable_crypto():
+    """The set of crypto pairs this paper account can actually trade, e.g. {"BTC/USD", ...}.
+
+    Alpaca lists ~36 USD pairs and our universe is not a subset of it — SUI is not there at all.
+    Without this check every cycle that proposes SUI fires a doomed order and logs a broker
+    warning, which reads like a fault in the mirroring rather than an asset that does not exist.
+    Cached per process; an empty set means the lookup failed, and then we let the order try.
+    """
+    global _crypto_assets
+    if _crypto_assets is not None:
+        return _crypto_assets
+    try:
+        rows = _request("GET", "/v2/assets?asset_class=crypto&status=active") or []
+        _crypto_assets = {r.get("symbol") for r in rows if r.get("tradable")}
+    except Exception as e:
+        print(f"[warn] could not list Alpaca crypto assets: {e}", file=sys.stderr)
+        _crypto_assets = set()
+    return _crypto_assets
 
 
 def _headers():
@@ -110,8 +152,12 @@ def clock():
 # ── Write ───────────────────────────────────────────────────────────────────────
 
 def _submit(symbol, qty, side, extra=None):
-    body = {"symbol": symbol, "qty": str(qty), "side": side,
-            "type": "market", "time_in_force": "day"}
+    # A venue that never closes has no concept of a day order: Alpaca accepts only `gtc` or `ioc`
+    # on crypto and rejects `day` outright. Equities keep `day` — a stale queued order is worse
+    # there than one that expires at the bell.
+    tif = "gtc" if config.is_crypto(symbol) else "day"
+    body = {"symbol": _alpaca_symbol(symbol), "qty": str(qty), "side": side,
+            "type": "market", "time_in_force": tif}
     if extra:
         body.update(extra)
     return _request("POST", "/v2/orders", json=body)
@@ -132,6 +178,13 @@ def submit(symbol, shares, side="buy"):
     shares = round(float(shares), 4)
     if shares <= 0:
         return {"mirrored": False, "reason": "zero shares"}
+    crypto = config.is_crypto(symbol)
+    if crypto:
+        pair = _alpaca_symbol(symbol)
+        listed = tradable_crypto()
+        if listed and pair not in listed:
+            return {"mirrored": False,
+                    "reason": f"{pair} is not tradable on Alpaca — simulator only"}
     is_fractional = abs(shares - round(shares)) > 1e-6
     try:
         o = _submit(symbol, shares, side)
@@ -140,7 +193,10 @@ def submit(symbol, shares, side="buy"):
     except BrokerError as e:
         first = str(e)
         whole = int(math.floor(shares)) if side == "buy" else int(math.floor(shares))
-        if is_fractional and whole >= 1:
+        # The whole-share retry exists because Alpaca only fills equity fractions during RTH. On a
+        # 24/7 venue every fraction is fillable, so a crypto rejection means something else is
+        # wrong — and rounding 0.53 ETH down would silently resize the trade to nothing anyway.
+        if is_fractional and whole >= 1 and not crypto:
             try:
                 o = _submit(symbol, whole, side)
                 return {"mirrored": True, "order_id": o.get("id"), "qty": whole,
@@ -158,7 +214,8 @@ def close(symbol):
     if not enabled():
         return {"mirrored": False, "reason": "no paper keys configured"}
     try:
-        o = _request("DELETE", f"/v2/positions/{symbol.upper()}")
+        # The slash in a crypto pair is a path separator until it is encoded.
+        o = _request("DELETE", f"/v2/positions/{quote(_alpaca_symbol(symbol), safe='')}")
         return {"mirrored": True, "order_id": (o or {}).get("id"), "status": (o or {}).get("status")}
     except BrokerError as e:
         msg = str(e)

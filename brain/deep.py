@@ -132,11 +132,29 @@ _CRYPTO_VENUE_NOTE = (
 )
 
 
+_SCALP_FOCUS_NOTE = (
+    "SCALP FOCUS IS ON FOR THIS SESSION. Lind has asked specifically for intraday trades today.\n"
+    "Look at the intraday setups FIRST — VWAP reclaims and rejections, opening-range breaks, gap\n"
+    "fills, 5-15m momentum against the day's structure — and only then at the swing board.\n"
+    "  - This changes what you look at first. It does NOT change what qualifies. A SCALP still\n"
+    "    needs a real level, real volume confirmation and an honest confidence_rationale, and an\n"
+    "    empty signals array is still the right answer on a dead tape. Do not manufacture an\n"
+    "    intraday trade to satisfy this note; say in `notes` that nothing set up.\n"
+    "  - Do NOT relabel a multi-day thesis as SCALP to fit the request. The tag is mechanical:\n"
+    "    the harness force-closes a SCALP at its deadline (24h crypto, 8h equity) at whatever the\n"
+    "    tape shows, on a tighter stop and a smaller position. A swing wearing a SCALP tag gets\n"
+    "    killed a day in no matter how right it was. If the best idea available is a swing,\n"
+    "    propose the swing and label it SHORT_TERM.\n"
+    "  - `holding_period` must read in hours for anything tagged SCALP.\n\n"
+)
+
+
 def build_prompt(mode, packet):
     template = _load_prompt(mode)
     return (
         f"{template}\n\n"
         + (_CRYPTO_VENUE_NOTE if mode == "crypto" else "")
+        + (_SCALP_FOCUS_NOTE if config.scalp_focus_active() else "")
         + "You are tier 2 of a two-model pipeline. Tier 1 (Haiku 4.5) already read the news; its\n"
         "findings are in packet.news_intel. Only cite headlines that appear there — anything else\n"
         "is fabrication. If news_intel.degraded is true, no AI read the news this cycle: say so\n"
