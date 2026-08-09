@@ -251,6 +251,26 @@
     "why"
    ]
   },
+  "2026 bear finance head market yahoo": {
+   "first_seen": "2026-07-19T07:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "yahoo finance uk": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Is the S&P 500 heading for a bear market in 2026? - Yahoo Finance UK",
+   "tokens": [
+    "finance",
+    "market",
+    "yahoo",
+    "2026",
+    "bear",
+    "head",
+    "500"
+   ]
+  },
   "2026 beginner bitcoin foundation guide solana": {
    "first_seen": "2026-05-27T07:00:00+00:00",
    "last_seen": "2026-07-28T08:59:53.881964+00:00",
@@ -381,9 +401,10 @@
   },
   "2026 chip fall market nasdaq weigh": {
    "first_seen": "2026-07-28T02:43:00+00:00",
-   "last_seen": "2026-07-28T08:28:30.854527+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
    "sources": {
-    "wsj": "2026-07-28T08:28:30.854527+00:00"
+    "wsj": "2026-07-28T08:28:30.854527+00:00",
+    "wsj.com": "2026-08-01T18:58:19.935677+00:00"
    },
    "tickers": [
     "_MACRO"
@@ -584,6 +605,25 @@
     "amd"
    ]
   },
+  "2030 could double prediction robinhood wall": {
+   "first_seen": "2026-07-30T18:00:02+00:00",
+   "last_seen": "2026-08-01T18:58:05.362978+00:00",
+   "sources": {
+    "24/7 wall st.": "2026-08-01T18:58:05.362978+00:00"
+   },
+   "tickers": [
+    "HOOD"
+   ],
+   "title": "Prediction: Robinhood Stock Could Double by 2030 - 24/7 Wall St.",
+   "tokens": [
+    "prediction",
+    "robinhood",
+    "double",
+    "could",
+    "2030",
+    "wall"
+   ]
+  },
   "250 analyst barchart bett next year": {
    "first_seen": "2026-07-27T20:38:45+00:00",
    "last_seen": "2026-07-28T08:28:25.067561+00:00",
@@ -623,6 +663,25 @@
     "whal",
     "30b",
     "buy"
+   ]
+  },
+  "330 420 alphabet could wall year": {
+   "first_seen": "2026-07-30T13:55:25+00:00",
+   "last_seen": "2026-08-01T18:58:05.242806+00:00",
+   "sources": {
+    "24/7 wall st.": "2026-08-01T18:58:05.242806+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Alphabet is $330 a Share: Could It Go To $420 This Year? - 24/7 Wall St.",
+   "tokens": [
+    "alphabet",
+    "could",
+    "wall",
+    "year",
+    "330",
+    "420"
    ]
   },
   "500 cautiously forecast forex selloff tech": {
@@ -786,6 +845,27 @@
     "lee"
    ]
   },
+  "aapl amzn axti gddy invest mover": {
+   "first_seen": "2026-07-30T20:56:28+00:00",
+   "last_seen": "2026-08-01T18:58:05.187219+00:00",
+   "sources": {
+    "investing.com": "2026-08-01T18:58:05.187219+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "After-Hours Stock Movers: AAPL, AMZN, COIN, RBLX, RDDT, AXTI, FND, WU, GDDY - Investing.com",
+   "tokens": [
+    "invest",
+    "mover",
+    "aapl",
+    "amzn",
+    "axti",
+    "gddy",
+    "hour",
+    "rblx"
+   ]
+  },
   "aapl analyst finally modest nasdaq stocktwit": {
    "first_seen": "2026-07-26T09:12:18+00:00",
    "last_seen": "2026-07-26T18:37:12.325139+00:00",
@@ -807,15 +887,36 @@
     "chop"
    ]
   },
+  "aapl apple debate intensifi margin simplywall": {
+   "first_seen": "2026-08-01T02:19:30+00:00",
+   "last_seen": "2026-08-01T18:58:05.187219+00:00",
+   "sources": {
+    "simplywall.st": "2026-08-01T18:58:05.187219+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "Apple (AAPL) Stock Price Drops As Margin Debate Intensifies - simplywall.st",
+   "tokens": [
+    "simplywall",
+    "intensifi",
+    "debate",
+    "margin",
+    "apple",
+    "aapl",
+    "drop"
+   ]
+  },
   "aapl apple finance today why yahoo": {
    "first_seen": "2026-07-15T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:28:24.980833+00:00",
+   "last_seen": "2026-08-01T18:58:05.347775+00:00",
    "sources": {
     "yahoo finance": "2026-07-26T18:32:50.612633+00:00"
    },
    "tickers": [
     "AAPL",
-    "GOOGL"
+    "GOOGL",
+    "COIN"
    ],
    "title": "Why Apple (AAPL) Stock Is Up Today - Yahoo Finance",
    "tokens": [
@@ -825,6 +926,49 @@
     "yahoo",
     "aapl",
     "why"
+   ]
+  },
+  "aapl data fell here quantitative quiver": {
+   "first_seen": "2026-07-28T14:54:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.389438+00:00",
+   "sources": {
+    "quiver quantitative": "2026-08-01T18:58:05.187219+00:00"
+   },
+   "tickers": [
+    "AAPL",
+    "MARA"
+   ],
+   "title": "$AAPL stock fell 8% this week. Here's what we see in our data. - Quiver Quantitative",
+   "tokens": [
+    "quantitative",
+    "quiver",
+    "aapl",
+    "data",
+    "fell",
+    "here",
+    "week",
+    "what"
+   ]
+  },
+  "aapl earn might miss trefi upside": {
+   "first_seen": "2026-07-31T09:30:24+00:00",
+   "last_seen": "2026-08-01T18:58:05.187219+00:00",
+   "sources": {
+    "trefis": "2026-08-01T18:58:05.187219+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "Earn 8.4% On AAPL Stock By Selling Upside You Might Not Miss - Trefis",
+   "tokens": [
+    "upside",
+    "might",
+    "trefi",
+    "aapl",
+    "earn",
+    "miss",
+    "sell",
+    "not"
    ]
   },
   "aave aim finance rebuild securiti tim": {
@@ -994,12 +1138,13 @@
   },
   "about doozy investor smci tiprank top": {
    "first_seen": "2026-07-23T11:42:09+00:00",
-   "last_seen": "2026-07-26T22:15:16.395585+00:00",
+   "last_seen": "2026-08-01T18:58:05.236169+00:00",
    "sources": {
     "tipranks": "2026-07-26T18:32:50.626404+00:00"
    },
    "tickers": [
-    "SMCI"
+    "SMCI",
+    "META"
    ],
    "title": "\u2018That Was a Doozy,\u2019 Says Top Investor About SMCI Stock - TipRanks",
    "tokens": [
@@ -1116,6 +1261,27 @@
     "bomb"
    ]
   },
+  "above business earning investor record robinhood": {
+   "first_seen": "2026-07-30T19:50:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.362978+00:00",
+   "sources": {
+    "investor's business daily": "2026-08-01T18:58:05.362978+00:00"
+   },
+   "tickers": [
+    "HOOD"
+   ],
+   "title": "Robinhood Earnings Soar Above Views On Record Trading Volumes - Investor's Business Daily",
+   "tokens": [
+    "robinhood",
+    "business",
+    "investor",
+    "earning",
+    "record",
+    "above",
+    "daily",
+    "volum"
+   ]
+  },
   "above cryptorank extend prediction rebound solana": {
    "first_seen": "2026-07-21T12:21:50+00:00",
    "last_seen": "2026-07-28T08:59:53.881964+00:00",
@@ -1158,6 +1324,27 @@
     "aapl"
    ]
   },
+  "absurdly discussion finance merger overnight spacex": {
+   "first_seen": "2026-07-31T05:38:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.219649+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.219649+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "TSLA Stock Jumps Overnight: Musk Calls Tesla China-SpaceX Merger Report \u2018Absurdly Fake News\u2019 \u2014 Says Its \u2018Never Even Come Up In A Discussion\u2019 - Yahoo Finance",
+   "tokens": [
+    "discussion",
+    "overnight",
+    "absurdly",
+    "finance",
+    "merger",
+    "spacex",
+    "china",
+    "never"
+   ]
+  },
   "academy all learn phemex topic": {
    "first_seen": "2026-05-12T07:00:00+00:00",
    "last_seen": "2026-07-28T08:59:53.879840+00:00",
@@ -1195,6 +1382,26 @@
     "activity",
     "network",
     "hit"
+   ]
+  },
+  "accelerate amazon cloud jump sal spend": {
+   "first_seen": "2026-07-30T22:19:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.223672+00:00",
+   "sources": {
+    "wsj.com": "2026-08-01T18:58:05.223672+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "Amazon Shares Jump as Cloud Sales\u2014and Spending\u2014Accelerate - wsj.com",
+   "tokens": [
+    "accelerate",
+    "amazon",
+    "cloud",
+    "spend",
+    "jump",
+    "sal",
+    "wsj"
    ]
   },
   "accord ahead analyst attractive earning tiprank": {
@@ -1280,6 +1487,27 @@
     "market",
     "single",
     "asia"
+   ]
+  },
+  "action daily netflix network polymarket today": {
+   "first_seen": "2026-07-31T16:46:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.253337+00:00",
+   "sources": {
+    "action network": "2026-08-01T18:58:05.253337+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "Netflix Stock Price Today | NFLX Stock Price Daily Up Down (Live Polymarket Odds) - Action Network",
+   "tokens": [
+    "polymarket",
+    "netflix",
+    "network",
+    "action",
+    "daily",
+    "today",
+    "down",
+    "live"
    ]
   },
   "active avalanche brief deposit ethereum reach": {
@@ -1425,6 +1653,27 @@
     "capital",
     "increas",
     "googl"
+   ]
+  },
+  "affect constraint finance memory revenue supply": {
+   "first_seen": "2026-07-30T23:07:39+00:00",
+   "last_seen": "2026-08-01T18:58:05.187219+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.187219+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "AAPL Stock Drops 7% After-Hours \u2014 Apple's Q3 China Sales Slow, Tim Cook Flags Memory Supply Constraints Affecting Q4 Revenue - Yahoo Finance",
+   "tokens": [
+    "constraint",
+    "finance",
+    "revenue",
+    "affect",
+    "memory",
+    "supply",
+    "apple",
+    "china"
    ]
   },
   "africa drop ethereum marketforc queue validator": {
@@ -1595,6 +1844,27 @@
     "there"
    ]
   },
+  "against broader computer foreignpolicyjournal market nasdaq": {
+   "first_seen": "2026-07-29T21:33:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.281711+00:00",
+   "sources": {
+    "foreignpolicyjournal.com": "2026-08-01T18:58:05.281711+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "Super Micro Computer (NASDAQ: SMCI) Stock Price Slides Against Broader Market Gains - foreignpolicyjournal.com",
+   "tokens": [
+    "foreignpolicyjournal",
+    "computer",
+    "against",
+    "broader",
+    "market",
+    "nasdaq",
+    "micro",
+    "super"
+   ]
+  },
   "against burry increas michael popular thestreet": {
    "first_seen": "2026-07-27T21:38:11+00:00",
    "last_seen": "2026-07-28T08:28:25.097156+00:00",
@@ -1614,6 +1884,48 @@
     "burry",
     "giant",
     "chip"
+   ]
+  },
+  "agreement barchart huge landmark power signal": {
+   "first_seen": "2026-07-30T19:33:48+00:00",
+   "last_seen": "2026-08-01T18:58:05.210633+00:00",
+   "sources": {
+    "barchart.com": "2026-08-01T18:58:05.210633+00:00"
+   },
+   "tickers": [
+    "AMD"
+   ],
+   "title": "Landmark AI Power Agreement Sends Huge Signal for AMD Stock - Barchart.com",
+   "tokens": [
+    "agreement",
+    "barchart",
+    "landmark",
+    "signal",
+    "power",
+    "huge",
+    "send",
+    "amd"
+   ]
+  },
+  "ahead alpha earning entic nasdaq palantir": {
+   "first_seen": "2026-07-31T19:21:19+00:00",
+   "last_seen": "2026-08-01T18:58:05.286737+00:00",
+   "sources": {
+    "seeking alpha": "2026-08-01T18:58:05.286737+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Palantir Looks Very Enticing Ahead Of Q2 Earnings (NASDAQ:PLTR) - Seeking Alpha",
+   "tokens": [
+    "palantir",
+    "earning",
+    "nasdaq",
+    "ahead",
+    "alpha",
+    "entic",
+    "look",
+    "pltr"
    ]
   },
   "ahead amazon earning finance hurdle major": {
@@ -1869,6 +2181,48 @@
     "launch"
    ]
   },
+  "all another before high time wall": {
+   "first_seen": "2026-07-31T18:00:13+00:00",
+   "last_seen": "2026-08-01T18:58:05.267457+00:00",
+   "sources": {
+    "24/7 wall st.": "2026-08-01T18:58:05.267457+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "1 AI Stock I\u2019d Buy Before It Hits Another All-Time High - 24/7 Wall St.",
+   "tokens": [
+    "another",
+    "before",
+    "high",
+    "time",
+    "wall",
+    "all",
+    "buy",
+    "hit"
+   ]
+  },
+  "alpha alphabet bigger googl nasdaq selloff": {
+   "first_seen": "2026-07-29T20:59:03+00:00",
+   "last_seen": "2026-08-01T18:58:05.242806+00:00",
+   "sources": {
+    "seeking alpha": "2026-08-01T18:58:05.242806+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Alphabet Stock: Selloff Misses Bigger Story (NASDAQ:GOOGL) - Seeking Alpha",
+   "tokens": [
+    "alphabet",
+    "selloff",
+    "bigger",
+    "nasdaq",
+    "alpha",
+    "googl",
+    "story",
+    "miss"
+   ]
+  },
   "alpha alphabet capex decade litigation upgrade": {
    "first_seen": "2026-07-24T12:45:00+00:00",
    "last_seen": "2026-07-26T18:32:50.618645+00:00",
@@ -2014,6 +2368,27 @@
     "ath"
    ]
   },
+  "alpha backlog micro nasdaq phantom unearn": {
+   "first_seen": "2026-07-27T14:31:49+00:00",
+   "last_seen": "2026-08-01T18:58:05.281711+00:00",
+   "sources": {
+    "seeking alpha": "2026-08-01T18:58:05.281711+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "Super Micro: A Phantom Backlog And Unearned Hype (NASDAQ:SMCI) - Seeking Alpha",
+   "tokens": [
+    "backlog",
+    "phantom",
+    "nasdaq",
+    "unearn",
+    "alpha",
+    "micro",
+    "super",
+    "hype"
+   ]
+  },
   "alpha benefit nasdaq spacex strip tesla": {
    "first_seen": "2026-07-25T12:41:13+00:00",
    "last_seen": "2026-07-26T22:15:16.349298+00:00",
@@ -2075,6 +2450,27 @@
     "nvda",
     "play",
     "seek"
+   ]
+  },
+  "alpha blood micron street there upgrade": {
+   "first_seen": "2026-07-29T10:10:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.274648+00:00",
+   "sources": {
+    "seeking alpha": "2026-08-01T18:58:05.274648+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Micron Stock: Buy When There's Blood In The Streets (Rating Upgrade) - Seeking Alpha",
+   "tokens": [
+    "upgrade",
+    "micron",
+    "street",
+    "alpha",
+    "blood",
+    "there",
+    "seek",
+    "when"
    ]
   },
   "alpha burry chip michael nasdaq short": {
@@ -2203,6 +2599,48 @@
     "rat"
    ]
   },
+  "alpha earning european financial gainer nysearca": {
+   "first_seen": "2026-08-01T13:41:41+00:00",
+   "last_seen": "2026-08-01T18:58:05.362978+00:00",
+   "sources": {
+    "seeking alpha": "2026-08-01T18:58:05.362978+00:00"
+   },
+   "tickers": [
+    "HOOD"
+   ],
+   "title": "Financial stocks fall amid earnings; GS, HOOD in losers; European banks, MKTX among gainers (XLF:NYSEARCA) - Seeking Alpha",
+   "tokens": [
+    "financial",
+    "european",
+    "nysearca",
+    "earning",
+    "gainer",
+    "alpha",
+    "among",
+    "loser"
+   ]
+  },
+  "alpha enter nasdaq netflix phase powerful": {
+   "first_seen": "2026-07-29T11:10:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.253337+00:00",
+   "sources": {
+    "seeking alpha": "2026-08-01T18:58:05.253337+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "Netflix Is Entering Its Most Powerful Phase Yet (NASDAQ:NFLX) - Seeking Alpha",
+   "tokens": [
+    "powerful",
+    "netflix",
+    "nasdaq",
+    "alpha",
+    "enter",
+    "phase",
+    "most",
+    "nflx"
+   ]
+  },
   "alpha greedy meta nasdaq platform seek": {
    "first_seen": "2026-07-27T21:33:44+00:00",
    "last_seen": "2026-07-28T08:28:25.084137+00:00",
@@ -2267,12 +2705,13 @@
   },
   "alpha nasdaq netflix nflx seek time": {
    "first_seen": "2026-07-26T17:26:39+00:00",
-   "last_seen": "2026-07-26T22:15:16.377811+00:00",
+   "last_seen": "2026-08-01T18:58:05.253337+00:00",
    "sources": {
     "seeking alpha": "2026-07-26T18:32:50.620648+00:00"
    },
    "tickers": [
-    "NFLX"
+    "NFLX",
+    "TSLA"
    ],
    "title": "SA Asks: Netflix hit a 52-week low this week. Is now the time to buy? (NFLX:NASDAQ) - Seeking Alpha",
    "tokens": [
@@ -2288,7 +2727,7 @@
   },
   "alpha nyse seek tsm tsmc wrong": {
    "first_seen": "2026-07-25T13:00:00+00:00",
-   "last_seen": "2026-07-26T22:15:16.385337+00:00",
+   "last_seen": "2026-08-01T18:58:05.267457+00:00",
    "sources": {
     "seeking alpha": "2026-07-26T22:15:16.385337+00:00"
    },
@@ -2429,8 +2868,8 @@
    ]
   },
   "alphabet capex earning googl revenue takeaway": {
-   "first_seen": "2026-07-22T23:21:00+00:00",
-   "last_seen": "2026-07-28T08:28:25.134794+00:00",
+   "first_seen": "2026-07-22T07:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.242806+00:00",
    "sources": {
     "cnbc": "2026-07-26T18:32:50.618645+00:00"
    },
@@ -2468,6 +2907,27 @@
     "surg",
     "buy",
     "dip"
+   ]
+  },
+  "alphabet cramer finance googl nasdaq shock": {
+   "first_seen": "2026-08-01T02:40:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.242806+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.242806+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Jim Cramer Was Left \u201cShocked\u201d By Alphabet Inc. (NASDAQ:GOOGL)\u2019s Shares - Yahoo Finance",
+   "tokens": [
+    "alphabet",
+    "finance",
+    "cramer",
+    "nasdaq",
+    "googl",
+    "shock",
+    "yahoo",
+    "left"
    ]
   },
   "alphabet crush earning market marketbeat number": {
@@ -2545,6 +3005,27 @@
     "plung",
     "react",
     "spend"
+   ]
+  },
+  "alphabet investor microsoft other perform tiprank": {
+   "first_seen": "2026-07-31T14:17:31+00:00",
+   "last_seen": "2026-08-01T18:58:05.242806+00:00",
+   "sources": {
+    "tipranks": "2026-08-01T18:58:05.242806+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "Microsoft or Alphabet: One AI Stock Is a Buy, the Other Is Performing Tricks, Says Investor - TipRanks",
+   "tokens": [
+    "microsoft",
+    "alphabet",
+    "investor",
+    "perform",
+    "tiprank",
+    "other",
+    "trick",
+    "buy"
    ]
   },
   "alphapepe become momentum prediction recover streetinsider": {
@@ -2796,6 +3277,107 @@
     "grow"
    ]
   },
+  "amazon announc investor quarter relation result": {
+   "first_seen": "2026-07-30T20:04:12+00:00",
+   "last_seen": "2026-08-01T18:58:05.223672+00:00",
+   "sources": {
+    "amazon investor relations": "2026-08-01T18:58:05.223672+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "Amazon.com Announces Second Quarter Results - Amazon Investor Relations",
+   "tokens": [
+    "investor",
+    "relation",
+    "announc",
+    "quarter",
+    "amazon",
+    "result",
+    "second"
+   ]
+  },
+  "amazon apple benzinga jump market today": {
+   "first_seen": "2026-07-31T17:42:45+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "benzinga": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stock Market Today: Amazon Jumps 15%, Apple Wipes Out $475 Billion - Benzinga",
+   "tokens": [
+    "benzinga",
+    "amazon",
+    "market",
+    "apple",
+    "today",
+    "jump",
+    "475",
+    "out"
+   ]
+  },
+  "amazon apple chip earning offset rise": {
+   "first_seen": "2026-07-31T20:40:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.223672+00:00",
+   "sources": {
+    "wsj.com": "2026-08-01T18:58:05.223672+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "U.S. Stocks Rise as Amazon Earnings Offset Apple Chip Woes - wsj.com",
+   "tokens": [
+    "earning",
+    "amazon",
+    "offset",
+    "apple",
+    "chip",
+    "rise",
+    "wsj",
+    "wo"
+   ]
+  },
+  "amazon apple friday investopedia market nasdaq": {
+   "first_seen": "2026-07-31T19:57:49+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "investopedia": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Markets News, July 31: Dow Logs Slim July Gains as Nasdaq, S&P 500 Slip; Amazon Stock Soars, Apple Sinks Friday - Investopedia",
+   "tokens": [
+    "investopedia",
+    "amazon",
+    "friday",
+    "market",
+    "nasdaq",
+    "apple",
+    "gain",
+    "july"
+   ]
+  },
+  "amazon beat cnbc pop quarterly": {
+   "first_seen": "2026-07-30T20:20:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.223672+00:00",
+   "sources": {
+    "cnbc": "2026-08-01T18:58:05.223672+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "Amazon stock pops on quarterly beat - CNBC",
+   "tokens": [
+    "quarterly",
+    "amazon",
+    "beat",
+    "cnbc",
+    "pop"
+   ]
+  },
   "amazon below business daily google investor": {
    "first_seen": "2026-07-23T19:24:00+00:00",
    "last_seen": "2026-07-26T22:15:16.362987+00:00",
@@ -2815,6 +3397,27 @@
     "daily",
     "hefty",
     "level"
+   ]
+  },
+  "amazon cloud investment jump reuter strong": {
+   "first_seen": "2026-07-30T20:04:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.223672+00:00",
+   "sources": {
+    "reuters": "2026-08-01T18:58:05.223672+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "Amazon lifts investment plans after strong cloud sales; shares jump - Reuters",
+   "tokens": [
+    "investment",
+    "amazon",
+    "reuter",
+    "strong",
+    "cloud",
+    "jump",
+    "lift",
+    "plan"
    ]
   },
   "amazon could crush earning finance microsoft": {
@@ -2862,13 +3465,15 @@
   },
   "amazon earning fairly into morningstar sell": {
    "first_seen": "2026-07-23T10:13:14+00:00",
-   "last_seen": "2026-07-28T08:28:25.078082+00:00",
+   "last_seen": "2026-08-01T18:58:05.286737+00:00",
    "sources": {
     "morningstar": "2026-07-26T18:32:50.616641+00:00"
    },
    "tickers": [
     "AMZN",
-    "NFLX"
+    "NFLX",
+    "TSLA",
+    "PLTR"
    ],
    "title": "Going Into Earnings, Is Amazon Stock a Buy, a Sell, or Fairly Valued? - Morningstar",
    "tokens": [
@@ -2880,6 +3485,63 @@
     "sell",
     "valu",
     "buy"
+   ]
+  },
+  "amazon fil": {
+   "first_seen": "2026-07-31T00:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.223672+00:00",
+   "sources": {
+    "sec edgar": "2026-08-01T18:58:05.223672+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "AMAZON COM INC filed S-4",
+   "tokens": [
+    "amazon",
+    "fil"
+   ]
+  },
+  "amazon finish gazette inflation journal worsen": {
+   "first_seen": "2026-07-31T20:40:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.223672+00:00",
+   "sources": {
+    "the journal gazette": "2026-08-01T18:58:05.223672+00:00"
+   },
+   "tickers": [
+    "AMZN"
+   ],
+   "title": "US stocks rise to finish a wild July as Amazon soars, Apple sinks and inflation worries worsen - The Journal Gazette",
+   "tokens": [
+    "inflation",
+    "gazette",
+    "journal",
+    "amazon",
+    "finish",
+    "worsen",
+    "apple",
+    "worri"
+   ]
+  },
+  "amazon fourth friday higher month straight": {
+   "first_seen": "2026-07-31T20:19:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "cnbc": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "S&P 500 closes higher Friday as Amazon surges; Dow posts fourth straight winning month: Live updates - CNBC",
+   "tokens": [
+    "straight",
+    "amazon",
+    "fourth",
+    "friday",
+    "higher",
+    "month",
+    "updat",
+    "clos"
    ]
   },
   "ambcrypto august bound past support unlock": {
@@ -3317,6 +3979,27 @@
     "100"
    ]
   },
+  "analysi chairman credibility interest question unchang": {
+   "first_seen": "2026-07-30T01:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "cnbc": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Analysis: Fed Chairman Warsh's credibility in question after leaving interest rates unchanged - CNBC",
+   "tokens": [
+    "credibility",
+    "chairman",
+    "interest",
+    "question",
+    "analysi",
+    "unchang",
+    "warsh",
+    "cnbc"
+   ]
+  },
   "analysi cryptopotato decision ethereum major resistance": {
    "first_seen": "2026-07-26T13:22:00+00:00",
    "last_seen": "2026-07-27T22:08:37.004958+00:00",
@@ -3338,14 +4021,36 @@
     "into"
    ]
   },
+  "analysi forecast highest street target tradingkey": {
+   "first_seen": "2026-08-01T15:05:59+00:00",
+   "last_seen": "2026-08-01T18:58:05.187219+00:00",
+   "sources": {
+    "tradingkey": "2026-08-01T18:58:05.187219+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "Apple Stock Price Forecast: Can AAPL Break $400 by 2026? Wall Street\u2019s Highest Price Target Analysis - TradingKey",
+   "tokens": [
+    "tradingkey",
+    "forecast",
+    "analysi",
+    "highest",
+    "street",
+    "target",
+    "apple",
+    "break"
+   ]
+  },
   "analyst believe investment palantir research technologi": {
    "first_seen": "2026-07-24T13:03:37+00:00",
-   "last_seen": "2026-07-26T22:15:16.398587+00:00",
+   "last_seen": "2026-08-01T18:58:05.202568+00:00",
    "sources": {
     "zacks investment research": "2026-07-26T18:32:50.628411+00:00"
    },
    "tickers": [
-    "PLTR"
+    "PLTR",
+    "NVDA"
    ],
    "title": "Wall Street Analysts Believe Palantir Technologies (PLTR) Could Rally 56.83%: Here's is How to Trade - Zacks Investment Research",
    "tokens": [
@@ -3508,7 +4213,7 @@
   },
   "analyst growth potential street their these": {
    "first_seen": "2026-07-26T11:33:11+00:00",
-   "last_seen": "2026-07-28T08:28:25.090139+00:00",
+   "last_seen": "2026-08-01T18:58:05.259409+00:00",
    "sources": {
     "cnbc": "2026-07-26T22:15:16.382339+00:00"
    },
@@ -3548,14 +4253,35 @@
     "point"
    ]
   },
+  "analyst marketbeat microsoft msft nasdaq upgrade": {
+   "first_seen": "2026-07-30T21:21:37+00:00",
+   "last_seen": "2026-08-01T18:58:05.210633+00:00",
+   "sources": {
+    "marketbeat": "2026-08-01T18:58:05.196025+00:00"
+   },
+   "tickers": [
+    "MSFT",
+    "AMD"
+   ],
+   "title": "Microsoft (NASDAQ:MSFT) Stock Price Up 3% After Analyst Upgrade - MarketBeat",
+   "tokens": [
+    "marketbeat",
+    "microsoft",
+    "analyst",
+    "upgrade",
+    "nasdaq",
+    "msft"
+   ]
+  },
   "analyst opinion product quantitative quiver upgrad": {
    "first_seen": "2026-07-24T17:33:00+00:00",
-   "last_seen": "2026-07-28T08:28:24.980833+00:00",
+   "last_seen": "2026-08-01T18:58:05.210633+00:00",
    "sources": {
     "quiver quantitative": "2026-07-26T18:32:50.612633+00:00"
    },
    "tickers": [
-    "AAPL"
+    "AAPL",
+    "AMD"
    ],
    "title": "Apple Stock (AAPL) Opinions on Analyst Upgrades and Upcoming Products - Quiver Quantitative",
    "tokens": [
@@ -3694,6 +4420,48 @@
     "keep"
    ]
   },
+  "another coinbase earning nosediv quarter tiprank": {
+   "first_seen": "2026-07-31T16:32:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.347775+00:00",
+   "sources": {
+    "tipranks": "2026-08-01T18:58:05.347775+00:00"
+   },
+   "tickers": [
+    "COIN"
+   ],
+   "title": "Coinbase Stock (COIN) Nosedives Over 13% On \u2018Another Soft Quarter\u2019 Earnings Miss - TipRanks",
+   "tokens": [
+    "coinbase",
+    "another",
+    "earning",
+    "nosediv",
+    "quarter",
+    "tiprank",
+    "miss",
+    "over"
+   ]
+  },
+  "another coinbase finance market quarterly yahoo": {
+   "first_seen": "2026-07-31T14:43:33+00:00",
+   "last_seen": "2026-08-01T18:58:05.347775+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.347775+00:00"
+   },
+   "tickers": [
+    "COIN"
+   ],
+   "title": "Coinbase stock sinks as weak crypto market leads to another quarterly loss - Yahoo Finance",
+   "tokens": [
+    "quarterly",
+    "coinbase",
+    "another",
+    "finance",
+    "market",
+    "yahoo",
+    "lead",
+    "loss"
+   ]
+  },
   "another could dogecoin finance happen prediction": {
    "first_seen": "2026-07-27T20:46:42+00:00",
    "last_seen": "2026-07-28T08:59:53.887629+00:00",
@@ -3734,6 +4502,27 @@
     "yahoo",
     "make",
     "due"
+   ]
+  },
+  "another maker nhtsa probe tesla tiprank": {
+   "first_seen": "2026-07-31T14:07:29+00:00",
+   "last_seen": "2026-08-01T18:58:05.219649+00:00",
+   "sources": {
+    "tipranks": "2026-08-01T18:58:05.219649+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Tesla Stock (TSLA) Hit as EV Maker Faces Another Big NHTSA Probe - TipRanks",
+   "tokens": [
+    "another",
+    "tiprank",
+    "maker",
+    "nhtsa",
+    "probe",
+    "tesla",
+    "tsla",
+    "big"
    ]
   },
   "answer might motley oracle should surprise": {
@@ -3840,6 +4629,27 @@
     "slip"
    ]
   },
+  "appear earning goldman investor quantitative quiver": {
+   "first_seen": "2026-07-29T14:59:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.403528+00:00",
+   "sources": {
+    "quiver quantitative": "2026-08-01T18:58:05.403528+00:00"
+   },
+   "tickers": [
+    "GS"
+   ],
+   "title": "Goldman Sachs Slides as Investors Appear to Lock In Gains After a Strong Earnings Run - Quiver Quantitative",
+   "tokens": [
+    "quantitative",
+    "investor",
+    "earning",
+    "goldman",
+    "appear",
+    "quiver",
+    "strong",
+    "gain"
+   ]
+  },
   "applaud saylor schiff stocktwit strategy surrender": {
    "first_seen": "2026-07-27T04:18:33+00:00",
    "last_seen": "2026-07-28T08:28:25.040230+00:00",
@@ -3881,9 +4691,51 @@
     "aapl"
    ]
   },
+  "apple back barron nvidia stumbl valuable": {
+   "first_seen": "2026-07-31T13:26:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.202568+00:00",
+   "sources": {
+    "barron's": "2026-08-01T18:58:05.202568+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "Nvidia Is Back on Top as Most Valuable Company After Apple Stumbles - Barron's",
+   "tokens": [
+    "valuable",
+    "barron",
+    "nvidia",
+    "stumbl",
+    "apple",
+    "back",
+    "most",
+    "top"
+   ]
+  },
+  "apple below business daily investor iphone": {
+   "first_seen": "2026-07-30T21:54:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.187219+00:00",
+   "sources": {
+    "investor's business daily": "2026-08-01T18:58:05.187219+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "Apple Stock Falls As iPhone Maker Guides Below Views - Investor's Business Daily",
+   "tokens": [
+    "business",
+    "investor",
+    "iphone",
+    "apple",
+    "below",
+    "daily",
+    "maker",
+    "fall"
+   ]
+  },
   "apple benzinga go monday what": {
    "first_seen": "2026-07-20T14:53:51+00:00",
-   "last_seen": "2026-07-28T08:28:25.134794+00:00",
+   "last_seen": "2026-08-01T18:58:05.281711+00:00",
    "sources": {
     "benzinga": "2026-07-26T18:32:50.612633+00:00"
    },
@@ -3982,6 +4834,21 @@
     "apple",
     "spook",
     "2026"
+   ]
+  },
+  "apple fil": {
+   "first_seen": "2026-07-31T00:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.187219+00:00",
+   "sources": {
+    "sec edgar": "2026-08-01T18:58:05.187219+00:00"
+   },
+   "tickers": [
+    "AAPL"
+   ],
+   "title": "Apple Inc. filed 10-Q",
+   "tokens": [
+    "apple",
+    "fil"
    ]
   },
   "apple lawsuit negligence simplywall store wallet": {
@@ -4109,6 +4976,27 @@
     "etf"
    ]
   },
+  "around decision invest outlook tomorrow volatility": {
+   "first_seen": "2026-07-28T16:08:15+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "investing.com": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "S&P 500 volatility outlook around tomorrow\u2019s Fed rate decision - Investing.com",
+   "tokens": [
+    "volatility",
+    "decision",
+    "tomorrow",
+    "outlook",
+    "around",
+    "invest",
+    "rate",
+    "500"
+   ]
+  },
   "artificial better globe intelligence micron nvidia": {
    "first_seen": "2026-07-26T13:57:30+00:00",
    "last_seen": "2026-07-26T22:15:16.391064+00:00",
@@ -4232,6 +5120,27 @@
     "curve",
     "yield",
     "bear"
+   ]
+  },
+  "asset earning growth investment platform research": {
+   "first_seen": "2026-07-30T12:15:23+00:00",
+   "last_seen": "2026-08-01T18:58:05.362978+00:00",
+   "sources": {
+    "zacks investment research": "2026-08-01T18:58:05.362978+00:00"
+   },
+   "tickers": [
+    "HOOD"
+   ],
+   "title": "HOOD Q2 Earnings Top on Trading & Platform Asset Growth, Stock Dips - Zacks Investment Research",
+   "tokens": [
+    "investment",
+    "platform",
+    "research",
+    "earning",
+    "growth",
+    "asset",
+    "hood",
+    "trad"
    ]
   },
   "asset framework howey sec under wilmerhale": {
@@ -4401,6 +5310,48 @@
     "jim"
    ]
   },
+  "avgo bargain broadcom could earning simplywall": {
+   "first_seen": "2026-07-28T19:26:30+00:00",
+   "last_seen": "2026-08-01T18:58:05.259409+00:00",
+   "sources": {
+    "simplywall.st": "2026-08-01T18:58:05.259409+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "Broadcom (AVGO) Stock Could Be A Bargain On Earnings Yet Fair On Cash Flow - simplywall.st",
+   "tokens": [
+    "simplywall",
+    "broadcom",
+    "bargain",
+    "earning",
+    "could",
+    "avgo",
+    "cash",
+    "fair"
+   ]
+  },
+  "avgo below broadcom finance value yahoo": {
+   "first_seen": "2026-07-30T01:09:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.259409+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.259409+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "Is Broadcom (AVGO) Stock Below Fair Value After Its AI Deals? - Yahoo Finance",
+   "tokens": [
+    "broadcom",
+    "finance",
+    "below",
+    "value",
+    "yahoo",
+    "avgo",
+    "deal",
+    "fair"
+   ]
+  },
   "avgo broadcom finance love reason yahoo": {
    "first_seen": "2026-07-27T23:25:02+00:00",
    "last_seen": "2026-07-28T08:28:25.090139+00:00",
@@ -4440,6 +5391,23 @@
     "avgo",
     "drop",
     "miss"
+   ]
+  },
+  "avgo cnn forecast quote": {
+   "first_seen": "2026-07-30T14:15:09+00:00",
+   "last_seen": "2026-08-01T18:58:05.259409+00:00",
+   "sources": {
+    "cnn": "2026-08-01T18:58:05.259409+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "AVGO Stock Quote Price and Forecast - CNN",
+   "tokens": [
+    "forecast",
+    "quote",
+    "avgo",
+    "cnn"
    ]
   },
   "avgo drop impress outlook revenue stocktwit": {
@@ -4526,6 +5494,27 @@
     "ccn"
    ]
   },
+  "back bounce cnbc nasdaq selloff streak": {
+   "first_seen": "2026-07-31T14:06:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "cnbc": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stocks bounce back from Fed selloff, Nasdaq snaps 6-day losing streak - CNBC",
+   "tokens": [
+    "selloff",
+    "bounce",
+    "nasdaq",
+    "streak",
+    "back",
+    "cnbc",
+    "snap",
+    "day"
+   ]
+  },
   "back earning focu growth marketbeat spend": {
    "first_seen": "2026-07-27T12:13:03+00:00",
    "last_seen": "2026-07-28T08:28:25.084137+00:00",
@@ -4585,6 +5574,27 @@
     "defi",
     "hack",
     "run"
+   ]
+  },
+  "banker begin bribery goldman scrutiny simplywall": {
+   "first_seen": "2026-07-31T07:15:16+00:00",
+   "last_seen": "2026-08-01T18:58:05.403528+00:00",
+   "sources": {
+    "simplywall.st": "2026-08-01T18:58:05.403528+00:00"
+   },
+   "tickers": [
+    "GS"
+   ],
+   "title": "Goldman Sachs (GS) Faces Fresh Scrutiny As Ex Banker Bribery Trial Begins - simplywall.st",
+   "tokens": [
+    "simplywall",
+    "scrutiny",
+    "bribery",
+    "goldman",
+    "banker",
+    "begin",
+    "fresh",
+    "trial"
    ]
   },
   "banklesstim bonk dogecoin here pepe shiba": {
@@ -4692,6 +5702,27 @@
     "fac"
    ]
   },
+  "barely earning finance passable quarterly result": {
+   "first_seen": "2026-07-30T20:20:34+00:00",
+   "last_seen": "2026-08-01T18:58:05.236169+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.236169+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Meta stock sinks on earnings miss, 'barely passable' quarterly results - Yahoo Finance",
+   "tokens": [
+    "quarterly",
+    "passable",
+    "earning",
+    "finance",
+    "barely",
+    "result",
+    "yahoo",
+    "meta"
+   ]
+  },
   "bargain buy fool motley today top": {
    "first_seen": "2026-07-26T01:15:00+00:00",
    "last_seen": "2026-07-26T22:15:16.310206+00:00",
@@ -4732,6 +5763,27 @@
     "common"
    ]
   },
+  "baron barron cathie drop spacex tesla": {
+   "first_seen": "2026-07-30T21:05:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.219649+00:00",
+   "sources": {
+    "barron's": "2026-08-01T18:58:05.219649+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Tesla (TSLA) and SpaceX Stock Drops Hit Cathie Wood and Ron Baron Funds - Barron's",
+   "tokens": [
+    "barron",
+    "cathie",
+    "spacex",
+    "baron",
+    "tesla",
+    "drop",
+    "fund",
+    "tsla"
+   ]
+  },
   "barron been chip nvidia outperformer rally": {
    "first_seen": "2026-07-24T19:04:00+00:00",
    "last_seen": "2026-07-26T22:15:16.310206+00:00",
@@ -4753,6 +5805,27 @@
     "risk"
    ]
   },
+  "barron bill coinbase drop earning senate": {
+   "first_seen": "2026-07-31T15:33:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.347775+00:00",
+   "sources": {
+    "barron's": "2026-08-01T18:58:05.347775+00:00"
+   },
+   "tickers": [
+    "COIN"
+   ],
+   "title": "Coinbase (COIN) Stock Drops on Earnings Miss as Senate Crypto Bill Looms - Barron's",
+   "tokens": [
+    "coinbase",
+    "earning",
+    "barron",
+    "senate",
+    "bill",
+    "drop",
+    "loom",
+    "miss"
+   ]
+  },
   "barron china cxmt memory micron other": {
    "first_seen": "2026-07-27T18:38:00+00:00",
    "last_seen": "2026-07-28T08:28:25.097156+00:00",
@@ -4772,6 +5845,27 @@
     "cxmt",
     "play",
     "slip"
+   ]
+  },
+  "barron earning former least microstrategy worse": {
+   "first_seen": "2026-07-31T15:17:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.374704+00:00",
+   "sources": {
+    "barron's": "2026-08-01T18:58:05.374704+00:00"
+   },
+   "tickers": [
+    "MSTR"
+   ],
+   "title": "MSTR Stock: At Least Earnings Didn\u2019t Make It Worse for the Former MicroStrategy - Barron's",
+   "tokens": [
+    "microstrategy",
+    "earning",
+    "barron",
+    "former",
+    "least",
+    "worse",
+    "didn",
+    "make"
    ]
   },
   "barron explain market micron spacex verizon": {
@@ -4815,6 +5909,48 @@
     "what"
    ]
   },
+  "barron market nasdaq record since worst": {
+   "first_seen": "2026-08-01T13:21:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "barron's": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Stock Market News From July 31, 2026: The Nasdaq Records Worst July Since 2006 - Barron's",
+   "tokens": [
+    "barron",
+    "market",
+    "nasdaq",
+    "record",
+    "since",
+    "worst",
+    "2006",
+    "2026"
+   ]
+  },
+  "barron memory micron rebound samsung spark": {
+   "first_seen": "2026-07-30T20:32:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.274648+00:00",
+   "sources": {
+    "barron's": "2026-08-01T18:58:05.274648+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Micron Stock Is Surging. Why a Samsung Warning Is Sparking a Memory Rebound. - Barron's",
+   "tokens": [
+    "rebound",
+    "samsung",
+    "barron",
+    "memory",
+    "micron",
+    "spark",
+    "surg",
+    "warn"
+   ]
+  },
   "bear confidence declar market pymnt technologi": {
    "first_seen": "2026-07-27T16:06:01+00:00",
    "last_seen": "2026-07-27T22:09:04.280992+00:00",
@@ -4834,6 +5970,26 @@
     "bear",
     "defi",
     "ceo"
+   ]
+  },
+  "bear investment mstr research strategy zack": {
+   "first_seen": "2026-07-29T09:02:12+00:00",
+   "last_seen": "2026-08-01T18:58:05.374704+00:00",
+   "sources": {
+    "zacks investment research": "2026-08-01T18:58:05.374704+00:00"
+   },
+   "tickers": [
+    "MSTR"
+   ],
+   "title": "Bear of the Day: Strategy (MSTR) - Zacks Investment Research",
+   "tokens": [
+    "investment",
+    "research",
+    "strategy",
+    "bear",
+    "mstr",
+    "zack",
+    "day"
    ]
   },
   "bearish coinbase down fool month motley": {
@@ -4940,6 +6096,27 @@
     "four"
    ]
   },
+  "before digital finance holding marathon market": {
+   "first_seen": "2026-07-31T21:45:03+00:00",
+   "last_seen": "2026-08-01T18:58:05.389438+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.389438+00:00"
+   },
+   "tickers": [
+    "MARA"
+   ],
+   "title": "Marathon Digital Holdings, Inc. (MARA) Stock Slides as Market Rises: Facts to Know Before You Trade - Yahoo Finance",
+   "tokens": [
+    "marathon",
+    "digital",
+    "finance",
+    "holding",
+    "before",
+    "market",
+    "trade",
+    "yahoo"
+   ]
+  },
   "before earning finance microsoft result yahoo": {
    "first_seen": "2026-07-24T15:31:00+00:00",
    "last_seen": "2026-07-26T22:15:16.306773+00:00",
@@ -4980,6 +6157,27 @@
     "yahoo",
     "2026",
     "down"
+   ]
+  },
+  "before holding publish result titan webcast": {
+   "first_seen": "2026-07-22T07:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.389438+00:00",
+   "sources": {
+    "stock titan": "2026-08-01T18:58:05.389438+00:00"
+   },
+   "tickers": [
+    "MARA"
+   ],
+   "title": "MARA Holdings Will Publish Q2 Results Before Aug. 6 Webcast - Stock Titan",
+   "tokens": [
+    "holding",
+    "publish",
+    "webcast",
+    "before",
+    "result",
+    "titan",
+    "mara",
+    "aug"
    ]
   },
   "beginner cryptoslate curve finance lend pool": {
@@ -5122,6 +6320,27 @@
     "hex"
    ]
   },
+  "below earning forward motley netflix where": {
+   "first_seen": "2026-08-01T08:11:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.253337+00:00",
+   "sources": {
+    "the motley fool": "2026-08-01T18:58:05.253337+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "Netflix Is 43% Below Its 52-Week High at 20 Times Forward Earnings. Where Will the Stock Be in 3 Years? - The Motley Fool",
+   "tokens": [
+    "earning",
+    "forward",
+    "netflix",
+    "motley",
+    "below",
+    "where",
+    "fool",
+    "high"
+   ]
+  },
   "benefit other pentagon retail stocktwit worth": {
    "first_seen": "2026-07-25T17:27:37+00:00",
    "last_seen": "2026-07-26T18:37:12.341540+00:00",
@@ -5228,6 +6447,45 @@
     "net"
    ]
   },
+  "benzinga crcl mstr next three watch": {
+   "first_seen": "2026-08-01T18:15:18+00:00",
+   "last_seen": "2026-08-01T18:58:05.374704+00:00",
+   "sources": {
+    "benzinga": "2026-08-01T18:58:05.374704+00:00"
+   },
+   "tickers": [
+    "MSTR"
+   ],
+   "title": "Top Three Crypto Stocks to Watch Next Week: CRCL, RIOT, MSTR - Benzinga",
+   "tokens": [
+    "benzinga",
+    "three",
+    "watch",
+    "crcl",
+    "mstr",
+    "next",
+    "riot",
+    "week"
+   ]
+  },
+  "benzinga fall palantir tuesday why": {
+   "first_seen": "2026-07-28T16:16:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.286737+00:00",
+   "sources": {
+    "benzinga": "2026-08-01T18:58:05.286737+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Why Is Palantir Stock Falling on Tuesday? - Benzinga",
+   "tokens": [
+    "benzinga",
+    "palantir",
+    "tuesday",
+    "fall",
+    "why"
+   ]
+  },
   "benzinga futur market micro nasdaq retaliatory": {
    "first_seen": "2026-07-27T12:57:00+00:00",
    "last_seen": "2026-07-28T08:28:30.854527+00:00",
@@ -5307,6 +6565,27 @@
     "reach",
     "year",
     "000"
+   ]
+  },
+  "bernstein boost motley robinhood target upgrade": {
+   "first_seen": "2026-07-31T18:07:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.362978+00:00",
+   "sources": {
+    "the motley fool": "2026-08-01T18:58:05.362978+00:00"
+   },
+   "tickers": [
+    "HOOD"
+   ],
+   "title": "Bernstein Just Boosted Its Robinhood Price Target to $160. Here's What's Driving the HOOD Price Upgrade. - The Motley Fool",
+   "tokens": [
+    "bernstein",
+    "robinhood",
+    "upgrade",
+    "motley",
+    "target",
+    "boost",
+    "driv",
+    "fool"
    ]
   },
   "better bitcoin choice finance investor which": {
@@ -5573,6 +6852,48 @@
     "trader",
     "near",
     "slip"
+   ]
+  },
+  "bitcoin business earning investor resume strategy": {
+   "first_seen": "2026-07-30T19:34:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.374704+00:00",
+   "sources": {
+    "investor's business daily": "2026-08-01T18:58:05.374704+00:00"
+   },
+   "tickers": [
+    "MSTR"
+   ],
+   "title": "Why Bitcoin Whale Strategy May Resume Buying Crypto With Q2 Earnings Report - Investor's Business Daily",
+   "tokens": [
+    "business",
+    "investor",
+    "strategy",
+    "bitcoin",
+    "earning",
+    "resume",
+    "daily",
+    "whale"
+   ]
+  },
+  "bitcoin capital headwind michael tradingview trillion": {
+   "first_seen": "2026-07-31T16:32:07+00:00",
+   "last_seen": "2026-08-01T18:58:05.374704+00:00",
+   "sources": {
+    "tradingview": "2026-08-01T18:58:05.374704+00:00"
+   },
+   "tickers": [
+    "MSTR"
+   ],
+   "title": "MSTR Stock Drops On Q2 Miss \u2013 Michael Saylor Says $1 Trillion AI 'Capital Suction' Is One Of Five Bitcoin Headwinds - TradingView",
+   "tokens": [
+    "tradingview",
+    "headwind",
+    "trillion",
+    "bitcoin",
+    "capital",
+    "michael",
+    "suction",
+    "saylor"
    ]
   },
   "bitcoin caution finance inflow professional yahoo": {
@@ -6034,6 +7355,27 @@
     "hedg"
    ]
   },
+  "bitcoin earning like look strategy wall": {
+   "first_seen": "2026-07-31T17:00:10+00:00",
+   "last_seen": "2026-08-01T18:58:05.374704+00:00",
+   "sources": {
+    "24/7 wall st.": "2026-08-01T18:58:05.374704+00:00"
+   },
+   "tickers": [
+    "MSTR"
+   ],
+   "title": "Strategy Reports Earnings: What the Bitcoin Bet Looks Like Now - 24/7 Wall St.",
+   "tokens": [
+    "strategy",
+    "bitcoin",
+    "earning",
+    "like",
+    "look",
+    "wall",
+    "what",
+    "bet"
+   ]
+  },
   "bitcoin ethereum foundation fund month outperform": {
    "first_seen": "2026-07-27T12:46:09+00:00",
    "last_seen": "2026-07-28T08:59:58.893404+00:00",
@@ -6305,6 +7647,27 @@
     "aave"
    ]
   },
+  "bloomberg blow boon earning goldman record": {
+   "first_seen": "2026-07-14T07:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.403528+00:00",
+   "sources": {
+    "bloomberg.com": "2026-08-01T18:58:05.403528+00:00"
+   },
+   "tickers": [
+    "GS"
+   ],
+   "title": "Goldman Sachs Earnings Blow Past Stock-Trading Records With $7.42 Billion Boon - Bloomberg.com",
+   "tokens": [
+    "bloomberg",
+    "earning",
+    "goldman",
+    "record",
+    "blow",
+    "boon",
+    "past",
+    "sach"
+   ]
+  },
   "bloomberg could higher lower mortgage twist": {
    "first_seen": "2026-07-27T09:00:20+00:00",
    "last_seen": "2026-07-28T08:28:30.854527+00:00",
@@ -6368,6 +7731,27 @@
     "money"
    ]
   },
+  "bond head market reuter scratch warsh": {
+   "first_seen": "2026-07-29T10:04:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "reuters": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Warsh-led Fed leaves rates on hold and a bond market scratching its head - Reuters",
+   "tokens": [
+    "scratch",
+    "market",
+    "reuter",
+    "warsh",
+    "bond",
+    "head",
+    "hold",
+    "leav"
+   ]
+  },
   "bonk circu cryptonew launch net robinhood": {
    "first_seen": "2026-07-23T09:07:15+00:00",
    "last_seen": "2026-07-28T08:59:53.869383+00:00",
@@ -6385,6 +7769,47 @@
     "circu",
     "bonk",
     "net"
+   ]
+  },
+  "boom capex goldman investor mean sach": {
+   "first_seen": "2026-07-21T07:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.403528+00:00",
+   "sources": {
+    "goldman sachs": "2026-08-01T18:58:05.403528+00:00"
+   },
+   "tickers": [
+    "GS"
+   ],
+   "title": "What the Capex Boom Means for Stock Investors - Goldman Sachs",
+   "tokens": [
+    "investor",
+    "goldman",
+    "capex",
+    "boom",
+    "mean",
+    "sach",
+    "what"
+   ]
+  },
+  "boss held high interest magic tackle": {
+   "first_seen": "2026-07-29T20:32:50+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "bbc": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "'No magic wand' to tackle high prices, Fed boss says as US interest rates held - BBC",
+   "tokens": [
+    "interest",
+    "tackle",
+    "magic",
+    "boss",
+    "held",
+    "high",
+    "pric",
+    "wand"
    ]
   },
   "bought cathie invest motley opposite spacex": {
@@ -6428,6 +7853,46 @@
     "futur",
     "today",
     "tumbl"
+   ]
+  },
+  "break divid economist interest latest raise": {
+   "first_seen": "2026-07-30T21:49:01+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "abc news - breaking news, latest news and videos": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Will the Fed raise interest rates this year? Divided economists weigh in - ABC News - Breaking News, Latest News and Videos",
+   "tokens": [
+    "economist",
+    "interest",
+    "latest",
+    "break",
+    "divid",
+    "raise",
+    "video",
+    "weigh"
+   ]
+  },
+  "breakdown holding mara nasdaq revenue tradingview": {
+   "first_seen": "2026-07-31T19:10:25+00:00",
+   "last_seen": "2026-08-01T18:58:05.389438+00:00",
+   "sources": {
+    "tradingview": "2026-08-01T18:58:05.389438+00:00"
+   },
+   "tickers": [
+    "MARA"
+   ],
+   "title": "MARA Holdings, Inc. Revenue Breakdown \u2013 NASDAQ:MARA - TradingView",
+   "tokens": [
+    "tradingview",
+    "breakdown",
+    "holding",
+    "revenue",
+    "nasdaq",
+    "mara"
    ]
   },
   "breakout bullish fxempire prediction solana support": {
@@ -6532,7 +7997,7 @@
   },
   "broadcom chain opinion quantitative quiver supply": {
    "first_seen": "2026-07-26T17:35:00+00:00",
-   "last_seen": "2026-07-28T08:28:25.090139+00:00",
+   "last_seen": "2026-08-01T18:58:05.259409+00:00",
    "sources": {
     "quiver quantitative": "2026-07-26T18:32:50.622651+00:00"
    },
@@ -6615,6 +8080,25 @@
     "buy"
    ]
   },
+  "broadcom pay really trefi what you": {
+   "first_seen": "2026-07-28T11:29:54+00:00",
+   "last_seen": "2026-08-01T18:58:05.259409+00:00",
+   "sources": {
+    "trefis": "2026-08-01T18:58:05.259409+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "What You\u2019re Really Paying For Broadcom Stock - Trefis",
+   "tokens": [
+    "broadcom",
+    "really",
+    "trefi",
+    "what",
+    "pay",
+    "you"
+   ]
+  },
   "broader coinmarketcap pepe rebound surg": {
    "first_seen": "2026-07-10T07:00:00+00:00",
    "last_seen": "2026-07-28T08:59:53.892201+00:00",
@@ -6671,6 +8155,27 @@
     "week",
     "can",
     "sui"
+   ]
+  },
+  "bullish huang jensen nvidia reclaim trillion": {
+   "first_seen": "2026-07-30T15:00:26+00:00",
+   "last_seen": "2026-08-01T18:58:05.202568+00:00",
+   "sources": {
+    "24/7 wall st.": "2026-08-01T18:58:05.202568+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "Can Nvidia Reclaim $5 Trillion? Jensen Huang\u2019s Bullish AI Call Says Yes - 24/7 Wall St.",
+   "tokens": [
+    "trillion",
+    "bullish",
+    "reclaim",
+    "jensen",
+    "nvidia",
+    "huang",
+    "call",
+    "wall"
    ]
   },
   "bullish pepe": {
@@ -6734,6 +8239,27 @@
     "down"
    ]
   },
+  "business capitaliz earning investor palantir volatility": {
+   "first_seen": "2026-07-31T16:50:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.286737+00:00",
+   "sources": {
+    "investor's business daily": "2026-08-01T18:58:05.286737+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Palantir Reports Earnings Soon; This Options Trade Capitalizes On The High Volatility - Investor's Business Daily",
+   "tokens": [
+    "volatility",
+    "capitaliz",
+    "business",
+    "investor",
+    "palantir",
+    "earning",
+    "option",
+    "daily"
+   ]
+  },
   "business cathie daily drop investor tesla": {
    "first_seen": "2026-07-24T20:06:00+00:00",
    "last_seen": "2026-07-26T22:15:16.349298+00:00",
@@ -6774,6 +8300,27 @@
     "starlink",
     "amazon",
     "mobile"
+   ]
+  },
+  "business coinbase headlin improv nasdaq suggest": {
+   "first_seen": "2026-07-31T17:10:34+00:00",
+   "last_seen": "2026-08-01T18:58:05.347775+00:00",
+   "sources": {
+    "seeking alpha": "2026-08-01T18:58:05.347775+00:00"
+   },
+   "tickers": [
+    "COIN"
+   ],
+   "title": "Coinbase Q2: The Business Improved More Than The Headlines Suggest (NASDAQ:COIN) - Seeking Alpha",
+   "tokens": [
+    "business",
+    "coinbase",
+    "headlin",
+    "suggest",
+    "improv",
+    "nasdaq",
+    "alpha",
+    "more"
    ]
   },
   "business computer daily investor price target": {
@@ -6881,6 +8428,27 @@
     "fall"
    ]
   },
+  "business earning investor market rebound sandisk": {
+   "first_seen": "2026-08-01T13:17:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "investor's business daily": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Dow Jones Futures: Market Rebounds, Now Watch For This; SpaceX, AMD, Sandisk, Eli Lilly Earnings Loom - Investor's Business Daily",
+   "tokens": [
+    "business",
+    "investor",
+    "earning",
+    "rebound",
+    "sandisk",
+    "market",
+    "spacex",
+    "daily"
+   ]
+  },
   "business facebook investor launch marketplace seller": {
    "first_seen": "2026-07-24T15:35:00+00:00",
    "last_seen": "2026-07-26T22:15:16.368015+00:00",
@@ -6944,6 +8512,25 @@
     "daily"
    ]
   },
+  "buy cathie semiconductor thestreet tumbl wood": {
+   "first_seen": "2026-07-30T23:07:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.202568+00:00",
+   "sources": {
+    "thestreet.com": "2026-08-01T18:58:05.202568+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "Cathie Wood buys $14.3 million of tumbling semiconductor stock - thestreet.com",
+   "tokens": [
+    "semiconductor",
+    "thestreet",
+    "cathie",
+    "tumbl",
+    "wood",
+    "buy"
+   ]
+  },
   "buy forb ignore semiconductor": {
    "first_seen": "2026-07-21T20:53:39+00:00",
    "last_seen": "2026-07-26T22:15:16.385337+00:00",
@@ -6980,6 +8567,45 @@
     "record",
     "slate",
     "fool"
+   ]
+  },
+  "came earning finance fintech which yahoo": {
+   "first_seen": "2026-07-30T03:02:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.362978+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.362978+00:00"
+   },
+   "tickers": [
+    "HOOD"
+   ],
+   "title": "SOFI Vs HOOD: Which Fintech Stock Came Out On Top After Q2 Earnings? - Yahoo Finance",
+   "tokens": [
+    "earning",
+    "finance",
+    "fintech",
+    "which",
+    "yahoo",
+    "came",
+    "hood",
+    "sofi"
+   ]
+  },
+  "can live multiple pltr trefi": {
+   "first_seen": "2026-07-28T11:29:04+00:00",
+   "last_seen": "2026-08-01T18:58:05.286737+00:00",
+   "sources": {
+    "trefis": "2026-08-01T18:58:05.286737+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Can PLTR Stock Live Up To Its Multiple? - Trefis",
+   "tokens": [
+    "multiple",
+    "trefi",
+    "live",
+    "pltr",
+    "can"
    ]
   },
   "canary capital ever first kucoin pepe": {
@@ -7089,7 +8715,7 @@
   },
   "capital guardian manufactur marketbeat position semiconductor": {
    "first_seen": "2026-07-26T10:13:40+00:00",
-   "last_seen": "2026-07-26T18:37:12.337534+00:00",
+   "last_seen": "2026-08-01T18:58:05.267457+00:00",
    "sources": {
     "marketbeat": "2026-07-26T18:32:50.622651+00:00"
    },
@@ -7129,6 +8755,27 @@
     "mott"
    ]
   },
+  "carnegie investment manufactur portfolio quantitative semiconductor": {
+   "first_seen": "2026-07-30T20:22:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.267457+00:00",
+   "sources": {
+    "quiver quantitative": "2026-08-01T18:58:05.267457+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "Fund Update: 55,557 TAIWAN SEMICONDUCTOR MANUFACTURING (TSM) shares added to Carnegie Investment Counsel portfolio - Quiver Quantitative",
+   "tokens": [
+    "semiconductor",
+    "quantitative",
+    "investment",
+    "manufactur",
+    "portfolio",
+    "carnegie",
+    "counsel",
+    "quiver"
+   ]
+  },
   "cash cheap lift mstr simplywall strategy": {
    "first_seen": "2026-07-28T01:38:32+00:00",
    "last_seen": "2026-07-28T08:28:25.040230+00:00",
@@ -7148,6 +8795,69 @@
     "mstr",
     "sale",
     "544"
+   ]
+  },
+  "cash cnbc disappoint drop dwindl guidance": {
+   "first_seen": "2026-07-29T16:00:01+00:00",
+   "last_seen": "2026-08-01T18:58:05.236169+00:00",
+   "sources": {
+    "cnbc": "2026-08-01T18:58:05.236169+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Meta's stock drops on disappointing guidance, dwindling free cash flow - CNBC",
+   "tokens": [
+    "disappoint",
+    "guidance",
+    "dwindl",
+    "cash",
+    "cnbc",
+    "drop",
+    "flow",
+    "free"
+   ]
+  },
+  "cash even overvalu palantir simplywall strong": {
+   "first_seen": "2026-07-29T09:19:17+00:00",
+   "last_seen": "2026-08-01T18:58:05.286737+00:00",
+   "sources": {
+    "simplywall.st": "2026-08-01T18:58:05.286737+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Palantir (PLTR) Stock Looks Overvalued Even With Strong Cash Flow - simplywall.st",
+   "tokens": [
+    "simplywall",
+    "overvalu",
+    "palantir",
+    "strong",
+    "cash",
+    "even",
+    "flow",
+    "look"
+   ]
+  },
+  "catalyst clarity could earning finance microstrategy": {
+   "first_seen": "2026-08-01T14:40:48+00:00",
+   "last_seen": "2026-08-01T18:58:05.374704+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.374704+00:00"
+   },
+   "tickers": [
+    "MSTR"
+   ],
+   "title": "MicroStrategy Post-Earnings CLARITY Act Push Could Add New Catalyst for Its Stock - Yahoo Finance",
+   "tokens": [
+    "microstrategy",
+    "catalyst",
+    "clarity",
+    "earning",
+    "finance",
+    "could",
+    "yahoo",
+    "post"
    ]
   },
   "cathie finance here into just yahoo": {
@@ -7173,6 +8883,48 @@
     "pour"
    ]
   },
+  "cathie premarket slide snap stake stocktwit": {
+   "first_seen": "2026-07-30T08:39:15+00:00",
+   "last_seen": "2026-08-01T18:58:05.267457+00:00",
+   "sources": {
+    "stocktwits": "2026-08-01T18:58:05.267457+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "TSM Stock Snaps 6-Day Slide Premarket: Cathie Wood\u2019s ARK Adds $20M Stake - Stocktwits",
+   "tokens": [
+    "premarket",
+    "stocktwit",
+    "cathie",
+    "slide",
+    "stake",
+    "snap",
+    "wood",
+    "20m"
+   ]
+  },
+  "caution earning robinhood stocktwit street trillion": {
+   "first_seen": "2026-07-30T11:57:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.362978+00:00",
+   "sources": {
+    "stocktwits": "2026-08-01T18:58:05.362978+00:00"
+   },
+   "tickers": [
+    "HOOD"
+   ],
+   "title": "HOOD Stock Swings As Robinhood\u2019s $1 Trillion Vision Meets Wall Street Caution After Q2 Earnings - Stocktwits",
+   "tokens": [
+    "robinhood",
+    "stocktwit",
+    "trillion",
+    "caution",
+    "earning",
+    "street",
+    "vision",
+    "swing"
+   ]
+  },
   "caution onchain peirce securiti supra trigger": {
    "first_seen": "2026-07-27T15:18:50+00:00",
    "last_seen": "2026-07-28T08:59:58.893404+00:00",
@@ -7196,12 +8948,14 @@
   },
   "center data nvidia slump wsj": {
    "first_seen": "2026-07-27T17:56:28+00:00",
-   "last_seen": "2026-07-28T08:28:25.119745+00:00",
+   "last_seen": "2026-08-01T18:58:05.210633+00:00",
    "sources": {
-    "wsj": "2026-07-28T08:28:25.119745+00:00"
+    "wsj": "2026-07-28T08:28:25.119745+00:00",
+    "wsj.com": "2026-08-01T18:58:05.210633+00:00"
    },
    "tickers": [
-    "NVDA"
+    "NVDA",
+    "AMD"
    ],
    "title": "Nvidia Stock Slumps After Data-Center Report - WSJ",
    "tokens": [
@@ -7252,6 +9006,25 @@
     "yahoo",
     "data",
     "drop"
+   ]
+  },
+  "chain jpm jpmorgan moomoo option quot": {
+   "first_seen": "2026-07-30T03:06:25+00:00",
+   "last_seen": "2026-08-01T18:58:05.393460+00:00",
+   "sources": {
+    "moomoo": "2026-08-01T18:58:05.393460+00:00"
+   },
+   "tickers": [
+    "JPM"
+   ],
+   "title": "JPMorgan(JPM) Stock Options Chain | Quotes & News - Moomoo",
+   "tokens": [
+    "jpmorgan",
+    "moomoo",
+    "option",
+    "chain",
+    "quot",
+    "jpm"
    ]
   },
   "chainlink coinbase deepen integration stocktwit strategy": {
@@ -7379,9 +9152,30 @@
     "2030"
    ]
   },
+  "chase despite fairly jpmorgan look simplywall": {
+   "first_seen": "2026-07-31T15:26:43+00:00",
+   "last_seen": "2026-08-01T18:58:05.393460+00:00",
+   "sources": {
+    "simplywall.st": "2026-08-01T18:58:05.393460+00:00"
+   },
+   "tickers": [
+    "JPM"
+   ],
+   "title": "JPMorgan Chase (JPM) Stock Looks Fairly Valued Despite A 27% Gap - simplywall.st",
+   "tokens": [
+    "simplywall",
+    "jpmorgan",
+    "despite",
+    "fairly",
+    "chase",
+    "look",
+    "valu",
+    "gap"
+   ]
+  },
   "chase earning estimat finance jpmorgan yahoo": {
    "first_seen": "2026-07-27T16:20:01+00:00",
-   "last_seen": "2026-07-28T08:28:24.995567+00:00",
+   "last_seen": "2026-08-01T18:58:05.393460+00:00",
    "sources": {
     "yahoo finance": "2026-07-28T08:28:24.995567+00:00"
    },
@@ -7398,6 +9192,48 @@
     "yahoo",
     "gain",
     "jpm"
+   ]
+  },
+  "chase gurufocu jpmorgan overvalu score still": {
+   "first_seen": "2026-07-29T23:25:12+00:00",
+   "last_seen": "2026-08-01T18:58:05.393460+00:00",
+   "sources": {
+    "gurufocus": "2026-08-01T18:58:05.393460+00:00"
+   },
+   "tickers": [
+    "JPM"
+   ],
+   "title": "JPMorgan Chase & Co (JPM) Stock Down 3.5% but Still Overvalued -- GF Score: 78/100 - GuruFocus",
+   "tokens": [
+    "gurufocu",
+    "jpmorgan",
+    "overvalu",
+    "chase",
+    "score",
+    "still",
+    "down",
+    "100"
+   ]
+  },
+  "chase here into jpmorgan kiplinger today": {
+   "first_seen": "2026-07-31T11:30:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.393460+00:00",
+   "sources": {
+    "kiplinger": "2026-08-01T18:58:05.393460+00:00"
+   },
+   "tickers": [
+    "JPM"
+   ],
+   "title": "If You'd Put $1,000 Into JPMorgan Chase Stock 20 Years Ago, Here's What You'd Have Today - Kiplinger",
+   "tokens": [
+    "kiplinger",
+    "jpmorgan",
+    "chase",
+    "today",
+    "here",
+    "into",
+    "what",
+    "year"
    ]
   },
   "chase insurance jpmorgan largest marketbeat position": {
@@ -7419,6 +9255,27 @@
     "chase",
     "10th",
     "ichi"
+   ]
+  },
+  "cheap computer first glance micro simplywall": {
+   "first_seen": "2026-07-29T03:29:31+00:00",
+   "last_seen": "2026-08-01T18:58:05.281711+00:00",
+   "sources": {
+    "simplywall.st": "2026-08-01T18:58:05.281711+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "Super Micro Computer (SMCI) Stock Looks Cheap At First Glance Only - simplywall.st",
+   "tokens": [
+    "simplywall",
+    "computer",
+    "glance",
+    "cheap",
+    "first",
+    "micro",
+    "super",
+    "look"
    ]
   },
   "chevron deal here matter microsoft power": {
@@ -7546,6 +9403,28 @@
     "case"
    ]
   },
+  "chip climb higher micron research surge": {
+   "first_seen": "2026-07-30T15:19:13+00:00",
+   "last_seen": "2026-08-01T18:58:05.274648+00:00",
+   "sources": {
+    "cnbc": "2026-08-01T18:58:05.210633+00:00"
+   },
+   "tickers": [
+    "AMD",
+    "MU"
+   ],
+   "title": "AMD and Micron surge, Lam Research climbs 17% as chip stocks rip higher - CNBC",
+   "tokens": [
+    "research",
+    "higher",
+    "micron",
+    "climb",
+    "surge",
+    "chip",
+    "cnbc",
+    "amd"
+   ]
+  },
   "chipmaker contract largest revenue surge world": {
    "first_seen": "2026-07-13T07:00:00+00:00",
    "last_seen": "2026-07-26T22:15:16.385337+00:00",
@@ -7633,7 +9512,7 @@
   },
   "citigroup dynamic market midyear outlook resilience": {
    "first_seen": "2026-07-15T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:28:30.854527+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
    "sources": {
     "citigroup": "2026-07-28T08:28:30.854527+00:00"
    },
@@ -7716,9 +9595,30 @@
     "lead"
    ]
   },
+  "cliffhanger dissent interest official steady three": {
+   "first_seen": "2026-07-29T22:06:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "cnn": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Fed holds interest rates steady after cliffhanger meeting, but three officials dissent - CNN",
+   "tokens": [
+    "cliffhanger",
+    "interest",
+    "official",
+    "dissent",
+    "steady",
+    "three",
+    "hold",
+    "meet"
+   ]
+  },
   "climb earning forecast goldman growth higher": {
    "first_seen": "2026-05-28T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:28:30.854527+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
    "sources": {
     "goldman sachs": "2026-07-26T18:32:59.385763+00:00"
    },
@@ -7800,6 +9700,69 @@
     "rate"
    ]
   },
+  "cnbc here khouw microsoft money still": {
+   "first_seen": "2026-07-31T15:26:31+00:00",
+   "last_seen": "2026-08-01T18:58:05.196025+00:00",
+   "sources": {
+    "cnbc": "2026-08-01T18:58:05.196025+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Microsoft shares are surging. Here\u2019s how to still make money, says Mike Khouw - CNBC",
+   "tokens": [
+    "microsoft",
+    "khouw",
+    "money",
+    "still",
+    "cnbc",
+    "here",
+    "make",
+    "mike"
+   ]
+  },
+  "coinbase consecutive diversification exchange investor resilience": {
+   "first_seen": "2026-07-30T20:11:03+00:00",
+   "last_seen": "2026-08-01T18:58:05.347775+00:00",
+   "sources": {
+    "coinbase - investor relations": "2026-08-01T18:58:05.347775+00:00"
+   },
+   "tickers": [
+    "COIN"
+   ],
+   "title": "Coinbase Q2 Earnings: Everything Exchange Drives 3rd Consecutive Quarter of Record Crypto Trading Volume Market Share, Revenue Diversification, and Resilience - Coinbase - Investor Relations",
+   "tokens": [
+    "diversification",
+    "consecutive",
+    "resilience",
+    "coinbase",
+    "exchange",
+    "investor",
+    "relation",
+    "earning"
+   ]
+  },
+  "coinbase disappoint exchange quarter result second": {
+   "first_seen": "2026-07-30T20:52:02+00:00",
+   "last_seen": "2026-08-01T18:58:05.347775+00:00",
+   "sources": {
+    "cnbc": "2026-08-01T18:58:05.347775+00:00"
+   },
+   "tickers": [
+    "COIN"
+   ],
+   "title": "Coinbase shares fall after crypto exchange posts disappointing second-quarter results - CNBC",
+   "tokens": [
+    "disappoint",
+    "coinbase",
+    "exchange",
+    "quarter",
+    "result",
+    "second",
+    "cnbc",
+    "fall"
+   ]
+  },
   "coinbase earning estimat finance headline preview": {
    "first_seen": "2026-07-27T13:15:16+00:00",
    "last_seen": "2026-07-28T08:28:25.003099+00:00",
@@ -7819,6 +9782,22 @@
     "preview",
     "beyond",
     "global"
+   ]
+  },
+  "coinbase fil global": {
+   "first_seen": "2026-07-30T00:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.347775+00:00",
+   "sources": {
+    "sec edgar": "2026-08-01T18:58:05.347775+00:00"
+   },
+   "tickers": [
+    "COIN"
+   ],
+   "title": "Coinbase Global, Inc. filed 10-Q",
+   "tokens": [
+    "coinbase",
+    "global",
+    "fil"
    ]
   },
   "coinfomania development ecosystem major market network": {
@@ -7922,6 +9901,67 @@
     "trump",
     "cash",
     "lost"
+   ]
+  },
+  "compound could nvda take trefi where": {
+   "first_seen": "2026-07-30T20:10:30+00:00",
+   "last_seen": "2026-08-01T18:58:05.202568+00:00",
+   "sources": {
+    "trefis": "2026-08-01T18:58:05.202568+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "NVDA Stock: Where Compounding Could Take The Price - Trefis",
+   "tokens": [
+    "compound",
+    "could",
+    "trefi",
+    "where",
+    "nvda",
+    "take"
+   ]
+  },
+  "computer finance market micro singapore super": {
+   "first_seen": "2026-07-28T21:45:05+00:00",
+   "last_seen": "2026-08-01T18:58:05.281711+00:00",
+   "sources": {
+    "yahoo finance singapore": "2026-08-01T18:58:05.281711+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "Super Micro Computer (SMCI) Stock Sinks As Market Gains: Here's Why - Yahoo Finance Singapore",
+   "tokens": [
+    "singapore",
+    "computer",
+    "finance",
+    "market",
+    "micro",
+    "super",
+    "yahoo",
+    "gain"
+   ]
+  },
+  "computer marketbeat micro nasdaq smci super": {
+   "first_seen": "2026-07-31T21:56:41+00:00",
+   "last_seen": "2026-08-01T18:58:05.281711+00:00",
+   "sources": {
+    "marketbeat": "2026-08-01T18:58:05.281711+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "Super Micro Computer (NASDAQ:SMCI) Shares Up 2.4% - Time to Buy? - MarketBeat",
+   "tokens": [
+    "marketbeat",
+    "computer",
+    "nasdaq",
+    "micro",
+    "super",
+    "smci",
+    "time",
+    "buy"
    ]
   },
   "concern finance foundry intel market revers": {
@@ -8396,6 +10436,27 @@
     "iv"
    ]
   },
+  "deadline investment jittery market massive meta": {
+   "first_seen": "2026-07-29T20:44:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.236169+00:00",
+   "sources": {
+    "deadline": "2026-08-01T18:58:05.236169+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Meta Stock Tanks In Jittery Market On Massive AI Investment, Mixed Q2 - Deadline",
+   "tokens": [
+    "investment",
+    "deadline",
+    "jittery",
+    "massive",
+    "market",
+    "meta",
+    "tank",
+    "mix"
+   ]
+  },
   "debut fedex finance freight outlook yahoo": {
    "first_seen": "2026-07-23T18:07:00+00:00",
    "last_seen": "2026-07-28T08:28:30.854527+00:00",
@@ -8563,6 +10624,27 @@
     "near"
    ]
   },
+  "desire express marketwatch memory micron supplier": {
+   "first_seen": "2026-07-31T15:59:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.274648+00:00",
+   "sources": {
+    "marketwatch": "2026-08-01T18:58:05.274648+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Micron\u2019s stock falls after Apple\u2019s Tim Cook expresses a desire for more memory suppliers - MarketWatch",
+   "tokens": [
+    "marketwatch",
+    "supplier",
+    "express",
+    "desire",
+    "memory",
+    "micron",
+    "apple",
+    "cook"
+   ]
+  },
   "despite explode past slide solana yellow": {
    "first_seen": "2026-06-11T04:02:41+00:00",
    "last_seen": "2026-07-28T08:59:53.881964+00:00",
@@ -8582,6 +10664,48 @@
     "past",
     "49b",
     "rwa"
+   ]
+  },
+  "despite federal inflation interest reserve steady": {
+   "first_seen": "2026-07-29T09:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "npr": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "A divided Federal Reserve holds interest rates steady despite high inflation - NPR",
+   "tokens": [
+    "inflation",
+    "interest",
+    "despite",
+    "federal",
+    "reserve",
+    "steady",
+    "divid",
+    "high"
+   ]
+  },
+  "despite finance manufactur reasonable semiconductor taiwan": {
+   "first_seen": "2026-07-27T14:08:27+00:00",
+   "last_seen": "2026-08-01T18:58:05.267457+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.267457+00:00"
+   },
+   "tickers": [
+    "TSM"
+   ],
+   "title": "Taiwan Semiconductor Manufacturing (NYSE:TSM) Stock Looks Reasonable Despite Its 335% Run - Yahoo Finance",
+   "tokens": [
+    "semiconductor",
+    "manufactur",
+    "reasonable",
+    "despite",
+    "finance",
+    "taiwan",
+    "yahoo",
+    "look"
    ]
   },
   "despite finance outlook premarket strong yahoo": {
@@ -8745,6 +10869,27 @@
     "do"
    ]
   },
+  "down finance here more netflix yahoo": {
+   "first_seen": "2026-07-31T13:50:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.253337+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.253337+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "Netflix Is Down 46% -- Here's Why I'm Buying More - Yahoo Finance",
+   "tokens": [
+    "finance",
+    "netflix",
+    "yahoo",
+    "down",
+    "here",
+    "more",
+    "buy",
+    "why"
+   ]
+  },
   "down finance latest tesla yahoo year": {
    "first_seen": "2026-07-26T09:40:00+00:00",
    "last_seen": "2026-07-28T08:28:25.127745+00:00",
@@ -8786,6 +10931,26 @@
     "since",
     "bonk",
     "drop"
+   ]
+  },
+  "driv hard rally smci stocktwit trigger": {
+   "first_seen": "2026-08-01T06:14:42+00:00",
+   "last_seen": "2026-08-01T18:58:05.281711+00:00",
+   "sources": {
+    "stocktwits": "2026-08-01T18:58:05.281711+00:00"
+   },
+   "tickers": [
+    "SMCI"
+   ],
+   "title": "SMCI Stock Is Rallying Hard \u2013 And This One Trigger Is Driving It - Stocktwits",
+   "tokens": [
+    "stocktwit",
+    "trigger",
+    "rally",
+    "driv",
+    "hard",
+    "smci",
+    "one"
    ]
   },
   "driv selloff snow stocktwit wday week": {
@@ -8929,6 +11094,69 @@
     "fed"
    ]
   },
+  "earning ensur finance likely money yahoo": {
+   "first_seen": "2026-07-30T13:45:42+00:00",
+   "last_seen": "2026-08-01T18:58:05.236169+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.236169+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "One line from Meta's earnings call that ensured the stock will likely stay dead money - Yahoo Finance",
+   "tokens": [
+    "earning",
+    "finance",
+    "likely",
+    "ensur",
+    "money",
+    "yahoo",
+    "call",
+    "dead"
+   ]
+  },
+  "earning equiti expectation morgan outlook stanley": {
+   "first_seen": "2026-07-27T14:38:14+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "equiti.com": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "S&P 500 outlook: Morgan Stanley raises target to 8,300 after earnings crush expectations - equiti.com",
+   "tokens": [
+    "expectation",
+    "earning",
+    "outlook",
+    "stanley",
+    "equiti",
+    "morgan",
+    "target",
+    "crush"
+   ]
+  },
+  "earning expect here investopedia microsoft move": {
+   "first_seen": "2026-07-29T13:26:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.196025+00:00",
+   "sources": {
+    "investopedia": "2026-08-01T18:58:05.196025+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Here\u2019s How Much Microsoft Stock Is Expected to Move After Earnings - Investopedia",
+   "tokens": [
+    "investopedia",
+    "microsoft",
+    "earning",
+    "expect",
+    "here",
+    "move",
+    "much",
+    "how"
+   ]
+  },
   "earning factset insight": {
    "first_seen": "2026-07-24T07:00:00+00:00",
    "last_seen": "2026-07-26T18:37:21.880975+00:00",
@@ -8943,6 +11171,27 @@
     "earning",
     "factset",
     "insight"
+   ]
+  },
+  "earning finance here much trader yahoo": {
+   "first_seen": "2026-07-31T20:23:31+00:00",
+   "last_seen": "2026-08-01T18:58:05.210633+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.210633+00:00"
+   },
+   "tickers": [
+    "AMD"
+   ],
+   "title": "Here\u2019s How Much Traders See AMD Stock Moving After Earnings - Yahoo Finance",
+   "tokens": [
+    "earning",
+    "finance",
+    "trader",
+    "yahoo",
+    "here",
+    "much",
+    "amd",
+    "how"
    ]
   },
   "earning forecast microsoft morgan stanley thestreet": {
@@ -8987,6 +11236,27 @@
     "yet"
    ]
   },
+  "earning here impress marketwatch microsoft street": {
+   "first_seen": "2026-07-30T01:30:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.196025+00:00",
+   "sources": {
+    "marketwatch": "2026-08-01T18:58:05.196025+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Microsoft earnings impress Wall Street. Here's why the stock is soaring. - MarketWatch",
+   "tokens": [
+    "marketwatch",
+    "microsoft",
+    "earning",
+    "impress",
+    "street",
+    "here",
+    "soar",
+    "wall"
+   ]
+  },
   "earning here july meta platform tiprank": {
    "first_seen": "2026-07-24T14:30:21+00:00",
    "last_seen": "2026-07-26T22:15:16.368015+00:00",
@@ -9010,7 +11280,7 @@
   },
   "earning jpmorgan opinion quantitative quiver result": {
    "first_seen": "2026-07-27T14:05:00+00:00",
-   "last_seen": "2026-07-28T08:28:24.995567+00:00",
+   "last_seen": "2026-08-01T18:58:05.393460+00:00",
    "sources": {
     "quiver quantitative": "2026-07-28T08:28:24.995567+00:00"
    },
@@ -9029,10 +11299,29 @@
     "2026"
    ]
   },
+  "earning meta morningstar think what": {
+   "first_seen": "2026-07-30T08:52:21+00:00",
+   "last_seen": "2026-08-01T18:58:05.236169+00:00",
+   "sources": {
+    "morningstar": "2026-08-01T18:58:05.236169+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Meta: What We Think of the Stock After Earnings - Morningstar",
+   "tokens": [
+    "morningstar",
+    "earning",
+    "think",
+    "meta",
+    "what"
+   ]
+  },
   "earning microsoft rebound tiprank truist wednesday": {
    "first_seen": "2026-07-28T01:39:33+00:00",
-   "last_seen": "2026-07-28T08:28:25.111223+00:00",
+   "last_seen": "2026-08-01T18:58:05.196025+00:00",
    "sources": {
+    "morningstar": "2026-08-01T18:58:05.196025+00:00",
     "tipranks": "2026-07-28T08:28:25.111223+00:00"
    },
    "tickers": [
@@ -9069,6 +11358,27 @@
     "opinion",
     "quiver",
     "upcom"
+   ]
+  },
+  "edge investment research stream support which": {
+   "first_seen": "2026-07-29T14:34:23+00:00",
+   "last_seen": "2026-08-01T18:58:05.253337+00:00",
+   "sources": {
+    "zacks investment research": "2026-08-01T18:58:05.253337+00:00"
+   },
+   "tickers": [
+    "NFLX"
+   ],
+   "title": "NFLX vs. ROKU: Which Ad-Supported Streaming Stock Has an Edge Now? - Zacks Investment Research",
+   "tokens": [
+    "investment",
+    "research",
+    "support",
+    "stream",
+    "which",
+    "edge",
+    "nflx",
+    "roku"
    ]
   },
   "emerg etf market more selective trend": {
@@ -9111,6 +11421,48 @@
     "bear"
    ]
   },
+  "entry ferguson flowork outlook shift stockstotrade": {
+   "first_seen": "2026-08-01T12:37:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "stockstotrade": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Ferguson Stock Jumps As FloWorks Deal And S&P 500 Entry Shift Outlook - StocksToTrade",
+   "tokens": [
+    "stockstotrade",
+    "ferguson",
+    "flowork",
+    "outlook",
+    "entry",
+    "shift",
+    "deal",
+    "jump"
+   ]
+  },
+  "equity financ player private record stocktwit": {
+   "first_seen": "2026-07-31T05:10:04+00:00",
+   "last_seen": "2026-08-01T18:58:05.259409+00:00",
+   "sources": {
+    "stocktwits": "2026-08-01T18:58:05.259409+00:00"
+   },
+   "tickers": [
+    "AVGO"
+   ],
+   "title": "AVGO Stock Hits Record Highs Amid Reports Of $35B Financing From Top Private Equity Players - Stocktwits",
+   "tokens": [
+    "stocktwit",
+    "private",
+    "equity",
+    "financ",
+    "player",
+    "record",
+    "avgo",
+    "high"
+   ]
+  },
   "etf investor kavout mean stak what": {
    "first_seen": "2026-07-25T11:53:31+00:00",
    "last_seen": "2026-07-27T14:49:39.373223+00:00",
@@ -9129,6 +11481,26 @@
     "what",
     "etf",
     "sui"
+   ]
+  },
+  "etf long morgan position short titan": {
+   "first_seen": "2026-07-31T13:30:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.393460+00:00",
+   "sources": {
+    "stock titan": "2026-08-01T18:58:05.393460+00:00"
+   },
+   "tickers": [
+    "JPM"
+   ],
+   "title": "New J.P. Morgan ETF takes long and short stock positions - Stock Titan",
+   "tokens": [
+    "position",
+    "morgan",
+    "short",
+    "titan",
+    "long",
+    "etf",
+    "tak"
    ]
   },
   "ethereum fxempire negotiation prediction resume track": {
@@ -9154,7 +11526,7 @@
   },
   "event fil item netflix other": {
    "first_seen": "2026-07-22T00:00:00+00:00",
-   "last_seen": "2026-07-28T08:28:25.047986+00:00",
+   "last_seen": "2026-08-01T18:58:05.253337+00:00",
    "sources": {
     "sec edgar": "2026-07-26T18:32:50.620648+00:00"
    },
@@ -9252,6 +11624,48 @@
     "trump"
    ]
   },
+  "explod microsoft nasdaq spike tiprank upward": {
+   "first_seen": "2026-07-30T17:36:22+00:00",
+   "last_seen": "2026-08-01T18:58:05.196025+00:00",
+   "sources": {
+    "tipranks": "2026-08-01T18:58:05.196025+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Microsoft Stock (NASDAQ:MSFT) Explodes Upward as AI Costs Spike - TipRanks",
+   "tokens": [
+    "microsoft",
+    "tiprank",
+    "explod",
+    "nasdaq",
+    "upward",
+    "spike",
+    "cost",
+    "msft"
+   ]
+  },
+  "extend finance month premarket rally since": {
+   "first_seen": "2026-07-31T08:50:17+00:00",
+   "last_seen": "2026-08-01T18:58:05.210633+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.210633+00:00"
+   },
+   "tickers": [
+    "AMD"
+   ],
+   "title": "MU, SKHY, NVDA, AMD, INTC Extend Rally Premarket, But Chip Stocks Still On Track For Worst Month Since 2002 - Yahoo Finance",
+   "tokens": [
+    "premarket",
+    "finance",
+    "extend",
+    "month",
+    "rally",
+    "since",
+    "still",
+    "track"
+   ]
+  },
   "extend outlook rally sandisk tradingkey weekend": {
    "first_seen": "2026-07-26T13:00:18+00:00",
    "last_seen": "2026-07-26T22:15:36.135266+00:00",
@@ -9275,7 +11689,7 @@
   },
   "extreme fortune level market outlook speculation": {
    "first_seen": "2026-07-05T07:00:00+00:00",
-   "last_seen": "2026-07-28T08:28:30.854527+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
    "sources": {
     "fortune": "2026-07-26T18:32:59.385763+00:00"
    },
@@ -9292,6 +11706,69 @@
     "level",
     "2026",
     "gain"
+   ]
+  },
+  "fair finance goldman look value yahoo": {
+   "first_seen": "2026-07-21T07:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.403528+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.403528+00:00"
+   },
+   "tickers": [
+    "GS"
+   ],
+   "title": "Goldman Sachs (GS) Stock Looks Near Fair Value After A 217% Run - Yahoo Finance",
+   "tokens": [
+    "finance",
+    "goldman",
+    "value",
+    "yahoo",
+    "fair",
+    "look",
+    "near",
+    "sach"
+   ]
+  },
+  "fall gurufocu holding investor mara score": {
+   "first_seen": "2026-07-31T22:33:08+00:00",
+   "last_seen": "2026-08-01T18:58:05.389438+00:00",
+   "sources": {
+    "gurufocus": "2026-08-01T18:58:05.389438+00:00"
+   },
+   "tickers": [
+    "MARA"
+   ],
+   "title": "MARA Holdings Inc (MARA) Shares Fall 4.2% -- What GF Score of 60 Tells Investors - GuruFocus",
+   "tokens": [
+    "gurufocu",
+    "investor",
+    "holding",
+    "score",
+    "fall",
+    "mara",
+    "tell",
+    "what"
+   ]
+  },
+  "fall market shock tesla trefi twice": {
+   "first_seen": "2026-07-31T14:07:11+00:00",
+   "last_seen": "2026-08-01T18:58:05.219649+00:00",
+   "sources": {
+    "trefis": "2026-08-01T18:58:05.219649+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "Tesla Stock Falls More Than Twice As Far As The Market In A Shock - Trefis",
+   "tokens": [
+    "market",
+    "shock",
+    "tesla",
+    "trefi",
+    "twice",
+    "fall",
+    "more",
+    "than"
    ]
   },
   "federal financial increase investor price reserve": {
@@ -9313,6 +11790,26 @@
     "price",
     "surge",
     "rate"
+   ]
+  },
+  "federal interest leav reserve today unchang": {
+   "first_seen": "2026-07-30T12:17:50+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "today.com": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Federal Reserve Leaves Interest Rates Unchanged - TODAY.com",
+   "tokens": [
+    "interest",
+    "federal",
+    "reserve",
+    "unchang",
+    "today",
+    "leav",
+    "rat"
    ]
   },
   "federal interest lower president reserve trump": {
@@ -9359,13 +11856,17 @@
   },
   "fil item operation result tesla": {
    "first_seen": "2026-07-22T00:00:00+00:00",
-   "last_seen": "2026-07-26T22:15:16.373811+00:00",
+   "last_seen": "2026-08-01T18:58:05.374704+00:00",
    "sources": {
     "sec edgar": "2026-07-26T18:32:50.616641+00:00"
    },
    "tickers": [
     "TSLA",
-    "GOOGL"
+    "GOOGL",
+    "AAPL",
+    "MSFT",
+    "AMZN",
+    "MSTR"
    ],
    "title": "Tesla, Inc. filed 8-K \u2014 item 2.02 results of operations",
    "tokens": [
@@ -9373,6 +11874,53 @@
     "result",
     "tesla",
     "item",
+    "fil"
+   ]
+  },
+  "fil market robinhood": {
+   "first_seen": "2026-07-29T00:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.362978+00:00",
+   "sources": {
+    "sec edgar": "2026-08-01T18:58:05.362978+00:00"
+   },
+   "tickers": [
+    "HOOD"
+   ],
+   "title": "Robinhood Markets, Inc. filed 10-Q",
+   "tokens": [
+    "robinhood",
+    "market",
+    "fil"
+   ]
+  },
+  "fil meta platform": {
+   "first_seen": "2026-07-29T00:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.236169+00:00",
+   "sources": {
+    "sec edgar": "2026-08-01T18:58:05.236169+00:00"
+   },
+   "tickers": [
+    "META"
+   ],
+   "title": "Meta Platforms, Inc. filed 10-Q",
+   "tokens": [
+    "platform",
+    "meta",
+    "fil"
+   ]
+  },
+  "fil microsoft": {
+   "first_seen": "2026-07-29T00:00:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.196025+00:00",
+   "sources": {
+    "sec edgar": "2026-08-01T18:58:05.196025+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "MICROSOFT CORP filed 10-K",
+   "tokens": [
+    "microsoft",
     "fil"
    ]
   },
@@ -9472,6 +12020,48 @@
     "time"
    ]
   },
+  "finance hint palantir prediction time yahoo": {
+   "first_seen": "2026-07-30T09:13:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.286737+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.286737+00:00"
+   },
+   "tickers": [
+    "PLTR"
+   ],
+   "title": "Prediction: This Will Be Palantir's Stock Price in a Year (Hint: It's Time to Buy) - Yahoo Finance",
+   "tokens": [
+    "prediction",
+    "palantir",
+    "finance",
+    "yahoo",
+    "hint",
+    "time",
+    "year",
+    "buy"
+   ]
+  },
+  "finance history largest microsoft rocket single": {
+   "first_seen": "2026-07-30T20:03:14+00:00",
+   "last_seen": "2026-08-01T18:58:05.196025+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.196025+00:00"
+   },
+   "tickers": [
+    "MSFT"
+   ],
+   "title": "Microsoft's stock rockets more than 15% for largest single-day jump in history - Yahoo Finance",
+   "tokens": [
+    "microsoft",
+    "finance",
+    "history",
+    "largest",
+    "rocket",
+    "single",
+    "yahoo",
+    "jump"
+   ]
+  },
   "finance issue regulator street wall yahoo": {
    "first_seen": "2026-07-07T07:00:00+00:00",
    "last_seen": "2026-07-28T08:59:58.893404+00:00",
@@ -9515,7 +12105,7 @@
   },
   "finance market nasdaq recover street volatile": {
    "first_seen": "2026-07-24T21:28:07+00:00",
-   "last_seen": "2026-07-26T22:15:36.135266+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
    "sources": {
     "yahoo finance": "2026-07-26T18:32:59.385763+00:00"
    },
@@ -9532,6 +12122,27 @@
     "street",
     "close",
     "today"
+   ]
+  },
+  "finance nasdaq nvidia shift subtle yahoo": {
+   "first_seen": "2026-08-01T02:37:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.202568+00:00",
+   "sources": {
+    "yahoo finance": "2026-08-01T18:58:05.202568+00:00"
+   },
+   "tickers": [
+    "NVDA"
+   ],
+   "title": "Jim Makes Subtle Yet Big Shift For Nvidia Corporation (NASDAQ:NVDA) - Yahoo Finance",
+   "tokens": [
+    "finance",
+    "nasdaq",
+    "nvidia",
+    "subtle",
+    "shift",
+    "yahoo",
+    "nvda",
+    "big"
    ]
   },
   "fool foot here motley touch wouldn": {
@@ -9555,6 +12166,50 @@
     "pole"
    ]
   },
+  "fool instead micron motley nvidia should": {
+   "first_seen": "2026-08-01T04:19:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.274648+00:00",
+   "sources": {
+    "the motley fool": "2026-08-01T18:58:05.202568+00:00"
+   },
+   "tickers": [
+    "NVDA",
+    "META",
+    "MU"
+   ],
+   "title": "Should You Buy Micron Stock Instead of Nvidia Stock? - The Motley Fool",
+   "tokens": [
+    "instead",
+    "micron",
+    "motley",
+    "nvidia",
+    "should",
+    "fool",
+    "buy",
+    "you"
+   ]
+  },
+  "forecast fxempire grow microsoft rally tariff": {
+   "first_seen": "2026-08-01T09:08:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "fxempire": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "S&P 500 and Dow Jones Forecast: Microsoft Rally Lifts Stocks as Tariff Risks Grow - FXEmpire",
+   "tokens": [
+    "microsoft",
+    "forecast",
+    "fxempire",
+    "tariff",
+    "rally",
+    "grow",
+    "lift",
+    "risk"
+   ]
+  },
   "founder month quarterly stake stocktwit worst": {
    "first_seen": "2026-07-25T04:32:25+00:00",
    "last_seen": "2026-07-26T22:15:16.382339+00:00",
@@ -9574,6 +12229,27 @@
     "worst",
     "720m",
     "avgo"
+   ]
+  },
+  "friction licens limelight market massive tradingview": {
+   "first_seen": "2026-07-31T12:33:35+00:00",
+   "last_seen": "2026-08-01T18:58:05.242806+00:00",
+   "sources": {
+    "tradingview": "2026-08-01T18:58:05.242806+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "RDDT Stock Is In The Limelight Today After Massive Pre-Market Fall \u2014 GOOGL Friction Raises AI Licensing Risks, Says Wells Fargo - TradingView",
+   "tokens": [
+    "tradingview",
+    "limelight",
+    "friction",
+    "massive",
+    "licens",
+    "market",
+    "fargo",
+    "googl"
    ]
   },
   "futur korea kospi plung south updat": {
@@ -9618,6 +12294,25 @@
     "defi"
    ]
   },
+  "get micron source tradingview unexpect validation": {
+   "first_seen": "2026-07-30T19:52:16+00:00",
+   "last_seen": "2026-08-01T18:58:05.274648+00:00",
+   "sources": {
+    "tradingview": "2026-08-01T18:58:05.274648+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Micron Stock Gets Validation From Unexpected Source - TradingView",
+   "tokens": [
+    "tradingview",
+    "validation",
+    "unexpect",
+    "micron",
+    "source",
+    "get"
+   ]
+  },
   "get nflx paid sale trefi wait": {
    "first_seen": "2026-07-24T12:39:36+00:00",
    "last_seen": "2026-07-26T22:15:16.377811+00:00",
@@ -9635,6 +12330,69 @@
     "sale",
     "wait",
     "get"
+   ]
+  },
+  "goldman group insurance life manufacturer marketbeat": {
+   "first_seen": "2026-07-29T11:00:41+00:00",
+   "last_seen": "2026-08-01T18:58:05.403528+00:00",
+   "sources": {
+    "marketbeat": "2026-08-01T18:58:05.403528+00:00"
+   },
+   "tickers": [
+    "GS"
+   ],
+   "title": "The Goldman Sachs Group, Inc. $GS Shares Sold by The Manufacturers Life Insurance Company - MarketBeat",
+   "tokens": [
+    "manufacturer",
+    "marketbeat",
+    "insurance",
+    "goldman",
+    "group",
+    "life",
+    "sach",
+    "sold"
+   ]
+  },
+  "goldman group sach send signal tradingkey": {
+   "first_seen": "2026-07-30T17:16:11+00:00",
+   "last_seen": "2026-08-01T18:58:05.403528+00:00",
+   "sources": {
+    "tradingkey": "2026-08-01T18:58:05.403528+00:00"
+   },
+   "tickers": [
+    "GS"
+   ],
+   "title": "Goldman Sachs Group Inc Stock (GS) Moved Up by 4.06% on Jul 30: What Signal Does It Send? - TradingKey",
+   "tokens": [
+    "tradingkey",
+    "goldman",
+    "signal",
+    "group",
+    "sach",
+    "send",
+    "what",
+    "jul"
+   ]
+  },
+  "googl microsoft month nasdaq stocktwit support": {
+   "first_seen": "2026-07-30T20:34:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.242806+00:00",
+   "sources": {
+    "stocktwits": "2026-08-01T18:58:05.242806+00:00"
+   },
+   "tickers": [
+    "GOOGL"
+   ],
+   "title": "S&P 500, Nasdaq End Best Day In A Month On Support From Microsoft Gains, AI Stocks \u2014 ORCL, GOOGL, MSFT, BE, TSLA Stock In Focus - Stocktwits",
+   "tokens": [
+    "microsoft",
+    "stocktwit",
+    "support",
+    "nasdaq",
+    "googl",
+    "month",
+    "best",
+    "focu"
    ]
   },
   "gurufocu palantir pltr still technologi underva": {
@@ -9735,6 +12493,27 @@
     "hit"
    ]
   },
+  "hold increase official steady three vote": {
+   "first_seen": "2026-07-29T20:57:00+00:00",
+   "last_seen": "2026-08-01T18:58:19.935677+00:00",
+   "sources": {
+    "wsj.com": "2026-08-01T18:58:19.935677+00:00"
+   },
+   "tickers": [
+    "_MACRO"
+   ],
+   "title": "Fed Holds Rates Steady but Three Officials Vote for Increase - wsj.com",
+   "tokens": [
+    "increase",
+    "official",
+    "steady",
+    "three",
+    "hold",
+    "vote",
+    "but",
+    "fed"
+   ]
+  },
   "holder nowhere paid trefi went while": {
    "first_seen": "2026-07-22T18:38:41+00:00",
    "last_seen": "2026-07-28T08:28:25.011623+00:00",
@@ -9774,6 +12553,24 @@
     "purchas",
     "taiwan",
     "group"
+   ]
+  },
+  "horizon investopedia merger spacex tesla": {
+   "first_seen": "2026-07-31T15:57:33+00:00",
+   "last_seen": "2026-08-01T18:58:05.219649+00:00",
+   "sources": {
+    "investopedia": "2026-08-01T18:58:05.219649+00:00"
+   },
+   "tickers": [
+    "TSLA"
+   ],
+   "title": "A Tesla/SpaceX Merger May Be on the Horizon - Investopedia",
+   "tokens": [
+    "investopedia",
+    "horizon",
+    "merger",
+    "spacex",
+    "tesla"
    ]
   },
   "increas insurance mandatum marketbeat nvidia position": {
@@ -9837,6 +12634,28 @@
     "more",
     "smci",
     "zack"
+   ]
+  },
+  "insider mara sell sentiment stockstotrade target": {
+   "first_seen": "2026-07-29T19:03:00+00:00",
+   "last_seen": "2026-08-01T18:58:05.389438+00:00",
+   "sources": {
+    "stockstotrade": "2026-08-01T18:58:05.389438+00:00",
+    "timothysykes.com": "2026-08-01T18:58:05.389438+00:00"
+   },
+   "tickers": [
+    "MARA"
+   ],
+   "title": "MARA Stock Slips As Insider Selling And Target Cut Hit Sentiment - StocksToTrade",
+   "tokens": [
+    "stockstotrade",
+    "sentiment",
+    "insider",
+    "target",
+    "mara",
+    "sell",
+    "slip",
+    "cut"
    ]
   },
   "investor lost nearly total trump york": {
@@ -9920,6 +12739,27 @@
     "rare",
     "150",
     "key"
+   ]
+  },
+  "last micron sign sold thestreet warn": {
+   "first_seen": "2026-07-29T22:03:15+00:00",
+   "last_seen": "2026-08-01T18:58:05.274648+00:00",
+   "sources": {
+    "thestreet.com": "2026-08-01T18:58:05.274648+00:00"
+   },
+   "tickers": [
+    "MU"
+   ],
+   "title": "Micron\u2019s CEO sold big last week. Was it a warning sign? - thestreet.com",
+   "tokens": [
+    "thestreet",
+    "micron",
+    "last",
+    "sign",
+    "sold",
+    "warn",
+    "week",
+    "big"
    ]
   },
   "liquidation long market position tokenpost unwind": {
