@@ -24,18 +24,32 @@ from .jsonio import dumps, json_safe   # noqa: F401 — re-exported for the pack
 
 
 def _pace(now, portfolio_summary):
-    """The week's trade count against the target, plus how much week is left to hit it."""
-    taken = int((portfolio_summary or {}).get("new_trades_this_week", 0) or 0)
+    """The week's trade count and shape against the target, plus how much week is left."""
+    psum = portfolio_summary or {}
+    taken = int(psum.get("new_trades_this_week", 0) or 0)
     left = market_hours.sessions_left_this_week(now.date())
+    # Whichever book produced this summary. Falling back to the stock rules would show the crypto
+    # analyst an equity target, which is the one number here it must not read wrong.
+    rules = config.rules_for(psum.get("book") or "stock")
+    by_type = psum.get("new_trades_by_type") or {}
+    gap = rules.mix_gap(by_type)
     return {
         "new_trades_this_week": taken,
-        "weekly_target": config.WEEKLY_TRADE_TARGET,
-        "weekly_cap": config.MAX_NEW_TRADES_PER_WEEK,
+        "weekly_target": rules.weekly_trade_target,
+        "weekly_cap": rules.max_new_trades_per_week,
         "sessions_left_this_week": left,
         # Behind only when the week can no longer fit the remaining trades at one a session.
         # Zero trades with five sessions left is on pace, not behind — flagging that would put a
         # "you are behind" nudge in front of the analyst every Monday morning, which is noise.
-        "behind_pace": left < config.WEEKLY_TRADE_TARGET - taken,
+        "behind_pace": left < rules.weekly_trade_target - taken,
+        # The week's shape. In 805 logged signals not one was LONG_TERM: an intraday screener
+        # escalates on intraday setups and spends the budget before a months-long idea is ever
+        # considered. `mix_gap` is what puts the unfilled horizon in front of the analyst — it
+        # lowers the bar for what gets *looked at*, never the evidence a trade has to carry.
+        "by_type": by_type,
+        "mix_target": dict(rules.weekly_mix),
+        "mix_gap": gap,
+        "long_term_open": bool(gap.get("LONG_TERM")),
     }
 
 
@@ -192,6 +206,22 @@ def build_prompt(mode, packet):
         "trade, and `behind_pace: true` is never a reason to fabricate one. When you end a run with\n"
         "no signals while behind pace, say in `notes` what specifically was missing, so the Friday\n"
         "review can tell a genuinely dead tape from an analyst who was too slow to commit.\n\n"
+        "packet.pace also carries the week's SHAPE, and this is the part that has been failing.\n"
+        "`by_type` is what the week has actually opened per horizon, `mix_target` is what it wants\n"
+        "(2 scalps, 2 swings, 1 long-horizon), and `mix_gap` is the shortfall. Across 805 logged\n"
+        "signals this book produced ZERO LONG_TERM trades — not because none existed but because a\n"
+        "30-minute screener escalates on 30-minute setups and the budget was always spent on them\n"
+        "first. Lind asked for the mix explicitly.\n"
+        "  - When `mix_gap` names a horizon, spend part of THIS run looking for that horizon\n"
+        "    specifically. With LONG_TERM open, read packet.theses and packet.fundamentals before\n"
+        "    the intraday triggers: the question is which board thesis the tape is currently\n"
+        "    offering a sane entry into, not what just broke out.\n"
+        "  - The mix never lowers the evidence bar. A LONG_TERM signal still needs its `thesis_id`,\n"
+        "    still needs fundamentals behind it, and still needs to clear the confidence gate. An\n"
+        "    unfilled slot at the end of the week is a fine outcome; a months-long position opened\n"
+        "    to fill a slot is the worst trade on the book.\n"
+        "  - Do not relabel to fill a slot. Tagging a two-day momentum idea LONG_TERM to close a\n"
+        "    gap corrupts the horizon that the harness enforces and the journal grades.\n\n"
         "Respond with ONE JSON object and nothing else — no prose before or after, no code fence.\n"
         "Schema:\n"
         "{\n"
@@ -387,6 +417,80 @@ def _extract_json(text):
     return json.loads(m.group(0))
 
 
+class ClaudeRunError(RuntimeError):
+    """A `claude -p` invocation failed.
+
+    `kind` is what the caller needs to act on: "quota" and "auth" are walls that no amount of
+    retrying gets through, "timeout" and "parse" are transient, "other" is unclassified. `reason`
+    is the CLI's own words, not a reconstruction.
+    """
+
+    def __init__(self, reason, kind="other", model=None):
+        super().__init__(reason)
+        self.reason = reason
+        self.kind = kind
+        self.model = model
+
+
+# The CLI reports auth and quota failures through its stdout envelope, not stderr: it exits 1 with
+# stderr *empty* and `{"type":"result","is_error":true,"result":"Not logged in · Please run /login"}`
+# on stdout. Reading only stderr is how the 2026-07-28 → 07-31 outage presented as `exit 1: ` with
+# nothing after the colon, burned both retries every cycle, and silently degraded ~700 signals to
+# the fallback's flat SHORT_TERM / confidence 35.
+_WALL_PATTERNS = (
+    ("usage limit", "quota"),
+    ("rate limit", "quota"),
+    ("quota", "quota"),
+    ("credit balance", "quota"),
+    ("out of credits", "quota"),
+    ("not logged in", "auth"),
+    ("/login", "auth"),
+    ("invalid api key", "auth"),
+    ("authentication_error", "auth"),
+    ("unauthorized", "auth"),
+    ("oauth token", "auth"),
+)
+
+
+def _envelope_message(out):
+    """The CLI's own error text, dug out of the JSON envelope. None when there isn't one."""
+    if not out:
+        return None
+    try:
+        env = json.loads(out)
+    except (json.JSONDecodeError, ValueError):
+        return None
+    if not isinstance(env, dict):
+        return None
+    for key in ("result", "error", "message"):
+        val = env.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.strip()
+        if isinstance(val, dict):
+            inner = val.get("message")
+            if isinstance(inner, str) and inner.strip():
+                return inner.strip()
+    return None
+
+
+def _classify(text):
+    """Map a failure message onto a `ClaudeRunError.kind`."""
+    low = (text or "").lower()
+    for needle, kind in _WALL_PATTERNS:
+        if needle in low:
+            return kind
+    return "other"
+
+
+def _envelope_is_error(out):
+    """True when the CLI exited 0 but flagged the result itself as an error."""
+    try:
+        env = json.loads(out)
+    except (json.JSONDecodeError, ValueError):
+        return False
+    return isinstance(env, dict) and bool(env.get("is_error"))
+
+
 def run_claude(prompt, model=None, attempts=2, timeout=None):
     """Invoke the subscription `claude` CLI headlessly. Returns parsed dict or raises."""
     model = model or config.CLAUDE_DEEP_MODEL
@@ -396,33 +500,36 @@ def run_claude(prompt, model=None, attempts=2, timeout=None):
     # finite). `claude -p` with no positional query reads the prompt from stdin.
     cmd = [config.CLAUDE_BIN, "-p",
            "--model", model, "--output-format", "json"]
-    last_err = None
+    last_err, last_kind = None, "other"
     for i in range(attempts):
         try:
             proc = subprocess.run(
                 cmd, cwd=str(config.REPO_ROOT), input=prompt, capture_output=True, text=True,
                 timeout=timeout, encoding="utf-8", errors="replace")
-        except subprocess.TimeoutExpired as e:
-            last_err = f"timeout after {timeout}s"
-            print(f"[warn] claude run {i+1}: {last_err}", file=sys.stderr)
+        except subprocess.TimeoutExpired:
+            last_err, last_kind = f"timeout after {timeout}s", "timeout"
+            print(f"[warn] claude run {i+1} ({model}): {last_err}", file=sys.stderr)
             continue
         out = (proc.stdout or "").strip()
         err = (proc.stderr or "").strip()
-        if proc.returncode != 0:
-            last_err = f"exit {proc.returncode}: {err[:300]}"
-            print(f"[warn] claude run {i+1}: {last_err}", file=sys.stderr)
-            if "usage limit" in err.lower() or "rate" in err.lower():
-                break  # no point retrying a quota wall
+        if proc.returncode != 0 or _envelope_is_error(out):
+            # Prefer the envelope: on a quota or auth wall it is the only place the reason exists.
+            why = _envelope_message(out) or err or "no error message on stderr or stdout"
+            last_kind = _classify(why) if _classify(why) != "other" else _classify(err)
+            last_err = f"exit {proc.returncode} [{last_kind}]: {why[:300]}"
+            print(f"[warn] claude run {i+1} ({model}): {last_err}", file=sys.stderr)
+            if last_kind in ("quota", "auth"):
+                break  # a wall, not a hiccup — the second attempt fails identically
             continue
         try:
             return _extract_json(out)
         except Exception as e:
-            last_err = f"parse: {e}; head={out[:200]!r}"
-            print(f"[warn] claude run {i+1}: {last_err}", file=sys.stderr)
-    raise RuntimeError(f"claude deep run failed: {last_err}")
+            last_err, last_kind = f"parse: {e}; head={out[:200]!r}", "parse"
+            print(f"[warn] claude run {i+1} ({model}): {last_err}", file=sys.stderr)
+    raise ClaudeRunError(f"claude run failed ({model}): {last_err}", kind=last_kind, model=model)
 
 
-def fallback_analysis(screen_result, market, news_intel=None):
+def fallback_analysis(screen_result, market, news_intel=None, reason=None):
     """Deterministic degradation when the deep model is unavailable.
 
     Turns the top screener triggers into low-confidence WATCH-grade signals so the
@@ -460,10 +567,11 @@ def fallback_analysis(screen_result, market, news_intel=None):
             "news": ni.get("headlines_used") or [], "historical_analog": None,
             "data_sources": ["yfinance"] + (["Google News RSS", "Finnhub"] if ni else []),
         })
+    why = f" Reason: {reason}." if reason else ""
     return {
-        "market_outlook": "AI deep analysis was unavailable this cycle (subscription limit or "
-                          "transient error). The items below are the deterministic screener's raw "
-                          "flags only — treat as watchlist, not conviction.",
+        "market_outlook": "AI deep analysis was unavailable this cycle." + why
+                          + " The items below are the deterministic screener's raw flags only — "
+                            "treat as watchlist, not conviction.",
         "signals": signals, "portfolio_actions": [], "notes": "rules-only fallback",
-        "degraded": True,
+        "degraded": True, "degraded_reason": reason,
     }

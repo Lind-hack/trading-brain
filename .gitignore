@@ -24,9 +24,18 @@ Thumbs.db
 *.log
 scratch/
 
+# Vendored agent skills — installed by `npx skills add`, not authored here. `.claude/skills/`
+# holds Windows symlinks into `.agents/skills/`, which git cannot represent portably, and the
+# packages themselves are third-party trees the VPS has no use for: the box runs `claude -p`
+# from this directory, so anything here loads into every cycle. `skills-lock.json` IS tracked —
+# it records exactly what is installed and at which commit, which is the part worth keeping.
+.agents/
+.claude/skills/
+
 # NOTE: brain-memory/ is intentionally TRACKED (git-as-memory). Do not ignore it.
 # ...except the derived caches, which are regenerable API mirrors rather than memory.
 brain-memory/.run-log.json
+brain-memory/.deep-runs.json
 brain-memory/SEC-CIK-MAP.json
 brain-memory/FUNDAMENTALS-CACHE.json
 brain-memory/bars/

@@ -21,15 +21,31 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from . import config
 from .jsonio import dumps
 
 # The cycle is deliberately absent: it is meant to run every 30 minutes.
-# `digest` belongs here for the same reason as the anchors — its cron offers two candidate ticks
-# for one Monday morning, and Lind should get one week-ahead email, not two.
+# `digest` belongs here for the same reason as the anchors — its cron offers several candidate
+# ticks for one week-ahead email, and Lind should get one.
 ONCE_PER_DAY = ("pre", "mid", "close", "weekly", "digest")
+
+# ...but the digest is the one mode whose candidate ticks span *two dates*: it fires on the
+# Sunday before the week, and again on the first session's morning if the Sunday run died. A
+# per-day stamp would let both through and send the week-ahead twice, so this one is stamped with
+# the week it is about instead of the day it ran.
+ONCE_PER_WEEK = ("digest",)
+
+
+def _stamp(mode: str, now: datetime) -> str:
+    """The value recorded for a completed run — the thing a later tick compares itself against."""
+    if mode in ONCE_PER_WEEK:
+        # Sunday's digest is about the week that starts tomorrow, so it counts as that week's.
+        ref = now.date() + timedelta(days=1) if now.weekday() == 6 else now.date()
+        year, week, _ = ref.isocalendar()
+        return f"{year}-W{week:02d}"
+    return now.date().isoformat()
 
 
 def _path():
@@ -49,20 +65,20 @@ def _load():
 
 
 def already_ran(mode: str, now: datetime | None = None) -> bool:
-    """Has `mode` already completed today (Eastern), so this tick is the duplicate one?"""
+    """Has `mode` already completed this period (Eastern), so this tick is the duplicate one?"""
     if mode not in ONCE_PER_DAY:
         return False
     now = now or datetime.now(config.ET)
-    return _load().get(mode) == now.date().isoformat()
+    return _load().get(mode) == _stamp(mode, now)
 
 
 def mark_ran(mode: str, now: datetime | None = None) -> None:
-    """Record `mode` as done for today. Called after the run succeeds, never before."""
+    """Record `mode` as done for this period. Called after the run succeeds, never before."""
     if mode not in ONCE_PER_DAY:
         return
     now = now or datetime.now(config.ET)
     data = _load()
-    data[mode] = now.date().isoformat()
+    data[mode] = _stamp(mode, now)
     try:
         config.MEMORY_DIR.mkdir(parents=True, exist_ok=True)
         _path().write_text(dumps(data, indent=2), encoding="utf-8")

@@ -16,6 +16,14 @@ create table if not exists public.sd_brain_scans (
   outlook     text,
   screen_why  jsonb,
   degraded    boolean default false,
+  -- Which tier actually produced this run, so the deck stops reporting every heartbeat as an
+  -- Opus wake-up. `model` is the deep model id and is null when no deep run happened at all;
+  -- `news_model` is the tier-1 id, 'keyword-fallback' when Haiku failed, or 'none' when the
+  -- news pass was skipped. `degraded_kind` names why a tier fell back (auth | usage | other).
+  model         text,
+  news_model    text,
+  news_degraded boolean default false,
+  degraded_kind text,
   created_at  timestamptz not null default now()
 );
 
@@ -130,6 +138,11 @@ create index if not exists sd_brain_scans_ts_idx   on public.sd_brain_scans   (t
 create index if not exists sd_brain_signals_ts_idx on public.sd_brain_signals (ts desc);
 -- Migration for a database created before the crypto book. Safe to re-run.
 alter table public.sd_portfolio add column if not exists book text not null default 'stock';
+-- Migration for a database created before the deck split the two model tiers. Safe to re-run.
+alter table public.sd_brain_scans add column if not exists model         text;
+alter table public.sd_brain_scans add column if not exists news_model    text;
+alter table public.sd_brain_scans add column if not exists news_degraded boolean default false;
+alter table public.sd_brain_scans add column if not exists degraded_kind text;
 
 create index if not exists sd_portfolio_ts_idx      on public.sd_portfolio      (ts desc);
 create index if not exists sd_portfolio_book_ts_idx on public.sd_portfolio      (book, ts desc);

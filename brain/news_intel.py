@@ -45,7 +45,7 @@ _CATALYST_WORDS = {
 # ── Headline gathering (free sources, parallel) ──────────────────────────────────
 
 def _merge_stats(total, part):
-    for k in ("seen", "kept", "dropped", "under_covered"):
+    for k in ("seen", "kept", "dropped", "under_covered", "repeats"):
         total[k] = total.get(k, 0) + part.get(k, 0)
     for reason, n in (part.get("drop_reasons") or {}).items():
         total.setdefault("drop_reasons", {})
@@ -89,7 +89,8 @@ def gather_headlines(tickers, per_ticker=None, max_workers=6, store=None, with_s
 
     own_store = store is None
     store = news_quality.load_store() if own_store else store
-    totals = {"seen": 0, "kept": 0, "dropped": 0, "under_covered": 0, "drop_reasons": {}}
+    totals = {"seen": 0, "kept": 0, "dropped": 0, "under_covered": 0, "repeats": 0,
+              "drop_reasons": {}}
     out = {}
     for t, items in raw.items():
         scored = news_quality.observe(items, ticker=t, store=store)
@@ -102,7 +103,7 @@ def gather_headlines(tickers, per_ticker=None, max_workers=6, store=None, with_s
     if totals["seen"]:
         print(f"[news] {totals['seen']} headline(s) scraped, {totals['kept']} kept "
               f"({totals['under_covered']} under-covered), {totals['dropped']} filtered "
-              f"{totals['drop_reasons']}")
+              f"({totals['repeats']} already reported) {totals['drop_reasons']}")
     if stats is not None:
         stats.update(totals)
     return out
@@ -171,6 +172,10 @@ Every headline arrives pre-scored by the harness. Use those fields, do not re-gu
   whichever is older). A story hours old is already in the price.
 - `summary`: the article's own lede when the feed gave us one.
 - `low_quality: true` means nothing better existed for that ticker — treat it as thin coverage.
+- `already_reported: true` means we cited this exact story in an earlier cycle and no new outlet
+  has carried it since. It is not new information however big it sounds: materiality "low",
+  is_fresh false, and do not put it in top_stories. It only reached you because nothing else
+  existed for that name — say so in summary rather than reporting it again.
 
 Rules:
 - Judge MATERIALITY honestly. "high" means this headline can move the stock today AND is new
@@ -206,6 +211,11 @@ def _for_prompt(items):
         rec["age_min"] = n.get("age_min")
         if n.get("low_quality"):
             rec["low_quality"] = True
+        # Only reaches the model through the keep-min valve — a repeat is normally filtered out
+        # before this. When it does arrive it has to arrive labelled, or the model reports our own
+        # last cycle back to us as news.
+        if n.get("repeat"):
+            rec["already_reported"] = True
         out.append(rec)
     return out
 
@@ -243,8 +253,11 @@ def analyze(headlines, macro_headlines=None, calendar=None, use_claude=True):
         print(f"[news] Haiku read {len(headlines)} name(s), {n_high} material")
         return result
     except Exception as e:
-        print(f"[warn] news intel failed, using keyword fallback: {e}", file=sys.stderr)
-        return _fallback(headlines, macro_headlines)
+        reason = getattr(e, "reason", None) or str(e)
+        kind = getattr(e, "kind", "other")
+        print(f"[warn] news intel failed ({kind}), using keyword fallback: {reason}",
+              file=sys.stderr)
+        return _fallback(headlines, macro_headlines, reason=reason, kind=kind)
 
 
 def _sanitize(result, headlines):
@@ -321,7 +334,7 @@ def _catalyst_of(title):
     return "none"
 
 
-def _fallback(headlines, macro_headlines):
+def _fallback(headlines, macro_headlines, reason=None, kind=None):
     """Keyword sentiment when the subscription is unavailable — clearly flagged as degraded."""
     tickers = {}
     for t, items in headlines.items():
@@ -346,7 +359,9 @@ def _fallback(headlines, macro_headlines):
         }
     macro_scores = [_score_title(n.get("title", "")) for n in macro_headlines] or [0]
     return {
-        "macro_read": "AI news read unavailable this cycle — keyword sentiment only.",
+        "macro_read": "AI news read unavailable this cycle — keyword sentiment only."
+                      + (f" Reason: {reason}." if reason else ""),
+        "degraded_reason": reason, "degraded_kind": kind,
         "macro_sentiment": round(sum(macro_scores) / len(macro_scores)),
         "tickers": tickers,
         "top_stories": [{"title": n.get("title"), "source": n.get("source"),
@@ -389,6 +404,20 @@ def escalation_reasons(intel):
     return reasons
 
 
+def cited_headlines(intel):
+    """Every headline this pass actually reported on — per ticker plus the macro picks.
+
+    The input to `news_quality.mark_used`. Deliberately not the headlines we *fed* the model: a
+    story it was shown and skipped was never told to Lind, and suppressing it next cycle would bury
+    it before he ever read it.
+    """
+    out = []
+    for info in (intel.get("tickers") or {}).values():
+        out += [h for h in (info.get("headlines_used") or []) if isinstance(h, dict)]
+    out += [s for s in (intel.get("top_stories") or []) if isinstance(s, dict)]
+    return out
+
+
 def news_for_ticker(intel, ticker):
     """The headlines Haiku actually used for one name — for the email/journal citation."""
     info = (intel.get("tickers") or {}).get(ticker) or {}
@@ -408,8 +437,12 @@ def run(tickers, calendar=None, use_claude=True, venue="stock"):
     stats = {}
     headlines = gather_headlines(tickers, store=store, stats=stats)
     macro = gather_macro_headlines(store=store, venue=venue)
-    news_quality.save_store(store)
     intel = analyze(headlines, macro, calendar, use_claude=use_claude)
+    # Save after the read, not before it: what the pass cited is the half of the store that stops
+    # the next cycle repeating this one, and a store written before `analyze` cannot carry it.
+    n_marked = news_quality.mark_used(cited_headlines(intel), store=store)
+    news_quality.save_store(store)
+    stats["cited"] = n_marked
     intel["news_quality"] = stats
     # The scraped, scored, ranked headlines — kept so the caller can attach them to the market
     # snapshots instead of scraping the same names a second time. Superset of headlines_used:

@@ -38,8 +38,9 @@ import argparse
 import sys
 from datetime import datetime, timedelta, timezone
 
-from brain import (config, collect, dedupe, screen as screener, deep, journal, market_hours, memory,
-                   runlog, news_intel, notify, obsidian, supabase, thesis)
+from brain import (config, collect, dedupe, escalate, exits as exit_monitor, screen as screener,
+                   deep, journal, market_hours, memory, runlog, news_intel, notify, obsidian,
+                   supabase, thesis)
 from brain.portfolio import ENTRY_META_FIELDS, Portfolio, usable_price
 
 
@@ -250,32 +251,63 @@ def record_trades(portfolio, exits, opened, analysis, intel, now_et, prices, per
         supabase.push_trade_close(e, equity=equity)
 
 
+def watch_open_trades(portfolio, prices, market, intel, calendar, persist=True):
+    """Score the open book for exit warnings. Alerts only — this closes nothing.
+
+    Runs on every cycle, escalated or not, because the position that most needs watching is the
+    one on a day the screener has nothing to say about. It costs no model call: tier 1's read is
+    already in the packet, and everything else is arithmetic on data the cycle collected anyway.
+
+    On `--dry-run` the suppression store is a throwaway, so a dry run never silences the real one.
+    """
+    store = None if persist else {"version": 1, "alerts": {}}
+    try:
+        alerts = exit_monitor.review(portfolio, prices, market=market, intel=intel,
+                                     calendar=calendar, store=store)
+    except Exception as e:  # pragma: no cover - the monitor must never take a cycle down
+        print(f"[warn] exit monitor: {e}", file=sys.stderr)
+        return []
+    print(f"[exits] {exit_monitor.summarize(alerts)}")
+    return alerts
+
+
 def _emit(analysis, screen_result, psum, mode, now_et, escalated, exits, applied, args,
-          intel=None):
+          intel=None, exit_alerts=None):
     """Fan out to email + Obsidian + dashboard + git memory (respecting --dry-run)."""
-    has_output = bool((analysis or {}).get("signals")) or exits or applied
+    exit_alerts = exit_alerts or []
+    has_output = bool((analysis or {}).get("signals")) or exits or applied or exit_alerts
     # Obsidian: every run writes (Lind wants all data in the second brain)
     if not args.dry_run:
         obsidian.write_run(analysis, screen_result, psum, mode, now_et, escalated)
         if exits or applied:
             obsidian.log_trades(exits, applied, now_et)
-        supabase.push(analysis, screen_result, psum, mode, now_et, escalated)
+        supabase.push(analysis, screen_result, psum, mode, now_et, escalated, intel=intel)
 
     # Email: only when there's something to say (or a forced anchor with signals)
     if analysis and (analysis.get("signals") or applied or mode in ("weekly", "digest")):
         subject, text, html = notify.build_email(analysis, psum, mode, now_et, intel=intel,
-                                                 applied=applied, exits=exits)
+                                                 applied=applied, exits=exits,
+                                                 exit_alerts=exit_alerts)
         if args.dry_run:
             print(f"[dry-run] would email: {subject}")
             print(text[:1500])
         else:
             notify.send_email(subject, text, html)
-    elif exits and not args.dry_run:
-        # A mechanical stop fired with no new analysis — that still needs telling.
+    elif exits or exit_alerts:
+        # A mechanical stop fired, or the monitor flagged a position, with no new analysis — both
+        # still need telling. This is the whole delivery path for an exit alert on a quiet cycle,
+        # and on the crypto book's off-hours risk pass it is the *only* path there is.
+        outlook = ("Position exited by a mechanical stop. No new analysis this run."
+                   if exits else
+                   "Exit monitor flagged an open position. No new analysis this run.")
         subject, text, html = notify.build_email(
-            {"market_outlook": "Position exited by a mechanical stop. No new analysis this run.",
-             "signals": []}, psum, mode, now_et, intel=intel, applied=applied, exits=exits)
-        notify.send_email(subject, text, html)
+            {"market_outlook": outlook, "signals": []}, psum, mode, now_et, intel=intel,
+            applied=applied, exits=exits, exit_alerts=exit_alerts)
+        if args.dry_run:
+            print(f"[dry-run] would email: {subject}")
+            print(text[:1500])
+        else:
+            notify.send_email(subject, text, html)
     elif not has_output:
         print(f"[{mode}] quiet — nothing to email (silence means no setup).")
 
@@ -310,17 +342,27 @@ def run_analysis(mode, market, screen_result, calendar, portfolio, args, focus=N
                                theses=thesis.for_packet())
     if args.no_claude:
         return thesis.annotate_signals(
-            deep.fallback_analysis(screen_result, market, news_intel=intel))
+            deep.fallback_analysis(screen_result, market, news_intel=intel,
+                                   reason="--no-claude"))
     try:
         prompt = deep.build_prompt(
             mode if mode in ("pre", "mid", "close", "crypto") else "cycle", packet)
         # Bind each LONG_TERM call to the board entry it claims to rest on — an unanchored one
         # is a momentum trade wearing an investment label, and the email says so.
-        return thesis.annotate_signals(deep.run_claude(prompt, model=config.CLAUDE_DEEP_MODEL))
+        out = thesis.annotate_signals(deep.run_claude(prompt, model=config.CLAUDE_DEEP_MODEL))
+        out["model"] = config.CLAUDE_DEEP_MODEL
+        out.setdefault("degraded", False)
+        return out
     except Exception as e:
-        print(f"[warn] deep run failed, using fallback: {e}", file=sys.stderr)
-        return thesis.annotate_signals(
-            deep.fallback_analysis(screen_result, market, news_intel=intel))
+        # The reason travels with the analysis now: the deck badge, the email header and the
+        # journal all need to say *why* a cycle was rules-only, not merely that it was.
+        reason = getattr(e, "reason", None) or str(e)
+        kind = getattr(e, "kind", "other")
+        print(f"[warn] deep run failed ({kind}), using fallback: {reason}", file=sys.stderr)
+        out = thesis.annotate_signals(
+            deep.fallback_analysis(screen_result, market, news_intel=intel, reason=reason))
+        out["degraded_kind"] = kind
+        return out
 
 
 def mark_exits(portfolio, prices, persist=True):
@@ -428,7 +470,8 @@ def do_cycle(args, mode="cycle", force=False):
         print(f"[memory] logged {logged} event(s)")
 
     screen_result = screener.screen(market, calendar=calendar,
-                                    held_tickers=portfolio.held_tickers(), force=force)
+                                    held_tickers=portfolio.held_tickers(), force=force,
+                                    escalate_score=config.ESCALATE_SCORE)
 
     # ── tier 1: Haiku reads the news every cycle, whether or not the screener fired ──
     watchlist = _news_watchlist(market, screen_result, portfolio)
@@ -439,8 +482,14 @@ def do_cycle(args, mode="cycle", force=False):
         screen_result["why"] = list(screen_result.get("why", [])) + news_reasons
     _feed_theses(intel, persist=persist)
 
-    escalated = bool(screen_result["escalate"] or news_reasons)
+    # Level gate (screener) then delta gate (escalate.py): something is always flagged on a
+    # 30-name universe, so what buys the deep run is what changed since the last one.
+    escalated, why_deep, deep_meta = escalate.decide(
+        "stock", screen_result, news_reasons=news_reasons, now=now_et, force=force,
+        bar=config.ESCALATE_SCORE)
+    escalated = escalated and bool(screen_result["escalate"] or news_reasons or force)
     print(f"[screen] escalate={escalated} :: {'; '.join(screen_result['why']) or 'quiet'}")
+    print(f"[deep] {'; '.join(why_deep)}")
 
     analysis = None
     applied, opened = [], []
@@ -470,12 +519,17 @@ def do_cycle(args, mode="cycle", force=False):
                       f"{market_hours.entries_reason(now_et)}")
         applied, opened = apply_actions(analysis, portfolio, prices, persist=persist,
                                         mode=mode, market=market)
+        if persist:
+            escalate.commit("stock", deep_meta, now=now_et)
 
     record_trades(portfolio, portfolio.exits_this_run, opened, analysis, intel, now_et,
                   prices, persist)
+    # After the fills, so a position opened this cycle is scored on the book it actually joined
+    # rather than being invisible until the next run.
+    alerts = watch_open_trades(portfolio, prices, market, intel, calendar, persist=persist)
     psum = portfolio.summary(prices)
     _emit(analysis, screen_result, psum, mode, now_et, escalated, exits, applied, args,
-          intel=intel)
+          intel=intel, exit_alerts=alerts)
     return 0
 
 
@@ -507,6 +561,25 @@ def do_crypto_cycle(args, force=False):
     portfolio = Portfolio(mirror=persist, rules=config.CRYPTO_RULES)
     market = collect.collect_crypto_market(with_news=False)
     prices = _price_lookup(market)
+
+    # ── the risk pass, and the gate that decides whether anything else happens ──
+    # Off-hours this is the whole cycle: reconcile the broker, mark to market, fire the hard,
+    # trailing and 24-hour scalp stops, email only if one of them tripped. Zero model calls. The
+    # cron still runs hourly around the clock because those stops are the reason it exists.
+    analysis_ok, gate_why = market_hours.crypto_analysis_allowed(now_et)
+    print(f"[crypto] {market_hours.crypto_describe(now_et)} — {gate_why}")
+    exits = mark_exits(portfolio, prices, persist=persist)
+    if not (analysis_ok or force):
+        record_trades(portfolio, portfolio.exits_this_run, [], None, None, now_et, prices, persist)
+        # The off-hours pass still watches the book. There is no news read at 04:00 UTC, so these
+        # alerts are chart and give-back only — which is exactly what a position left running
+        # overnight on a venue with no bell needs someone looking at.
+        alerts = watch_open_trades(portfolio, prices, market, None, None, persist=persist)
+        psum = portfolio.summary(prices)
+        _emit(None, {"escalate": False, "why": [gate_why], "triggers": [], "calendar_flags": []},
+              psum, "crypto", now_et, False, exits, [], args, exit_alerts=alerts)
+        return 0
+
     # The macro calendar still matters — CPI and the FOMC move the dollar, and the dollar moves
     # this book — so it is read into the packet. It is only the *memory* write that is skipped.
     calendar = collect.forexfactory_calendar()
@@ -528,23 +601,23 @@ def do_crypto_cycle(args, force=False):
     if news_reasons:
         screen_result["why"] = list(screen_result.get("why", [])) + news_reasons
 
-    escalated = bool(screen_result["escalate"] or news_reasons)
-    allowed, why = market_hours.crypto_gate("cycle", now_et)
-    print(f"[crypto] {market_hours.crypto_describe(now_et)} — {why}")
+    escalated, why_deep, deep_meta = escalate.decide(
+        "crypto", screen_result, news_reasons=news_reasons, now=now_et, force=force,
+        bar=config.CRYPTO_ESCALATE_SCORE, cooldown_min=config.CRYPTO_DEEP_COOLDOWN_MIN,
+        max_gap_min=config.CRYPTO_DEEP_MAX_GAP_MIN)
+    escalated = escalated and bool(screen_result["escalate"] or news_reasons or force)
     print(f"[screen] escalate={escalated} :: {'; '.join(screen_result['why']) or 'quiet'}")
+    print(f"[deep] {'; '.join(why_deep)}")
 
     analysis = None
     applied, opened = [], []
-    # Mechanical exits first, every cycle, escalation or not. This is where the scalp time stop
-    # fires, and it is the reason the crypto cron has to run through the night: a 24-hour clock
-    # started at 03:00 UTC expires at 03:00 UTC, and nothing else in this system will close it.
-    exits = mark_exits(portfolio, prices, persist=persist)
-    if escalated and allowed:
+    if escalated:
         analysis = run_analysis("crypto", market, screen_result, calendar, portfolio, args,
                                 focus=[t for t in config.CRYPTO_TICKERS if t in market],
                                 with_fundamentals=False, intel=intel)
-        # Entries are always allowed on this venue, so the suppression check has a live executor
-        # on every cycle — unlike the equity path, where an out-of-session repeat stays hypothetical.
+        # Entries are open on this path by construction — the gate above already returned for the
+        # off-hours case — so the suppression check has a live executor, unlike the equity path
+        # where an out-of-session repeat stays hypothetical.
         suppressed = dedupe.apply(
             analysis, can_execute=lambda a: portfolio.validate_action(
                 a, prices, market=market)[0])
@@ -554,12 +627,15 @@ def do_crypto_cycle(args, force=False):
                 memory.log_suppressed(suppressed, "crypto", prices=prices)
         applied, opened = apply_actions(analysis, portfolio, prices, persist=persist,
                                         mode="crypto", market=market)
+        if persist:
+            escalate.commit("crypto", deep_meta, now=now_et)
 
     record_trades(portfolio, portfolio.exits_this_run, opened, analysis, intel, now_et,
                   prices, persist)
+    alerts = watch_open_trades(portfolio, prices, market, intel, calendar, persist=persist)
     psum = portfolio.summary(prices)
     _emit(analysis, screen_result, psum, "crypto", now_et, escalated, exits, applied, args,
-          intel=intel)
+          intel=intel, exit_alerts=alerts)
     return 0
 
 
@@ -710,6 +786,41 @@ def _week_ahead(limit_events=12, limit_speeches=6):
     }
 
 
+def _crypto_recap(week_start, week_label, signals):
+    """The crypto book's week, computed the same way the equity book's is.
+
+    Read-only and best-effort: a failed price fetch or an unreadable ledger costs the crypto
+    section of the email, never the recap itself. Returns None when there is nothing to show.
+    """
+    try:
+        book = Portfolio(mirror=False, rules=config.CRYPTO_RULES)
+        prices = {}
+        if book.held_tickers():
+            prices = _price_lookup(collect.collect_crypto_market(with_news=False))
+        return journal.build_recap(book, week_start, prices=prices, signals=signals,
+                                   week_label=week_label)
+    except Exception as e:
+        print(f"[warn] crypto weekly recap: {e}", file=sys.stderr)
+        return None
+
+
+def _crypto_standing():
+    """Where the crypto ledger stands going into the week.
+
+    Marks to market only if something is held — a flat book needs no price fetch, and the digest
+    runs on a Sunday when a failed call would otherwise cost the whole section for nothing.
+    """
+    try:
+        book = Portfolio(mirror=False, rules=config.CRYPTO_RULES)
+        prices = {}
+        if book.held_tickers():
+            prices = _price_lookup(collect.collect_crypto_market(with_news=False))
+        return book.summary(prices)
+    except Exception as e:
+        print(f"[warn] crypto digest standing: {e}", file=sys.stderr)
+        return None
+
+
 def _clean_pipeline_changes(items):
     """Normalise the review's engineering asks to {change, why, effort} dicts.
 
@@ -757,10 +868,16 @@ def do_weekly_review(args):
     # Everything recommended this week, filled or not. "What signals did you send" has a
     # different answer from "what trades did you take", and the recap owes both.
     signals = memory.signals_between(week_start)
-    recap = journal.build_recap(portfolio, week_start, prices=prices, signals=signals,
-                                week_ahead=_week_ahead(),
-                                week_label=f"{(now_et - timedelta(days=7)).strftime('%b %d')}"
-                                           f" – {now_et.strftime('%b %d, %Y')}")
+    week_label = (f"{(now_et - timedelta(days=7)).strftime('%b %d')}"
+                  f" – {now_et.strftime('%b %d, %Y')}")
+    recap = journal.build_recap(portfolio, week_start, prices=prices,
+                                signals=[s for s in signals if s.get("mode") != "crypto"],
+                                week_ahead=_week_ahead(), week_label=week_label)
+    # The crypto book's week, in the same email. Both books now stop looking for new trades at the
+    # same Friday close, so there is one trading week to review rather than two out of phase — and
+    # a lesson learned on a crypto scalp is the same lesson on an equity one.
+    recap["crypto"] = _crypto_recap(week_start, week_label,
+                                    [s for s in signals if s.get("mode") == "crypto"])
 
     if not args.no_claude:
         try:
@@ -848,8 +965,11 @@ def _digest_session_plan(now_et):
     being able to predict when the brain would talk to him.
     """
     # The week's *first* session, not today's — on a holiday Monday there is no session today,
-    # and the schedule Lind needs is the one that governs the week he is about to trade.
-    first = market_hours.first_trading_day_of_week(now_et.date()) or now_et.date()
+    # and the schedule Lind needs is the one that governs the week he is about to trade. On the
+    # Sunday the digest now runs, `first_trading_day_of_week` alone would walk *back* to the
+    # Monday just gone, so the week reference comes through the digest's own helper first.
+    first = market_hours.first_trading_day_of_week(
+        market_hours.digest_week_ref(now_et.date())) or now_et.date()
     bounds = market_hours.session_bounds(first)
     o, c = ((bounds[0].strftime("%H:%M"), bounds[1].strftime("%H:%M"))
             if bounds else ("09:30", "16:00"))
@@ -857,11 +977,15 @@ def _digest_session_plan(now_et):
         f"Signals run only while the market is open — {o}–{c} ET, Monday to Friday.",
         "A cycle every 30 minutes inside that window; deep analysis only when something "
         "actually triggers, so a quiet tape means a quiet inbox.",
+        "The crypto book keeps the same hours for *new* trades. Its stops, trailing stops and "
+        "24-hour scalp clock are still checked every hour, all night and all weekend — that "
+        "half never sleeps.",
         "Nothing new after the close. Positions still get their stops checked, but no fresh "
         "entry is proposed until the next open.",
         "Repeat ideas are suppressed — the same setup will not be emailed twice while the "
         "condition simply persists.",
-        "Friday after the close: the weekly recap, with every trade graded.",
+        "Friday after the close: the weekly recap, both books, with every trade graded.",
+        "Sunday: this email — the week ahead.",
     ]
 
 
@@ -898,11 +1022,15 @@ def do_digest(args):
         if tk not in watchlist:
             watchlist.append(tk)
 
+    # The label names the week being previewed, not the day the email was written — running on
+    # the Sunday, those are two different dates and only one of them is a trading day.
+    first = market_hours.first_trading_day_of_week(market_hours.digest_week_ref(now_et.date()))
     digest = {
-        "week_label": now_et.strftime("%b %d, %Y"),
+        "week_label": (first or now_et.date()).strftime("%b %d, %Y"),
         "session_line": f"Generated {now_et.strftime('%a %b %d, %H:%M ET')} · "
                         f"{market_hours.entries_reason(now_et)}",
         "portfolio": psum,
+        "crypto_portfolio": _crypto_standing(),
         "theses": theses,
         "regime": tstats.get("regime"),
         "thesis_delta_line": ", ".join(delta) if delta else "board carried forward",

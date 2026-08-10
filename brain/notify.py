@@ -96,7 +96,14 @@ def _intel_html(sig, intel_ticker=None):
     return "".join(parts)
 
 
-def build_card(sig, now_et, intel_ticker=None):
+def build_card(sig, now_et, intel_ticker=None, watch_bar=None):
+    """One signal, rendered.
+
+    `watch_bar` is the execute threshold when this card is a *watch* rather than a trade — the
+    idea cleared the floor worth reading but not the bar `portfolio.validate_action` requires, so
+    the harness will refuse it. Passing the number rather than a boolean means the card can say
+    what it missed by, which is the part that teaches. `None` renders an ordinary trade card.
+    """
     ttype = (sig.get("trade_type") or "SHORT_TERM").upper()
     label, tcolor, default_hold, blurb = _TYPE_META.get(ttype, _TYPE_META["SHORT_TERM"])
     direction = (sig.get("direction") or "LONG").upper()
@@ -126,14 +133,27 @@ def build_card(sig, now_et, intel_ticker=None):
                    if analog else
                    '<p style="margin:0;font-size:13px;color:#6b7280;">No matching precedent in the event log yet.</p>')
 
+    # A watch is bordered amber and says so above the ticker, because the one thing that must not
+    # happen is Lind reading a card the book already declined to trade as a trade it took.
+    border = "#f59e0b" if watch_bar else dcolor
+    watch_tag = ("" if not watch_bar else
+                 f'<div style="display:inline-block;background:#f59e0b;color:#0a0a0a;font-weight:800;'
+                 f'font-size:12px;padding:5px 12px;border-radius:999px;letter-spacing:0.04em;'
+                 f'margin-right:6px;">WATCH ONLY</div>')
+    watch_note = ("" if not watch_bar else
+                  f'<p style="margin:0 0 14px;font-size:12px;color:#f59e0b;">Not taken — '
+                  f'{watch_bar} confidence required to execute. Watch it; if the evidence '
+                  f'improves it comes back as a trade.</p>')
+
     return f"""
-  <tr><td style="background:#111;border:1px solid {dcolor}55;border-radius:14px;padding:24px 26px;">
-    <div style="display:inline-block;background:{tcolor};color:#0a0a0a;font-weight:800;font-size:12px;
+  <tr><td style="background:#111;border:1px solid {border}55;border-radius:14px;padding:24px 26px;">
+    {watch_tag}<div style="display:inline-block;background:{tcolor};color:#0a0a0a;font-weight:800;font-size:12px;
          padding:5px 12px;border-radius:999px;letter-spacing:0.04em;">{label} · {hold}</div>
     <p style="margin:10px 0 2px;font-size:12px;color:#9ca3af;">{blurb}</p>
     <h1 style="margin:12px 0 2px;font-size:30px;font-weight:800;color:{dcolor};">{demoji} {ticker} {direction}</h1>
     <p style="margin:0 0 14px;font-size:12px;color:#6b7280;">
       {now_et.strftime('%a %b %d, %I:%M %p ET')} · confidence {conf if conf is not None else '—'}/100 · data delayed ~15 min</p>
+    {watch_note}
 
     {_section("Why this is a good trade", f'<p style="margin:0;font-size:13px;color:#d1d5db;">{sig.get("why","—")}</p>', dcolor)}
     {_section("How confident, and why", _conf_bar(conf) + f'<p style="margin:0;font-size:13px;color:#d1d5db;">{sig.get("confidence_rationale","No rationale given.")}</p>')}
@@ -186,6 +206,10 @@ def _portfolio_card(psum):
     max_new = psum.get("max_new_trades_per_week") or config.MAX_NEW_TRADES_PER_WEEK
     title = ("Crypto paper portfolio (simulated)" if psum.get("book") == "crypto"
              else "Paper portfolio (simulated)")
+    # The week's shape beside its count, once there is a week to describe. A book sitting at 4/6
+    # reads as on pace and can be four scalps — the horizon that is missing only shows here.
+    by_type = psum.get("new_trades_by_type") or {}
+    mix = f" ({_mix_parts(by_type)})" if by_type else ""
     return f"""
   <tr><td style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;padding:22px 26px;">
     <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#60a5fa;">{title}</p>
@@ -193,7 +217,7 @@ def _portfolio_card(psum):
       <span style="font-size:15px;color:{rc};">({ret:+.1f}%)</span></p>
     <p style="margin:2px 0 12px;font-size:12px;color:#6b7280;">
       cash ${psum.get("cash",0):,.0f} · {psum.get("n_open",0)}/{max_pos} positions ·
-      {psum.get("new_trades_this_week",0)}/{max_new} new trades this week ·
+      {psum.get("new_trades_this_week",0)}/{max_new} new trades this week{mix} ·
       win rate {psum.get("win_rate") if psum.get("win_rate") is not None else "—"}%</p>
     <table width="100%" cellpadding="0" cellspacing="0">{rows}</table>
   </td></tr>
@@ -263,7 +287,104 @@ def _applied_card(applied, exits, broker_info=None):
   <tr><td style="height:16px;"></td></tr>"""
 
 
-def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=None, exits=None):
+_EXIT_META = {
+    "EXIT": ("🚨 CONSIDER CLOSING", "#ef4444"),
+    "TRIM": ("✂️ CONSIDER TRIMMING", "#f59e0b"),
+    "WATCH": ("👁 WATCH THIS POSITION", "#60a5fa"),
+}
+_EXIT_KIND = {"news": "news", "macro": "macro", "chart": "chart", "peaked": "the move",
+              "calendar": "calendar"}
+
+
+def _exit_alerts_card(alerts):
+    """The open book's exit warnings, at the top of the email where a warning belongs.
+
+    Deliberately worded as a recommendation throughout — "consider closing", never "closed". The
+    only thing that ever shuts a position without Lind is a mechanical stop, and an email that
+    reads like an execution report would make it impossible to tell the two apart at a glance.
+    """
+    if not alerts:
+        return ""
+    blocks = []
+    for a in alerts:
+        label, color = _EXIT_META.get(a.get("verdict"), _EXIT_META["WATCH"])
+        pnl = a.get("pnl_pct") or 0
+        pnl_color = "#22c55e" if pnl >= 0 else "#ef4444"
+        kinds = " · ".join(_EXIT_KIND.get(k, k) for k in (a.get("kinds") or []))
+        reasons = "".join(
+            f'<li style="margin:5px 0;font-size:13px;color:#d1d5db;">{r}</li>'
+            for r in (a.get("reasons") or [])[:6])
+        levels = []
+        if a.get("stop_level"):
+            levels.append(f'stop {config.format_price(a["stop_level"])}')
+        if a.get("target1"):
+            levels.append(f'T1 {config.format_price(a["target1"])}')
+        levels.append(f'peak {a.get("peak_pct", 0):+.1f}%')
+        blocks.append(f"""
+    <div style="margin:0 0 14px;padding:0 0 12px;border-bottom:1px solid #ffffff10;">
+      <p style="margin:0 0 4px;font-size:14px;">
+        <b style="color:{color};">{label} {a.get("ticker")}</b>
+        <span style="color:#6b7280;font-size:12px;"> {(a.get("trade_type") or "").upper()}
+          {a.get("direction","LONG")} · {kinds}</span></p>
+      <p style="margin:0 0 6px;font-size:13px;color:#9ca3af;">
+        entry {config.format_price(a.get("entry"))} → {config.format_price(a.get("last"))}
+        <span style="color:{pnl_color};font-weight:700;">{pnl:+.1f}%</span>
+        <span style="color:#6b7280;"> · {" · ".join(levels)}</span></p>
+      <ul style="margin:0;padding-left:18px;">{reasons}</ul>
+    </div>""")
+    worst = max((_EXIT_META.get(a.get("verdict"), _EXIT_META["WATCH"])[1] for a in alerts),
+                key=lambda c: {"#ef4444": 3, "#f59e0b": 2, "#60a5fa": 1}.get(c, 0))
+    return f"""
+  <tr><td style="background:#160b0b;border:1px solid {worst}55;border-radius:14px;padding:20px 24px;">
+    <p style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:{worst};">
+      Exit monitor — open positions</p>
+    {"".join(blocks)}
+    <p style="margin:10px 0 0;font-size:11px;color:#6b7280;">
+      Nothing here was closed. These are alerts on positions still open — only the mechanical
+      stops (hard, trailing, scalp clock) exit without you.</p>
+  </td></tr>
+  <tr><td style="height:16px;"></td></tr>"""
+
+
+def _exit_alerts_text(alerts):
+    """Same, for the plaintext body."""
+    if not alerts:
+        return []
+    lines = ["EXIT MONITOR — OPEN POSITIONS (nothing closed; alerts only):"]
+    for a in alerts:
+        lines.append(f"  [{a.get('verdict')}] {a.get('ticker')} "
+                     f"{(a.get('trade_type') or '').upper()} {a.get('direction','LONG')} — "
+                     f"{config.format_price(a.get('entry'))} → {config.format_price(a.get('last'))} "
+                     f"({a.get('pnl_pct',0):+.1f}%, peak {a.get('peak_pct',0):+.1f}%)")
+        for r in (a.get("reasons") or [])[:6]:
+            lines.append(f"     - {r}")
+    return lines + [""]
+
+
+def _below_bar_card(dropped, rules):
+    """One line for the ideas that didn't clear the floor.
+
+    They get named and counted rather than carded. Dropping them without a word would make the
+    email look like the analyst saw less than it did; giving each a full card would bury the two
+    that matter under four that don't.
+    """
+    if not dropped:
+        return ""
+    names = ", ".join(
+        f'{s.get("ticker","?")} {(s.get("direction") or "").lower()} ({s.get("confidence","—")})'
+        for s in dropped[:8])
+    more = f" +{len(dropped) - 8} more" if len(dropped) > 8 else ""
+    return f"""
+  <tr><td style="background:#0b0b0b;border:1px solid #ffffff14;border-radius:14px;padding:14px 20px;">
+    <p style="margin:0;font-size:12px;color:#6b7280;">
+      {len(dropped)} idea{"" if len(dropped) == 1 else "s"} below the {rules.watch_confidence}
+      confidence floor, not shown: <span style="color:#9ca3af;">{names}{more}</span></p>
+  </td></tr>
+  <tr><td style="height:16px;"></td></tr>"""
+
+
+def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=None, exits=None,
+                exit_alerts=None):
     signals = analysis.get("signals", []) or []
     outlook = analysis.get("market_outlook", "")
     degraded = analysis.get("degraded")
@@ -274,14 +395,43 @@ def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=N
     longs = [s for s in signals if (s.get("trade_type") or "").upper() == "LONG_TERM"]
     ordered = scalps + shorts + longs + [s for s in signals if s not in scalps + shorts + longs]
 
+    # ── the conviction split ────────────────────────────────────────────────────
+    # `portfolio.validate_action` refuses every BUY under the execute bar, so an email that renders
+    # all three bands identically describes trades the harness already declined. Watches are still
+    # worth reading — they are the setups that need one more piece of evidence — but they must not
+    # look like fills. Below the floor is noise; it gets a count, not a card, so nothing vanishes
+    # silently while nothing dilutes what's above it either.
+    rules = config.rules_for("crypto" if mode == "crypto" else "stock")
+    # "unrated" — no number stated — rides with the trades. The gates let it through for the same
+    # reason (an absent claim is not a weak one), and an email that hid a signal for a field it
+    # never filled would be the harness quietly editing the analyst.
+    banded = [(s, rules.confidence_band(s.get("confidence"))) for s in ordered]
+    trades = [s for s, b in banded if b in ("execute", "unrated")]
+    watches = [s for s, b in banded if b == "watch"]
+    dropped = [s for s, b in banded if b == "below_bar"]
+    shown = trades + watches
+
     # The crypto book gets its own subject prefix. Both books email the same inbox and the two
     # arrive interleaved at all hours; without it there is nothing in the subject that says which
     # account a BTC line belongs to.
     book = "Market Brain 🪙 Crypto" if mode == "crypto" else "Market Brain"
-    if signals:
-        tags = ", ".join(f"{s.get('ticker')} {s.get('direction','')}" for s in ordered[:5])
+    # An exit warning outranks a new idea in the subject line. A cycle can easily produce both, and
+    # the one that is time-sensitive is the position already on the book.
+    alerts = list(exit_alerts or [])
+    urgent = [a for a in alerts if a.get("verdict") in ("EXIT", "TRIM")]
+    if shown:
+        tags = ", ".join(f"{s.get('ticker')} {s.get('direction','')}" for s in shown[:5])
         prefix = "⚠️ " if degraded else ""
-        subject = f"{prefix}{book}: {tags} — {now_et.strftime('%I:%M %p ET')}"
+        if urgent:
+            prefix = "🚨 " + prefix
+        # A subject that reads like a trade list when nothing cleared the bar is the same lie the
+        # cards used to tell, one line earlier.
+        kind = "" if trades else "watch — "
+        subject = f"{prefix}{book}: {kind}{tags} — {now_et.strftime('%I:%M %p ET')}"
+    elif alerts:
+        tags = ", ".join(f"{a['verdict']} {a['ticker']}" for a in alerts[:4])
+        subject = (f"{'🚨 ' if urgent else ''}{book}: exit monitor — {tags} — "
+                   f"{now_et.strftime('%I:%M %p ET')}")
     else:
         subject = f"{book}: {mode} recap — {now_et.strftime('%I:%M %p ET')}"
 
@@ -291,23 +441,29 @@ def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=N
     <p style="margin:8px 0 0;font-size:14px;color:#d1d5db;line-height:1.5;">{outlook}</p>
   </td></tr>"""
 
-    cards = "".join(build_card(s, now_et, intel_tickers.get(s.get("ticker"))) for s in ordered)
+    cards = "".join(
+        build_card(s, now_et, intel_tickers.get(s.get("ticker")),
+                   watch_bar=None if s in trades else rules.min_confidence)
+        for s in shown)
+    cards += _below_bar_card(dropped, rules)
     pcard = _portfolio_card(portfolio_summary)
     mcard = _macro_card(intel)
     acard = _applied_card(applied, exits, (portfolio_summary or {}).get("broker"))
+    xcard = _exit_alerts_card(alerts)
 
     html = f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#e5e7eb;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px;">
 <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
-{header}{mcard}{acard}{cards}{pcard}
+{header}{xcard}{mcard}{acard}{cards}{pcard}
 <tr><td style="padding:8px 4px;font-size:11px;color:#4b5563;text-align:center;">{config.DISCLAIMER}</td></tr>
 </table></td></tr></table>
 </body></html>"""
 
     # plain-text fallback
     lines = [f"MARKET BRAIN — {mode.upper()} ({now_et.strftime('%a %b %d %I:%M %p ET')})", "", outlook, ""]
+    lines += _exit_alerts_text(alerts)
     if intel and intel.get("macro_read"):
         lines += [f"NEWS READ ({intel.get('model')}): {intel['macro_read']}",
                   f"  macro news sentiment {intel.get('macro_sentiment', 0):+d}", ""]
@@ -319,8 +475,9 @@ def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=N
         for a in applied or []:
             lines.append(f"  {a}")
         lines.append("")
-    for s in ordered:
-        lines.append(f"[{(s.get('trade_type') or '').upper()}] {s.get('ticker')} {s.get('direction')} "
+    for s in shown:
+        tag = "" if s in trades else f"[WATCH — {rules.min_confidence} to execute] "
+        lines.append(f"{tag}[{(s.get('trade_type') or '').upper()}] {s.get('ticker')} {s.get('direction')} "
                      f"(conf {s.get('confidence')}) — hold {s.get('holding_period')}")
         lines.append(f"  Why: {s.get('why','')}")
         lines.append(f"  Confidence: {s.get('confidence')} — {s.get('confidence_rationale','')}")
@@ -339,6 +496,10 @@ def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=N
         if s.get("historical_analog"):
             lines.append(f"  Analog: {s.get('historical_analog')}")
         lines.append(f"  Sources: {', '.join(s.get('data_sources', []))}")
+        lines.append("")
+    if dropped:
+        lines.append(f"{len(dropped)} below the {rules.watch_confidence} confidence floor, not shown: "
+                     + ", ".join(f"{s.get('ticker')} ({s.get('confidence')})" for s in dropped))
         lines.append("")
     if portfolio_summary:
         lines.append(f"PAPER PORTFOLIO ({portfolio_summary.get('book','stock')}): "
@@ -474,6 +635,97 @@ def _week_ahead_html(ahead):
     return f'<ul style="margin:0;padding-left:18px;">{li}</ul>'
 
 
+_MIX_LABEL = {"SCALP": "scalp", "SHORT_TERM": "swing", "LONG_TERM": "long"}
+
+
+def _mix_parts(mix):
+    """"2 scalp · 1 swing · 0 long" — the week's shape spelled out, zeros included.
+
+    The zeros are the whole point. A week that opened five trades reads as on-pace from the count
+    alone and can be five scalps, which is what "you havent given me long term trades" was
+    describing. An untagged position is appended rather than folded into a horizon it never claimed.
+    """
+    mix = mix or {}
+    parts = [f"{int(mix.get(h, 0) or 0)} {_MIX_LABEL[h]}" for h in config.TRADE_HORIZONS]
+    if mix.get("UNSPECIFIED"):
+        parts.append(f"{int(mix['UNSPECIFIED'])} untagged")
+    return " · ".join(parts)
+
+
+def _mix_html(st):
+    """The shape against the target, ambered while the long slot is still open."""
+    mix = st.get("mix_opened") or {}
+    target = st.get("mix_target") or config.WEEKLY_MIX
+    short = int(target.get("LONG_TERM", 0) or 0) - int(mix.get("LONG_TERM", 0) or 0)
+    color = "#f59e0b" if short > 0 else "#22c55e"
+    return (f'<span style="color:{color};font-weight:700;">{_mix_parts(mix)}</span> '
+            f'<span style="color:#6b7280;">/ wants {_mix_parts(target)}</span>')
+
+
+def _crypto_recap_html(crypto):
+    """The crypto book's week, as a card inside the equity recap.
+
+    Deliberately the short form — the numbers, the closed trades, the pace. The narrative, the
+    gradings and the proposed changes are written across both books at once, so repeating those
+    per book would say the same thing twice.
+    """
+    if not crypto:
+        return ('<p style="margin:0;font-size:13px;color:#6b7280;">'
+                'No crypto book figures this week.</p>')
+    st = crypto.get("stats", {})
+    ret = st.get("week_return_pct", 0) or 0
+    rc = "#22c55e" if ret >= 0 else "#ef4444"
+    wr = st.get("win_rate")
+    target = st.get("weekly_trade_target") or 0
+    opened_n = st.get("n_opened", 0)
+    pace_c = "#22c55e" if opened_n >= target else ("#f59e0b" if opened_n >= target - 2 else "#ef4444")
+    pace = (f'<span style="color:{pace_c};font-weight:700;">{opened_n}</span> '
+            f'<span style="color:#6b7280;">/ {target} target</span>')
+    rows = "".join(
+        f'<li style="margin:5px 0;font-size:13px;color:#d1d5db;">'
+        f'<b>{c.get("ticker")}</b> <span style="color:#6b7280;">{c.get("trade_type") or "—"}</span> '
+        f'{c.get("entry")} → {c.get("exit")} '
+        f'<span style="color:{"#22c55e" if (c.get("pnl_pct") or 0) >= 0 else "#ef4444"};">'
+        f'{c.get("pnl_pct",0):+.1f}%</span> '
+        f'<span style="color:#6b7280;">{(c.get("reason") or "")[:60]}</span></li>'
+        for c in crypto.get("closed") or [])
+    trades = (f'<ul style="margin:0;padding-left:18px;">{rows}</ul>' if rows else
+              '<p style="margin:0;font-size:13px;color:#6b7280;">No crypto trades closed this week.</p>')
+    return (
+        f'<p style="margin:0;font-size:26px;font-weight:800;color:{rc};">{ret:+.2f}%</p>'
+        f'<p style="margin:2px 0 12px;font-size:13px;color:#9ca3af;">'
+        f'${st.get("equity_start",0):,.0f} → <b style="color:#fff;">${st.get("equity_end",0):,.0f}</b>'
+        f' · realised ${st.get("realized_usd",0):+,.0f}</p>'
+        f'<table width="100%" cellpadding="0" cellspacing="0">'
+        f'{_row("Alpha vs benchmark", _bench_html(st))}'
+        f'{_row("Closed trades", st.get("n_closed", 0))}'
+        f'{_row("Opened this week", pace)}'
+        f'{_row("Trade mix", _mix_html(st))}'
+        f'{_row("Still open", st.get("n_open", 0))}'
+        f'{_row("Win rate", f"{wr}%" if wr is not None else "—")}'
+        f'</table>'
+        f'<div style="height:12px;"></div>{trades}')
+
+
+def _bench_html(stats):
+    """The alpha cell: what the book did against the index it is trying to beat.
+
+    This is the one number in the recap that answers the question the whole system was built to
+    answer, so it renders green/red on *alpha* rather than on the book's own return — a +3% week
+    against a +5% SPY is red here and should be. Amber when the comparison could not be made,
+    because "unknown" must not be mistaken for "flat".
+    """
+    b = (stats or {}).get("benchmark") or {}
+    if not b.get("available"):
+        return (f'<span style="color:#f59e0b;">not measurable</span> '
+                f'<span style="color:#6b7280;">— {b.get("reason", "no benchmark data")}</span>')
+    a = b.get("alpha_pct", 0)
+    c = "#22c55e" if b.get("beat") else "#ef4444"
+    return (f'<span style="color:{c};font-weight:700;">{a:+.2f} pts</span> '
+            f'<span style="color:#6b7280;">(book {b["book_return_pct"]:+.2f}% vs '
+            f'{b["ticker"]} {b["benchmark_return_pct"]:+.2f}%)</span>')
+
+
 def build_weekly_email(recap, now_et):
     """The Friday-close recap: how the week went, every trade and signal, and what to change."""
     st = recap.get("stats", {})
@@ -539,6 +791,13 @@ def build_weekly_email(recap, now_et):
     meas_html = _measured_html(an)
     pipe_html = _pipeline_html(recap.get("pipeline_changes"))
     ahead_html = _week_ahead_html(recap.get("week_ahead"))
+    # An unreadable crypto ledger drops the card rather than printing an empty one — the equity
+    # recap is the email, and a section with nothing in it reads like a rendering fault.
+    crypto_card = (
+        '<tr><td style="background:#0c1512;border:1px solid #34d39944;border-radius:14px;'
+        f'padding:22px 26px;">{_section("Crypto book — the same week, the other ledger", _crypto_recap_html(recap["crypto"]), "#34d399")}'
+        '</td></tr><tr><td style="height:16px;"></td></tr>'
+    ) if recap.get("crypto") else ""
 
     html = f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
@@ -556,8 +815,10 @@ def build_weekly_email(recap, now_et):
       ${st.get("equity_start",0):,.0f} → <b style="color:#fff;">${st.get("equity_end",0):,.0f}</b>
       · realised ${st.get("realized_usd",0):+,.0f}</p>
     <table width="100%" cellpadding="0" cellspacing="0">
+      {_row("Alpha vs benchmark", _bench_html(st))}
       {_row("Closed trades", st.get("n_closed", 0))}
       {_row("Opened this week", pace_html)}
+      {_row("Trade mix", _mix_html(st))}
       {_row("Still open", st.get("n_open", 0))}
       {_row("Win rate", f"{wr}%" if wr is not None else "—")}
       {_row("Best / worst", f'{st.get("best","—")} / {st.get("worst","—")}')}
@@ -573,6 +834,8 @@ def build_weekly_email(recap, now_et):
     {_section("Every signal — recommended vs. executed", sig_html, "#f59e0b")}
   </td></tr>
   <tr><td style="height:16px;"></td></tr>
+
+  {crypto_card}
 
   <tr><td style="background:#111;border:1px solid #ffffff14;border-radius:14px;padding:22px 26px;">
     {_section("Measured performance", meas_html, "#a78bfa")}
@@ -605,6 +868,8 @@ def build_weekly_email(recap, now_et):
              f"Realised ${st.get('realized_usd',0):+,.0f} across {st.get('n_closed',0)} closed trade(s)",
              f"Win rate: {wr if wr is not None else 'n/a'}  ·  best {st.get('best','—')} / worst {st.get('worst','—')}",
              f"Opened this week: {opened_n} / {target} target",
+             f"Trade mix: {_mix_parts(st.get('mix_opened'))}  "
+             f"(wants {_mix_parts(st.get('mix_target') or config.WEEKLY_MIX)})",
              "", "HOW THE WEEK WENT", recap.get("narrative") or "—", "", "TRADES CLOSED"]
     for c in recap.get("closed", []) or []:
         lines.append(f"  {c.get('ticker')} [{c.get('trade_type') or '—'}] conf {c.get('confidence')} "
@@ -612,6 +877,26 @@ def build_weekly_email(recap, now_et):
                      f"(${c.get('pnl_usd',0):+,.0f}) — {c.get('reason','')}")
     if not recap.get("closed"):
         lines.append("  none")
+
+    cr = recap.get("crypto")
+    if cr:
+        cst = cr.get("stats", {})
+        lines += ["", "CRYPTO BOOK — SAME WEEK, OTHER LEDGER",
+                  f"  Week: {cst.get('week_return_pct',0):+.2f}%  "
+                  f"(${cst.get('equity_start',0):,.0f} -> ${cst.get('equity_end',0):,.0f})",
+                  f"  Realised ${cst.get('realized_usd',0):+,.0f} across "
+                  f"{cst.get('n_closed',0)} closed trade(s)",
+                  f"  Opened this week: {cst.get('n_opened',0)} / "
+                  f"{cst.get('weekly_trade_target',0)} target  ·  still open "
+                  f"{cst.get('n_open',0)}",
+                  f"  Trade mix: {_mix_parts(cst.get('mix_opened'))}  "
+                  f"(wants {_mix_parts(cst.get('mix_target') or config.CRYPTO_WEEKLY_MIX)})"]
+        for c in cr.get("closed") or []:
+            lines.append(f"    {c.get('ticker')} [{c.get('trade_type') or '—'}] "
+                         f"{c.get('entry')} -> {c.get('exit')} {c.get('pnl_pct',0):+.1f}% "
+                         f"(${c.get('pnl_usd',0):+,.0f}) — {c.get('reason','')}")
+        if not cr.get("closed"):
+            lines.append("    none")
 
     sig = an.get("signals") or {}
     if sig.get("n_signals"):
@@ -807,6 +1092,41 @@ def _calendar_html(events, speeches):
     return "".join(out)
 
 
+def _crypto_standing_html(cs):
+    """Where the other ledger stands going into the week.
+
+    Read off the crypto summary's own caps, never the equity constants — the two books have
+    never had the same limits and rendering "3/8" against the wrong one is worse than silence.
+    """
+    if not cs:
+        return ('<p style="margin:0;font-size:13px;color:#6b7280;">'
+                'Crypto ledger unavailable this run.</p>')
+    ret = cs.get("total_return_pct", 0) or 0
+    rc = "#22c55e" if ret >= 0 else "#ef4444"
+    rows = (_row("Paper equity",
+                 f'${cs.get("equity", 0):,.0f} '
+                 f'<span style="color:{rc};">({ret:+.1f}%)</span>')
+            + _row("Open positions",
+                   f'{cs.get("n_open", 0)}/{cs.get("max_positions", "—")}')
+            + _row("New trades used this week",
+                   f'{cs.get("new_trades_this_week", 0)}/'
+                   f'{cs.get("max_new_trades_per_week", "—")}'))
+    pos = "".join(
+        f'<li style="margin:4px 0;font-size:13px;color:#d1d5db;">'
+        f'<b style="color:#e5e7eb;font-family:monospace;">{p["ticker"]}</b> '
+        f'{p.get("trade_type") or "—"} · '
+        f'<span style="color:{"#22c55e" if p["pnl_pct"] >= 0 else "#ef4444"};">'
+        f'{p["pnl_pct"]:+.1f}%</span></li>'
+        for p in cs.get("open_positions", []) or [])
+    carried = (f'<ul style="margin:10px 0 0;padding-left:18px;">{pos}</ul>' if pos else
+               '<p style="margin:10px 0 0;font-size:13px;color:#6b7280;">'
+               'Flat into the week — nothing to defend overnight.</p>')
+    return (f'<table width="100%" cellpadding="0" cellspacing="0">{rows}</table>{carried}'
+            '<p style="margin:12px 0 0;font-size:12px;color:#6b7280;line-height:1.6;">'
+            'New crypto entries follow the US session too. Stops, trailing stops and the '
+            '24-hour scalp clock keep running hourly through the night and the weekend.</p>')
+
+
 def build_digest_email(digest, now_et):
     """The week-ahead digest — the one email that arrives before the week starts.
 
@@ -897,6 +1217,7 @@ def build_digest_email(digest, now_et):
 
   <tr><td style="background:#111;border:1px solid #ffffff14;border-radius:14px;padding:22px 26px;">
     {_section("The book going in", pos_html)}
+    {_section("Crypto book going in", _crypto_standing_html(digest.get("crypto_portfolio")), "#34d399")}
     {lw_html}
     {watch_html}
     {_section("How this week runs", f'<ul style="margin:0;padding-left:18px;">{plan_html}</ul>' if plan_html else '')}
@@ -910,6 +1231,17 @@ def build_digest_email(digest, now_et):
              f"Paper equity ${psum.get('equity', 0):,.0f} ({ret:+.1f}%), "
              f"{psum.get('n_open', 0)}/{config.MAX_POSITIONS} open, "
              f"{len(theses)} long-term thesis/theses on the board.", ""]
+    cs = digest.get("crypto_portfolio")
+    if cs:
+        cret = cs.get("total_return_pct", 0) or 0
+        lines += ["CRYPTO BOOK GOING IN",
+                  f"  Paper equity ${cs.get('equity', 0):,.0f} ({cret:+.1f}%), "
+                  f"{cs.get('n_open', 0)}/{cs.get('max_positions', '-')} open, "
+                  f"{cs.get('new_trades_this_week', 0)}/"
+                  f"{cs.get('max_new_trades_per_week', '-')} new trades used."]
+        for p in cs.get("open_positions", []) or []:
+            lines.append(f"    {p['ticker']} {p.get('trade_type') or '-'} {p['pnl_pct']:+.1f}%")
+        lines.append("")
     if digest.get("regime"):
         lines += ["STRUCTURAL READ", f"  {digest['regime']}", ""]
     if theses:

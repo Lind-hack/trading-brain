@@ -169,7 +169,9 @@ def test_the_news_pass_hands_forward_both_its_scores_and_its_headlines(monkeypat
                         lambda h, m, c, use_claude=True: {"tickers": {}, "degraded": False})
 
     intel = news_intel.run(["AAPL"], use_claude=False)
-    assert intel["news_quality"] == {"kept": 1, "dropped": 4}
+    # `cited` rides along on the same stats dict — the reuse pass stamps what the read actually
+    # quoted, and an analysis returning no tickers quoted nothing.
+    assert intel["news_quality"] == {"kept": 1, "dropped": 4, "cited": 0}
     assert intel["headlines"]["AAPL"][0]["crowding"] == "under-covered"
 
 

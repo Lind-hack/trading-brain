@@ -71,7 +71,10 @@ def screen(market, calendar=None, held_tickers=None, force=False, threshold=3,
                     Flagging and escalating are separate questions once the universe is wide
                     enough that something is always flagged; below this bar the triggers still
                     reach the packet, they just do not buy a deep run on their own. A held name
-                    escalates at any score. None keeps the original "any trigger escalates".
+                    clears one step lower. None keeps the original "any trigger escalates".
+
+                    This is the *level* gate. brain/escalate.py then applies the delta gate on top
+                    of it, because a standing trigger clears any level bar on every cycle forever.
 
     Returns dict: {escalate: bool, why: [...], triggers: [{ticker, score, reasons}], calendar_flags: [...]}.
     """
@@ -100,8 +103,12 @@ def screen(market, calendar=None, held_tickers=None, force=False, threshold=3,
     if escalate_score is None:
         worth_a_deep_run = list(triggers)
     else:
+        # A held name gets a step of relief, not a free pass. "Held ⇒ escalate at any score" read
+        # as prudence and behaved as a bypass: once the book carries a position, every cycle has a
+        # held name flagged at *something*, so the bar stopped existing. One step down still buys
+        # the look sooner for a position under stress, which is the case it was written for.
         worth_a_deep_run = [t for t in triggers
-                            if t["score"] >= escalate_score or t["held"]]
+                            if t["score"] >= (escalate_score - 1 if t["held"] else escalate_score)]
 
     escalate = force or calendar_pressure or bool(worth_a_deep_run)
     if force:

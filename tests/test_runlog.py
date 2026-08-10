@@ -178,34 +178,63 @@ def test_the_weekly_recap_runs_once_on_friday_and_never_earlier(memdir):
     assert len(ran) == 1 and ran[0].startswith("Fri")
 
 
-def test_the_digest_runs_once_on_the_first_trading_day_of_the_week(memdir):
-    """Both offered ticks are legal in both seasons — the run-log is what makes it one email."""
-    ran = []
-    for day in (27, 28, 29, 30, 31):                    # Mon–Fri, Jul 2026
-        for hh, mm in [(12, 5), (13, 5)]:
-            now = _utc_to_et(7, day, hh, mm)
+# The digest's offered ticks, in UTC: the Sunday evening pair it now lands on, plus the weekday
+# retries — an evening one for a holiday-shifted week, and the two pre-open ones.
+DIGEST_SUNDAY = [(21, 5), (22, 5)]
+DIGEST_WEEKDAY = [(12, 5), (13, 5), (21, 5)]
+
+
+def _walk_digest(month, days, ran=None):
+    """Every offered digest tick over `days`, gated and de-duplicated exactly as cron would."""
+    ran = ran if ran is not None else []
+    for day in days:
+        for hh, mm in DIGEST_SUNDAY + DIGEST_WEEKDAY:
+            now = _utc_to_et(month, day, hh, mm)
+            if now.weekday() == 6 and (hh, mm) not in DIGEST_SUNDAY:
+                continue
+            if now.weekday() != 6 and (hh, mm) not in DIGEST_WEEKDAY:
+                continue
             if mh.gate("digest", now)[0] and not runlog.already_ran("digest", now):
                 runlog.mark_ran("digest", now)
                 ran.append(now.strftime("%a %H:%M"))
+    return ran
+
+
+def test_the_digest_runs_once_on_the_eve_of_the_week(memdir):
+    """Five offered ticks across six days — the run-log is what makes it one email."""
+    ran = _walk_digest(7, (26, 27, 28, 29, 30, 31))     # Sun–Fri, Jul 2026
+    assert len(ran) == 1 and ran[0].startswith("Sun"), ran
+
+
+def test_a_dead_sunday_still_gets_the_week_ahead_out(memdir):
+    """The Monday morning tick is the retry. It only fires when Sunday recorded nothing."""
+    ran = _walk_digest(7, (27, 28, 29, 30, 31))         # Mon–Fri only: Sunday never ran
     assert len(ran) == 1 and ran[0].startswith("Mon"), ran
 
 
+def test_sunday_and_monday_cannot_both_send(memdir):
+    """The one failure a per-day stamp would have allowed: the digest's ticks span two dates."""
+    runlog.mark_ran("digest", _utc_to_et(7, 26, 21, 5))  # Sunday evening, recorded
+    assert runlog.already_ran("digest", _utc_to_et(7, 27, 12, 5)) is True
+    assert _walk_digest(7, (27, 28, 29, 30, 31)) == []
+
+
+def test_last_weeks_digest_does_not_block_this_one(memdir):
+    """Stamping by week is only safe if the stamp actually rolls over."""
+    runlog.mark_ran("digest", _utc_to_et(7, 26, 21, 5))
+    assert runlog.already_ran("digest", _utc_to_et(8, 2, 21, 5)) is False
+
+
 def test_the_digest_survives_a_holiday_monday(memdir):
-    """Labor Day 2026 is Monday Sep 7, so the week — and the digest — start on the Tuesday."""
-    ran = []
-    for day in (7, 8, 9, 10, 11):                       # Mon–Fri, Sep 2026
-        for hh, mm in [(12, 5), (13, 5)]:
-            now = _utc_to_et(9, day, hh, mm)
-            if mh.gate("digest", now)[0] and not runlog.already_ran("digest", now):
-                runlog.mark_ran("digest", now)
-                ran.append(now.strftime("%a %H:%M"))
-    assert len(ran) == 1 and ran[0].startswith("Tue"), ran
+    """Labor Day 2026 is Monday Sep 7, so the week starts Tuesday — and its eve is the Monday."""
+    ran = _walk_digest(9, (6, 7, 8, 9, 10, 11))         # Sun–Fri, Sep 2026
+    assert len(ran) == 1 and ran[0].startswith("Mon"), ran
 
 
 def test_the_digest_tick_is_inside_the_window_in_winter_too(memdir):
-    """12:05 UTC is 07:05 ET in January — still pre-open, still inside the 5h digest window."""
-    now = _utc_to_et(1, 26, 12, 5)                      # Monday, Jan 2026
-    assert mh.gate("digest", now)[0]
+    """21:05 UTC is 16:05 ET in January — still Sunday, which is all the eve check asks."""
+    assert mh.gate("digest", _utc_to_et(1, 25, 21, 5))[0]   # Sunday, Jan 2026
+    assert mh.gate("digest", _utc_to_et(1, 26, 12, 5))[0]   # Monday retry, 07:05 ET
 
 
 def test_the_digest_and_the_pre_anchor_do_not_both_fire_on_monday(memdir):

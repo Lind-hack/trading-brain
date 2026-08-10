@@ -430,6 +430,7 @@ def write_weekly_recap(recap, now_et=None):
             "## Numbers\n\n",
             f"- Equity: ${st.get('equity_start', 0):,.2f} → ${st.get('equity_end', 0):,.2f} "
             f"(**{st.get('week_return_pct', 0):+.2f}%**)\n",
+            benchmark_line(st),
             f"- Realised this week: ${st.get('realized_usd', 0):+,.2f} across "
             f"{st.get('n_closed', 0)} closed trade(s)\n",
             f"- Win rate: {st.get('win_rate')}%" if st.get("win_rate") is not None
@@ -462,6 +463,27 @@ def write_weekly_recap(recap, now_et=None):
                 lines.append(f"- **{o.get('ticker')}** {o.get('trade_type') or ''} — entry "
                              f"{o.get('entry')} · now {o.get('last')} "
                              f"({o.get('pnl_pct', 0):+.1f}%)\n")
+            lines.append("\n")
+
+        cr = recap.get("crypto")
+        if cr:
+            cst = cr.get("stats", {})
+            lines.append("## Crypto book\n\n")
+            lines.append(f"- Equity: ${cst.get('equity_start', 0):,.2f} → "
+                         f"${cst.get('equity_end', 0):,.2f} "
+                         f"(**{cst.get('week_return_pct', 0):+.2f}%**)\n")
+            # BTC, not SPY — see CRYPTO_RULES.benchmark for why the crypto book is graded
+            # against the majors rather than against an index it does not compete with.
+            lines.append(benchmark_line(cst))
+            lines.append(f"- Realised ${cst.get('realized_usd', 0):+,.2f} across "
+                         f"{cst.get('n_closed', 0)} closed trade(s)\n")
+            lines.append(f"- Opened this week: {cst.get('n_opened', 0)} / "
+                         f"{cst.get('weekly_trade_target', 0)} target · still open "
+                         f"{cst.get('n_open', 0)}\n")
+            for c in cr.get("closed") or []:
+                lines.append(f"  - **{c.get('ticker')}** {c.get('trade_type') or '—'} "
+                             f"{c.get('entry')} → {c.get('exit')} "
+                             f"{c.get('pnl_pct', 0):+.1f}% — {(c.get('reason') or '')[:70]}\n")
             lines.append("\n")
 
         lines += _recap_signal_section(recap)
@@ -680,11 +702,84 @@ def week_analytics(closed, signals=None):
 
 # ── Recap assembly (deterministic; the model only writes the narrative) ─────────
 
+def benchmark_line(stats):
+    """One markdown line stating whether the book beat its index — or why that is unknown.
+
+    Shared by the Obsidian recap note and the weekly email so the two can never quote different
+    arithmetic at the same week. Always returns a line: "not measurable" is itself the finding
+    when the ledger has not been carrying benchmark prices long enough.
+    """
+    b = (stats or {}).get("benchmark") or {}
+    if not b.get("available"):
+        return f"- vs benchmark: not measurable — {b.get('reason', 'no benchmark data')}\n"
+    verdict = "**beat**" if b.get("beat") else "**trailed**"
+    return (f"- vs {b['ticker']}: book {b['book_return_pct']:+.2f}% vs index "
+            f"{b['benchmark_return_pct']:+.2f}% → {verdict} by "
+            f"**{abs(b['alpha_pct']):.2f} pts** (alpha {b['alpha_pct']:+.2f})\n")
+
+
+def _benchmark_leg(curve, ticker):
+    """What the index did over the same window, and what the book did against it.
+
+    Lind's goal for this whole system is stated in one line — "the main goal is to beat the
+    s&p500 cause that is what most traders invest in" — and until now nothing computed it. The
+    ledger reported `week_return_pct` and `total_return_pct`, both absolute, both unable to
+    distinguish a good week from a rising tide. A +4% week against a +6% SPY is a losing week and
+    read as a winning one.
+
+    The comparison is drawn from the equity curve itself, where `mark_to_market` stamps the
+    benchmark's price onto the same point as the equity it is measured against. That matters more
+    than it sounds: the alternative is fetching "SPY over roughly this week" separately, which
+    quietly compares two different windows and produces an alpha number nobody can reconstruct.
+
+    Both legs are measured across the *paired* points — first and last cycle that carried a
+    benchmark quote — rather than the full week. A week that only started stamping the benchmark
+    on Wednesday gets a Wednesday-to-Friday alpha and says so in `window_points`, instead of
+    silently comparing five days of equity against two of index.
+
+    Returns `available: False` with a `reason` when it cannot be computed, never a zero. A book
+    that could not measure its benchmark has not tied with it.
+    """
+    if not ticker:
+        return {"available": False, "reason": "book has no benchmark configured"}
+    pts = [e for e in (curve or []) if e.get("bench") and e.get("equity")]
+    if len(pts) < 2:
+        return {"available": False, "ticker": ticker, "window_points": len(pts),
+                "reason": (f"fewer than two cycles this window carried a {ticker} quote — "
+                           "the comparison needs a start and an end, and points written before "
+                           "benchmark tracking shipped do not have one")}
+    b_start, b_end = pts[0]["bench"], pts[-1]["bench"]
+    e_start, e_end = pts[0]["equity"], pts[-1]["equity"]
+    if not b_start or not e_start:
+        return {"available": False, "ticker": ticker, "reason": "zero price or equity at window start"}
+    bench_pct = round((b_end - b_start) / b_start * 100, 2)
+    book_pct = round((e_end - e_start) / e_start * 100, 2)
+    return {
+        "available": True,
+        "ticker": ticker,
+        "benchmark_return_pct": bench_pct,
+        # The book's return over the benchmark's exact window, which is not always the week's
+        # headline `week_return_pct` — quote this one whenever quoting alpha, or the subtraction
+        # does not hold.
+        "book_return_pct": book_pct,
+        "alpha_pct": round(book_pct - bench_pct, 2),
+        "beat": book_pct > bench_pct,
+        "window_points": len(pts),
+        "window": [pts[0].get("ts"), pts[-1].get("ts")],
+    }
+
+
 def build_recap(portfolio, week_start_iso, prices=None, narrative=None, changes=None,
                 mistakes=None, successes=None, week_label=None, signals=None,
                 week_ahead=None, pipeline_changes=None):
-    """Compute the week's numbers from the ledger. Pure arithmetic — no model involved."""
+    """Compute the week's numbers from the ledger. Pure arithmetic — no model involved.
+
+    Book-agnostic: every rule it reads comes off `portfolio.rules`, so the same function produces
+    the equity recap and the crypto one. It used to read `config.WEEKLY_TRADE_TARGET` directly,
+    which would have graded the crypto book's three-trade pace against the equity book's five.
+    """
     prices = prices or {}
+    rules = getattr(portfolio, "rules", None) or config.STOCK_RULES
     closed = portfolio.trades_between(week_start_iso)
     opened = portfolio.opened_between(week_start_iso)
     summary = portfolio.summary(prices)
@@ -694,14 +789,24 @@ def build_recap(portfolio, week_start_iso, prices=None, narrative=None, changes=
              if e.get("ts", "") >= week_start_iso]
     equity_start = curve[0]["equity"] if curve else summary["equity"]
     equity_end = summary["equity"]
+    bench = _benchmark_leg(curve, getattr(rules, "benchmark", None))
     best = max(closed, key=lambda c: c.get("pnl_pct", 0), default=None)
     worst = min(closed, key=lambda c: c.get("pnl_pct", 0), default=None)
     gradings = []
     for c in closed:
         verdict, _, notes = _grade(c)
         gradings.append({"ticker": c.get("ticker"), "verdict": verdict, "notes": notes})
+    # The week's shape, not only its size. A book that opened five trades is on pace by the count
+    # and can still have taken five scalps — which is exactly the history here: zero LONG_TERM
+    # trades in 805 signals. Counted off `opened` rather than the live summary so the recap of a
+    # past week reports that week.
+    mix_opened = {}
+    for o in opened:
+        h = config.normalize_trade_type(o.get("trade_type")) or "UNSPECIFIED"
+        mix_opened[h] = mix_opened.get(h, 0) + 1
     return {
         "week_label": week_label or f"week of {week_start_iso[:10]}",
+        "book": rules.name,
         "narrative": narrative,
         "changes": changes or [],
         "pipeline_changes": pipeline_changes or [],
@@ -721,12 +826,18 @@ def build_recap(portfolio, week_start_iso, prices=None, narrative=None, changes=
             # Activity against the pace target, so the review judges how much the brain traded
             # as well as how well. A week under target is not automatically a failure — a dead
             # tape is a real answer — but it is a question the review has to answer explicitly.
-            "weekly_trade_target": config.WEEKLY_TRADE_TARGET,
-            "pace_gap": len(opened) - config.WEEKLY_TRADE_TARGET,
+            "weekly_trade_target": rules.weekly_trade_target,
+            "pace_gap": len(opened) - rules.weekly_trade_target,
+            "mix_opened": mix_opened,
+            "mix_target": dict(rules.weekly_mix),
+            "mix_gap": rules.mix_gap(mix_opened),
             "win_rate": round(len(wins) / len(closed) * 100, 1) if closed else None,
             "best": f"{best['ticker']} {best['pnl_pct']:+.1f}%" if best else "—",
             "worst": f"{worst['ticker']} {worst['pnl_pct']:+.1f}%" if worst else "—",
             "total_return_pct": summary["total_return_pct"],
+            # The only number on this block that says whether the week was actually any good.
+            # See _benchmark_leg — absent rather than zero when it could not be measured.
+            "benchmark": bench,
         },
     }
 
@@ -743,9 +854,10 @@ _RECAP_TRADE_FIELDS = (
 )
 
 
-def recap_packet(recap):
-    """Compact JSON the weekly-review model reasons over to write the narrative + changes."""
-    return jsonio.dumps({
+def _packet_book(recap):
+    """One book's numbers, in the shape the reviewer reads them."""
+    return {
+        "book": recap.get("book"),
         "stats": recap["stats"],
         "closed_trades": [{k: c.get(k) for k in _RECAP_TRADE_FIELDS if c.get(k) is not None}
                           for c in recap["closed"]],
@@ -754,5 +866,19 @@ def recap_packet(recap):
         # Measured, not remembered: the reviewer sees its own hit rates rather than
         # reconstructing them from the trade list and guessing.
         "measured_performance": recap.get("analytics") or {},
-        "week_ahead": recap.get("week_ahead") or {},
-    }, indent=2, default=str)
+    }
+
+
+def recap_packet(recap):
+    """Compact JSON the weekly-review model reasons over to write the narrative + changes.
+
+    The equity book stays at the top level — the keys the review prompt names have not moved —
+    and the crypto book rides alongside under `crypto_book` when the recap carries one. Both are
+    in the same packet on purpose: they are one week of one operator's decisions, and a lesson
+    learned on a crypto scalp usually applies to an equity one.
+    """
+    body = dict(_packet_book(recap))
+    body["week_ahead"] = recap.get("week_ahead") or {}
+    if recap.get("crypto"):
+        body["crypto_book"] = _packet_book(recap["crypto"])
+    return jsonio.dumps(body, indent=2, default=str)

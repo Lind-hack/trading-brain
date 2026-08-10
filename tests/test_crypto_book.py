@@ -324,9 +324,24 @@ def test_the_equity_gate_is_still_shut_at_those_same_moments():
     assert not mh.gate("cycle", _utc(2026, 12, 25, 15, 0))[0]          # Christmas
 
 
-def test_crypto_entries_are_allowed_at_any_hour():
-    assert mh.crypto_entries_allowed(_utc(2026, 8, 2, 4, 0))           # Sunday 04:00 UTC
+def test_crypto_entries_now_follow_the_us_session():
+    """Unconditional until 2026-08-01. The venue is still 24/7 — what is gated is the *analysis*."""
+    assert not mh.crypto_entries_allowed(_utc(2026, 8, 2, 4, 0))       # Sunday 04:00 UTC
     assert not mh.entries_allowed(_utc(2026, 8, 2, 4, 0))
+    assert mh.crypto_entries_allowed(_utc(2026, 8, 3, 15, 0))          # Mon 11:00 ET, session open
+
+
+def test_the_risk_pass_still_runs_when_analysis_does_not():
+    """The 24h scalp clock is why. A scalp filled 03:00 UTC Saturday expires 03:00 UTC Sunday and
+    nothing but the hourly cycle is there to close it."""
+    sunday_night = _utc(2026, 8, 2, 4, 0)
+    assert mh.crypto_gate("cycle", sunday_night)[0]
+    assert not mh.crypto_gate("analysis", sunday_night)[0]
+
+
+def test_the_analysis_gate_names_why_it_is_shut():
+    assert "weekend" in mh.crypto_gate("analysis", _utc(2026, 8, 2, 4, 0))[1]
+    assert "outside the US session" in mh.crypto_gate("analysis", _utc(2026, 8, 3, 4, 0))[1]
 
 
 def test_crypto_daily_anchor_fires_just_after_the_utc_roll():

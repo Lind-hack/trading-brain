@@ -2,9 +2,13 @@
 
 test_crypto_book.py covers the pieces — the universe, the thresholds, the separate ledger. This
 file covers the seam: that `--crypto-cycle` exists, that it runs the crypto book rather than the
-equity one, and above all that it does **not** pass through the equity session gate. That last one
-is the whole feature. A crypto track that stops at 16:00 ET and all weekend is not a 24/7 track,
-and the scalp time stop would have nothing running at 03:00 UTC to fire it.
+equity one, and that it does **not** pass through the equity session gate — the cycle itself runs
+every hour of every day, because a crypto track that stops at 16:00 ET and all weekend would have
+nothing running at 03:00 UTC to fire the scalp time stop.
+
+Since 2026-08-01 that is a split rather than a blanket exemption: the *risk* pass still runs around
+the clock, the *analysis* (Haiku's news read, Opus's deep run, any new entry) only runs Mon–Fri
+while the US session is open. The off-hours tests below pin the half that has to cost nothing.
 
 Run:  python -m pytest tests/test_crypto_cycle.py -q
 """
@@ -42,7 +46,18 @@ def _snap(price, ticker):
 
 
 @pytest.fixture
-def quiet_market(monkeypatch):
+def in_session(monkeypatch):
+    """Hold the analysis gate open, so a test about the cycle is not also a test about the clock.
+
+    Without this every one of these passes or fails on the day the suite happens to run — they were
+    written before the gate existed and a Saturday afternoon turned six of them red.
+    """
+    monkeypatch.setattr(market_hours, "crypto_analysis_allowed",
+                        lambda now=None: (True, "US session open — full analysis"))
+
+
+@pytest.fixture
+def quiet_market(monkeypatch, in_session):
     """Every collector and every model call stubbed. Nothing escalates, nothing goes out."""
     market = {t: _snap(100.0, t) for t in config.CRYPTO_TICKERS}
     monkeypatch.setattr(collect, "collect_crypto_market", lambda with_news=True: market)
@@ -188,6 +203,71 @@ def test_the_news_pass_is_rationed_and_is_told_the_venue(monkeypatch, quiet_mark
     assert set(seen["tickers"]) <= set(config.CRYPTO_TICKERS)
 
 
+# ── off-hours: the risk pass alone ──────────────────────────────────────────────
+# Before 2026-08-01 this book ran Haiku and, most cycles, Opus every hour of every day including
+# weekends. The cron cadence is unchanged and must stay unchanged — the 24-hour scalp clock needs
+# it — so the saving lives entirely in what an off-hours cycle *declines to do*.
+
+@pytest.fixture
+def off_hours(monkeypatch):
+    monkeypatch.setattr(market_hours, "crypto_analysis_allowed",
+                        lambda now=None: (False, "US session closed (weekend) — risk-only pass, "
+                                                 "no new analysis"))
+
+
+def test_an_off_hours_cycle_costs_nothing(monkeypatch, quiet_market, off_hours):
+    """Not "escalates less" — spends nothing at all. No news read, no deep run, and no calendar or
+    screener pass either, since neither is worth an HTTP round trip if nothing may act on it."""
+    calls = []
+    monkeypatch.setattr(collect, "forexfactory_calendar",
+                        lambda: calls.append("calendar") or {"imminent": [], "trump_soon": []})
+    monkeypatch.setattr(screener, "screen",
+                        lambda m, calendar=None, held_tickers=None, force=False,
+                        escalate_score=None:
+                        calls.append("screen") or
+                        {"escalate": False, "why": [], "triggers": [], "calendar_flags": []})
+    monkeypatch.setattr(news_intel, "run",
+                        lambda t, calendar=None, use_claude=True, venue="stock":
+                        calls.append("news") or {"tickers": {}, "degraded": False})
+    monkeypatch.setattr(market_brain, "run_analysis",
+                        lambda *a, **k: calls.append("deep") or {"signals": []})
+
+    assert market_brain.do_crypto_cycle(_Args()) == 0
+    assert calls == []
+
+
+def test_the_scalp_clock_still_fires_off_hours(monkeypatch, quiet_market, off_hours, tmp_path):
+    """The half that must not have been gated with the other half. A scalp filled 03:00 UTC Saturday
+    expires 03:00 UTC Sunday, and nothing but this pass is running to close it."""
+    pf = Portfolio(path=tmp_path / config.CRYPTO_RULES.ledger, mirror=False,
+                   rules=config.CRYPTO_RULES)
+    ok, msg = pf.apply_action({"action": "BUY", "ticker": "BTC-USD", "entry": 100.0,
+                               "trade_type": "SCALP", "reason": "t"}, prices={"BTC-USD": 100.0})
+    assert ok, msg
+    opened = datetime.fromisoformat(pf.state["positions"]["BTC-USD"]["opened"])
+    pf.state["positions"]["BTC-USD"]["opened"] = (opened - timedelta(hours=30)).isoformat()
+    pf.save()
+
+    args = _Args()
+    args.dry_run = False
+    assert market_brain.do_crypto_cycle(args) == 0
+
+    after = Portfolio(path=tmp_path / config.CRYPTO_RULES.ledger, mirror=False,
+                      rules=config.CRYPTO_RULES)
+    assert "BTC-USD" not in after.state["positions"]
+    assert after.state["closed_trades"][-1]["exit_kind"] == "time_stop"
+
+
+def test_an_anchor_run_is_not_held_by_the_clock(monkeypatch, quiet_market, off_hours):
+    """`force` is the scheduled anchor and the manual run. Both must still reach the analysis."""
+    seen = []
+    monkeypatch.setattr(news_intel, "run",
+                        lambda t, calendar=None, use_claude=True, venue="stock":
+                        seen.append(venue) or {"tickers": {}, "degraded": False})
+    market_brain.do_crypto_cycle(_Args(), force=True)
+    assert seen == ["crypto"]
+
+
 # ── how the tier-1 budget is spent ──────────────────────────────────────────────
 
 class _Book:
@@ -316,10 +396,17 @@ def test_one_real_move_still_does():
     assert r["escalate"] is True
 
 
-def test_a_held_name_escalates_at_any_score():
-    """A position under stress is the one case where paying for a look is always worth it."""
-    r = screener.screen(_scored(**{"BONK-USD": 2}), held_tickers=["BONK-USD"], escalate_score=5)
-    assert r["escalate"] is True
+def test_a_held_name_gets_one_step_of_relief_not_a_bypass():
+    """A position under stress buys the look sooner — but "held" alone stopped being a reason.
+
+    "Held ⇒ escalate at any score" read as prudence and behaved as a bypass: once the book carries
+    anything, some held name is flagged at *something* on every cycle, so the bar stopped existing.
+    """
+    held = ["BONK-USD"]
+    assert screener.screen(_scored(**{"BONK-USD": 2}), held_tickers=held,
+                           escalate_score=5)["escalate"] is False
+    assert screener.screen(_scored(**{"BONK-USD": 4}), held_tickers=held,
+                           escalate_score=5)["escalate"] is True, "one step under the bar"
 
 
 def test_the_floor_does_not_override_a_forced_or_calendar_run():
@@ -329,8 +416,12 @@ def test_the_floor_does_not_override_a_forced_or_calendar_run():
     assert screener.screen(quiet, calendar=cal, escalate_score=5)["escalate"] is True
 
 
-def test_the_equity_screener_is_untouched():
-    """No `escalate_score` means the original behaviour, exactly. The stock book did not change."""
+def test_no_escalate_score_keeps_the_original_behaviour():
+    """Omitting the bar still means "any trigger escalates" — callers opt in, they are not opted in.
+
+    (The equity cycle now passes config.ESCALATE_SCORE; this is about the default, which the
+    anchors and the research path still rely on.)
+    """
     r = screener.screen(_scored(**{"AAPL": 3}))
     assert r["escalate"] is True
 

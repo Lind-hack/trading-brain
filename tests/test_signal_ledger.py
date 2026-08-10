@@ -169,7 +169,9 @@ def test_exit_kind_is_structured_not_prose(pf):
 def test_open_positions_report_their_horizon(pf):
     """A SCALP still open on Friday is a finding — but only if summary() says it is a SCALP."""
     pf.apply_action({"action": "BUY", "ticker": "TSLA", "target_weight_pct": 10,
-                     "trade_type": "SCALP", "holding_period": "same session", "confidence": 55},
+                     # 70, not 55: the confidence gate refuses a watch-band BUY outright, and this
+                     # test is about what summary() reports for a position that did open.
+                     "trade_type": "SCALP", "holding_period": "same session", "confidence": 70},
                     prices={"TSLA": 300.0})
     p = pf.summary({"TSLA": 305.0})["open_positions"][0]
     assert p["trade_type"] == "SCALP"

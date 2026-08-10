@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "skills": {
+    "backtest": {
+      "source": "marketcalls/vectorbt-backtesting-skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/backtest/SKILL.md",
+      "computedHash": "a70e0774966c8908dfb9f2db1f7d5d241ee2baedf02f94dd16fe1420ca8eb7c9"
+    },
+    "backtest-expert": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/backtest-expert/SKILL.md",
+      "computedHash": "637280a11ddca68ecd21868b5ba9362eb46578f2bb5b7d09b0dcfb70eeb30cce"
+    },
+    "canslim-screener": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/canslim-screener/SKILL.md",
+      "computedHash": "65df3eecb26977c26a3f20c669d5c6b9209aba0b0f0975d244d730aa8b54f0df"
+    },
+    "exposure-coach": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/exposure-coach/SKILL.md",
+      "computedHash": "b30a3b11113081a0f94a2322e9e9b9e7805aefe656f320b2be6c7c3b1530c72c"
+    },
+    "ftd-detector": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ftd-detector/SKILL.md",
+      "computedHash": "61e2da4a3a23413fd5f2a74c0d8d3124dc59709d0157573b1b0bc1310c45c96a"
+    },
+    "ibd-distribution-day-monitor": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ibd-distribution-day-monitor/SKILL.md",
+      "computedHash": "6738c372c86b47d1f4d88915ab737e0287cb0ff0b5c97ec1154f627612482a30"
+    },
+    "macro-regime-detector": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/macro-regime-detector/SKILL.md",
+      "computedHash": "d4c486ab69a7f1b1096aab30218312a1ab39b54bd29a0edeb9ae3a1af07be47e"
+    },
+    "market-breadth-analyzer": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/market-breadth-analyzer/SKILL.md",
+      "computedHash": "55629fbebc2782f9543063b89b3dd84dac3d3856b048cff6d6f1cce3d7ff2675"
+    },
+    "position-sizer": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/position-sizer/SKILL.md",
+      "computedHash": "dd490de7ad8675101b892c45fa6c48fea97917544421306b3adfceba1b668e4c"
+    },
+    "pre-trade-discipline-gate": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/pre-trade-discipline-gate/SKILL.md",
+      "computedHash": "f7ca47bdf0ca1119d8a0e7063f23de6652a1e0a344b9b46332184fc1d0accf37"
+    },
+    "stanley-druckenmiller-investment": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/stanley-druckenmiller-investment/SKILL.md",
+      "computedHash": "5f3397ebd1aa273968ceffd4de1d141d7155853aa76f4e82c55a6d2eddbf6eb1"
+    },
+    "stockbee-episodic-pivot-analyzer": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/stockbee-episodic-pivot-analyzer/SKILL.md",
+      "computedHash": "18a561d691ffaf7d23a797bf60cb37a7de792c9ea0e29264dae2c4ae178b9a2c"
+    },
+    "stockbee-momentum-burst-screener": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/stockbee-momentum-burst-screener/SKILL.md",
+      "computedHash": "176b4f1fd23cdbaa5012ce48b5aebd6543655368ff57eed6a3a1cc71d438a9c0"
+    },
+    "uptrend-analyzer": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/uptrend-analyzer/SKILL.md",
+      "computedHash": "05dd2fd2e15b0a2f9b8bb2d519f414fc9fd4cd91f23bb4cf47c067adcad4b56d"
+    }
+  }
+}

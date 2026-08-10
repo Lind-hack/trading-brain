@@ -14,6 +14,11 @@ So duplicates are now counted instead of discarded, and three things get scored:
      just this one. That is what "everybody has heard it" actually means.
   3. **Age** — measured from the article's own publish time when it has one, so a three-day-old
      story is stale on the very first cycle we see it, not on the third.
+  4. **Reuse** — whether *we* already reported it. Lind's second complaint: *"haiku is using the
+     same news for the next runs."* Saturation cannot catch that; a scoop stays a scoop by every
+     other measure on the cycle after we cited it. `mark_used()` stamps what the news pass actually
+     cited, and `rank()` then holds that story back until it develops — meaning another outlet
+     picks it up, which is the one honest sign there is something new to say about it.
 
 The store lives in `brain-memory/SEEN-HEADLINES.json` (git-as-memory, same as the rest), so
 "first seen" survives the process and a story recycled at 09:33 and again at 14:03 is recognised
@@ -294,6 +299,14 @@ def _age_penalty(age_min):
     return 42
 
 
+# A story we have already reported on is worth less to us than a story nobody has run — those are
+# two different questions and saturation only answers the second. Lind's complaint was the first:
+# "haiku is using the same news for the next runs". So a cited story is scored down hard on the
+# cycles after it was cited, and `rank()` holds it back entirely unless it has developed.
+_REUSE_PENALTY = 30
+_REUSE_PENALTY_MAX = 60
+
+
 def crowding_of(saturation):
     if saturation >= 60:
         return "saturated"
@@ -348,12 +361,20 @@ def observe(items, ticker=None, store=None, now=None):
         saturation = min(100, int(round((outlets - 1) * 26)))
         tier = source_tier(src)
         farm = farm_reason(title)
+        # Have we already told Lind about this one? `outlets_at_use` is the saturation the story
+        # carried when it was last cited, so a story other desks have since picked up counts as
+        # having developed and is allowed back through. One that has sat still is a repeat.
+        times_used = int(rec.get("used") or 0)
+        new_outlets = outlets - int(rec.get("outlets_at_use") or 0) if times_used else 0
+        repeat = bool(times_used) and new_outlets <= 0
         novelty = 100
         novelty -= _TIER_PENALTY[tier]
         novelty -= saturation * 0.45
         novelty -= _age_penalty(age_min)
         if farm:
             novelty -= _FARM_PENALTY
+        if repeat:
+            novelty -= min(_REUSE_PENALTY_MAX, _REUSE_PENALTY * times_used)
         item = dict(n)
         item.update({
             "tier": tier,
@@ -365,9 +386,45 @@ def observe(items, ticker=None, store=None, now=None):
             "age_min": int(age_min),
             "novelty": max(0, min(100, int(round(novelty)))),
             "farm_flag": farm,
+            "times_used": times_used,
+            "last_used": rec.get("last_used"),
+            "new_outlets_since_use": max(0, new_outlets),
+            "repeat": repeat,
         })
         out.append(item)
     return out
+
+
+def mark_used(items, store=None, now=None):
+    """Record that the news pass actually reported these headlines.
+
+    Called with what Haiku cited, not with what it was shown. A story fed to the model and ignored
+    was never told to Lind, and holding it back on the next cycle would bury it before anyone read
+    it. Returns the number of distinct stories marked. Mutates `store`; the caller saves it.
+    """
+    store = load_store() if store is None else store
+    now = now or datetime.now(config.UTC)
+    stories = store.setdefault("stories", {})
+    index = _index_stories(stories)
+    marked = set()
+    for n in items or []:
+        title = (n.get("title") if isinstance(n, dict) else str(n) or "").strip()
+        if not title:
+            continue
+        sig = signature(title) or title.lower()[:80]
+        if sig not in stories:
+            sig = _find_similar(tokens(title), stories, index) or sig
+        rec = stories.get(sig)
+        if rec is None or sig in marked:
+            # Not in the store means observe() never saw it — a model echoing a headline we did
+            # not scrape. `_sanitize` already refuses those; recording one here would create a
+            # story record whose only evidence is the model's own output.
+            continue
+        marked.add(sig)
+        rec["used"] = int(rec.get("used") or 0) + 1
+        rec["last_used"] = now.isoformat()
+        rec["outlets_at_use"] = len(rec.get("sources") or {})
+    return len(marked)
 
 
 def rank(items, limit=None, min_novelty=None, keep_min=2):
@@ -381,7 +438,11 @@ def rank(items, limit=None, min_novelty=None, keep_min=2):
     ranked = sorted(items or [], key=lambda n: (-n.get("novelty", 0), n.get("age_min") or 0))
     kept, dropped = [], []
     for n in ranked:
-        good = not n.get("farm_flag") and n.get("novelty", 0) >= min_novelty
+        # `repeat` is its own gate rather than a bigger novelty penalty. A wire story cited an hour
+        # ago still scores in the nineties on tier and age — the two things that make it a good
+        # story are exactly the two that make it the same good story we already sent.
+        good = (not n.get("farm_flag") and not n.get("repeat")
+                and n.get("novelty", 0) >= min_novelty)
         (kept if good else dropped).append(n)
     if not kept and ranked:
         kept = [dict(n, low_quality=True) for n in ranked[:keep_min]]
@@ -398,8 +459,11 @@ def summarize(kept, dropped):
     total = len(kept) + len(dropped)
     reasons = {}
     for n in dropped:
-        key = n.get("farm_flag") or ("stale/saturated" if n.get("novelty", 0) < 40 else "overflow")
+        key = (n.get("farm_flag")
+               or ("already-reported" if n.get("repeat") else None)
+               or ("stale/saturated" if n.get("novelty", 0) < 40 else "overflow"))
         reasons[key] = reasons.get(key, 0) + 1
     fresh = sum(1 for n in kept if n.get("crowding") == "under-covered")
     return {"seen": total, "kept": len(kept), "dropped": len(dropped),
-            "under_covered": fresh, "drop_reasons": reasons}
+            "under_covered": fresh, "repeats": reasons.get("already-reported", 0),
+            "drop_reasons": reasons}

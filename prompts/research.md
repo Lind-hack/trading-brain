@@ -27,6 +27,11 @@ signals (or clear "no trade" verdicts) for each that applies:
   relevant to this name.
 - Be balanced: state the bull case **and** what would invalidate it. A good research memo can
   conclude "no trade — wait for X."
+- Number each horizon's confidence against the scale in CLAUDE.md — it is a gate: 65 executes,
+  55–64 emails as a WATCH with no position, under 55 is not a trade. A memo is the run most likely
+  to produce different numbers for the same name across horizons, and that is correct — a durable
+  fundamental trend can carry a LONG_TERM idea to 75 on a day when the intraday tape offers no
+  scalp worth 55. Say which horizon the number belongs to and don't average them.
 - Fill every schema field per signal, including `confidence_rationale` (why that exact confidence
   number, and what caps it), `indicators_used` (flat list of the indicator names you reasoned over),
   and `news_read` (what the tier-1 pass concluded and how it moved your view). `data_sources` should

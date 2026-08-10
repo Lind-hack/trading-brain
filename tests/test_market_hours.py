@@ -192,7 +192,17 @@ def test_a_holiday_monday_postpones_the_week_rather_than_cancelling_it(holiday_m
 
 # ── the week-ahead digest ───────────────────────────────────────────────────────
 
-def test_the_digest_runs_before_the_first_open_of_the_week():
+def test_the_digest_runs_on_the_eve_of_the_week():
+    """Since 2026-08-01 it lands the night before, not the morning of. Lind asked for the
+    weekend to carry the recap and the week ahead — this is the second half of that."""
+    sun = (2026, 7, 26)
+    assert mh.gate("digest", et(*sun, 9, 0))[0]
+    assert mh.gate("digest", et(*sun, 17, 0))[0]           # any hour of the eve will do
+    assert "starts Mon Jul 27" in mh.gate("digest", et(*sun, 17, 0))[1]
+
+
+def test_the_first_morning_is_kept_as_a_retry():
+    """A dead Sunday run must not cost the whole week's preview."""
     mon = (2026, 7, 27)
     assert mh.gate("digest", et(*mon, 8, 0))[0]
     assert not mh.gate("digest", et(*mon, 3, 0))[0]        # too early to be this week's brief
@@ -203,13 +213,20 @@ def test_the_digest_runs_before_the_first_open_of_the_week():
 def test_the_digest_does_not_repeat_on_the_rest_of_the_week():
     for day in (28, 29, 30, 31):
         ok, why = mh.gate("digest", et(2026, 7, day, 8, 0))
-        assert not ok and "first trading day" in why
+        assert not ok and "the day before" in why
 
 
-def test_the_digest_waits_for_tuesday_when_monday_is_a_holiday():
-    """Lind gets the week-ahead before the week starts — which is not always a Monday."""
-    assert not mh.gate("digest", et(2026, 9, 7, 8, 0))[0]   # Labor Day
-    assert mh.gate("digest", et(2026, 9, 8, 8, 0))[0]
+def test_saturday_is_not_the_eve():
+    """Two nights ahead is not "before the week" — it is the middle of the weekend."""
+    ok, why = mh.gate("digest", et(2026, 7, 25, 17, 0))
+    assert not ok and "the day before" in why
+
+
+def test_the_digest_moves_with_a_holiday_monday():
+    """The week-ahead lands before the week starts — which is not always a Sunday night."""
+    assert not mh.gate("digest", et(2026, 9, 6, 17, 0))[0]  # Sunday: the week starts Tuesday
+    assert mh.gate("digest", et(2026, 9, 7, 17, 0))[0]      # Labor Day evening is the eve
+    assert mh.gate("digest", et(2026, 9, 8, 8, 0))[0]       # Tuesday morning, the retry
 
 
 def test_the_digest_and_the_pre_anchor_never_email_on_the_same_morning():

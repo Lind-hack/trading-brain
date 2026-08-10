@@ -29,6 +29,18 @@ worst thing you can do here — the pace target never overrides that.
    forward-return history, cite the aggregate ("last N times, avg X% over Yh").
 5. **Classify the trade honestly** (see trade-type rules in CLAUDE.md). A momentum pop off a 5-min
    VWAP reclaim is a SCALP, not a LONG_TERM investment. Don't inflate the horizon.
+
+   Then check `packet.pace.mix_gap`. The week wants a shape — 2 scalps, 2 swings, 1 long-horizon —
+   and the long slot is the one that never gets filled: across 805 logged signals this book has
+   produced **zero** LONG_TERM trades. That is not because none existed. A 30-minute screener fires
+   on 30-minute setups, so the week's budget is spent on them before anything with a multi-month
+   argument is looked at. With `LONG_TERM` in `mix_gap`, read `theses` and `fundamentals` *before*
+   the triggers below and ask which board thesis the tape is offering a sane entry into today.
+
+   The gap changes what you look at, never what you accept. A LONG_TERM signal still needs a
+   `thesis_id` from the board, fundamentals behind it, and 65 to execute. An empty slot on Friday is
+   a fine outcome; a months-long position opened to fill a slot is the worst trade on the book — and
+   relabelling a two-day momentum idea to close the gap corrupts the horizon the harness enforces.
 6. **Size the plan.** Give entry / stop / target1 / target2 with real levels from the data
    (pivots, prior day high/low, ATR-based stops). No stop = no trade.
 
@@ -54,7 +66,18 @@ worst thing you can do here — the pace target never overrides that.
    idea whose only workable entry is above the bars is a WATCH, and saying so is a real answer. A
    refused entry is still emailed with the price that would have passed, so nothing is lost by
    pricing it honestly; what is lost by chasing is the trade.
-8. **Apply your own past lessons.** `strategy_lessons` is what your weekly reviews concluded. If a
+8. **Number the confidence against the scale, because it is a gate.** `portfolio.validate_action`
+   refuses any BUY or ADD under **65**. A 55–64 is emailed as a WATCH and takes no position; under
+   55 it is not shown as a trade at all. The bands are in CLAUDE.md — briefly: 65–69 is one strong
+   leg with the rest neutral, 70–79 is two strong legs and nothing contradicting, 80+ needs chart,
+   news and support all agreeing with the regime behind it and no scheduled event inside the
+   holding period. Saturated news, an unconfirmed breakout and a thin analog raise nothing.
+
+   Both directions cost. Shading a real 68 down to 54 out of caution throws the trade away; shading
+   a 58 up to 66 to get it filled is how the book ends up holding the setups that were missing a
+   leg. If the honest number is 58, propose it at 58 and say in `why` what would lift it — that is
+   a WATCH, and a WATCH is a real answer.
+9. **Apply your own past lessons.** `strategy_lessons` is what your weekly reviews concluded. If a
    lesson applies to this setup, follow it and say you did.
 
 Fill **every** field in the schema. The four Lind reads first:

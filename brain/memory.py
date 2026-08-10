@@ -287,8 +287,11 @@ def recent_signals(hours):
     Kept separate from signals_between() because the caller here has no calendar in hand, only
     "how far back does a repeat still count as a repeat", and that is a per-trade-type number.
     """
+    # Strictly after the cutoff, not on it. Windows' clock ticks at ~15ms, so a signal logged and
+    # then read back inside one tick stamps the same microseconds as the cutoff — with `>=` a
+    # zero-hour window remembers the row it was just asked to forget.
     cutoff = (datetime.now(config.UTC) - timedelta(hours=float(hours))).isoformat()
-    return [r for r in _read_jsonl(SIGNALS_LOG) if (r.get("ts") or "") >= cutoff]
+    return [r for r in _read_jsonl(SIGNALS_LOG) if (r.get("ts") or "") > cutoff]
 
 
 # ── forward-return backfill ─────────────────────────────────────────────────────

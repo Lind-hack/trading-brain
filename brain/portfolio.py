@@ -167,6 +167,32 @@ class Portfolio:
     def new_trades_this_week(self):
         return self.state["week_trades"].get(self._iso_week(), 0)
 
+    def new_trades_this_week_by_type(self):
+        """This week's opens broken down by horizon: {"SCALP": 2, "SHORT_TERM": 1, ...}.
+
+        Derived from the ledger rather than kept as a second counter beside `week_trades`. Both a
+        scalp closed the same afternoon and an unfilled limit backed out of the book would have to
+        remember to touch a parallel tally, and the one that forgot would quietly under-report the
+        horizon it belonged to for the rest of the week. Positions and closed trades both carry
+        `opened` and `trade_type`, so the answer is already on disk.
+
+        A position whose `trade_type` names no known horizon is counted under `"UNSPECIFIED"` — it
+        happened, and hiding it would make the counts disagree with `new_trades_this_week`.
+        """
+        wk = self._iso_week()
+        counts = {}
+        opened_this_week = [p for p in self.state["positions"].values()]
+        opened_this_week += [t for t in self.state["closed_trades"]]
+        for rec in opened_this_week:
+            try:
+                if self._iso_week(datetime.fromisoformat(rec["opened"])) != wk:
+                    continue
+            except (KeyError, TypeError, ValueError):
+                continue     # no readable open timestamp — it cannot be placed in a week at all
+            horizon = config.normalize_trade_type(rec.get("trade_type")) or "UNSPECIFIED"
+            counts[horizon] = counts.get(horizon, 0) + 1
+        return counts
+
     # ── mechanical exits (run every cycle, independent of Claude) ─────────────
     def mark_to_market(self, prices, now=None):
         """Update last prices + high-water marks, then auto-exit on hard/trailing/time stops.
@@ -189,20 +215,17 @@ class Portfolio:
             scalp = self.rules.is_scalp(pos.get("trade_type"))
             stop_pct = self.rules.stop_pct_for(pos.get("trade_type"))
 
-            # Tighten the trailing stop as the trade works — but a scalp does not step through
-            # the +15%/+20% ladder at all. That ladder exists to let a multi-week winner breathe;
-            # on a position measured in hours it would hand back most of a move that took
-            # minutes to make. A scalp trails one tight distance from its peak, start to finish.
-            if scalp:
-                trail = self.rules.scalp_trail_pct
-            else:
-                trail = self.rules.trail_base_pct
-                if peak_gain >= 20:
-                    trail = self.rules.trail_tight_20
-                elif peak_gain >= 15:
-                    trail = self.rules.trail_tight_15
+            # One call now decides the trailing distance for all three horizons — the scalp's flat
+            # band, the swing ladder that tightens at +15%/+20%, and the long-term `None`. The
+            # ladder used to be inlined here, which meant the long horizon could not opt out of it
+            # without this block growing a third branch that the entry path (which writes
+            # `trail_pct` at open) would then have to repeat.
+            trail = self.rules.trail_pct_for(pos.get("trade_type"), peak_gain)
             pos["trail_pct"] = trail
-            trail_level = pos["high_water"] * (1 - trail / 100)
+            # A long-term position has no trailing stop at all, so there is no trail level to be
+            # through and the hard stop is the only price exit it has. `-inf` rather than 0: a
+            # trail level of zero is a real level that a sub-$1 token can actually print.
+            trail_level = pos["high_water"] * (1 - trail / 100) if trail is not None else float("-inf")
             pos["stop_level"] = round_px(max(trail_level, pos.get("hard_stop", 0)))
 
             # The deadline written at entry wins over the current rules, so re-tuning the window
@@ -230,8 +253,17 @@ class Portfolio:
                 kind = "time_stop"
             if reason:
                 exits.append(self._close(t, px, reason, kind=kind))
-        self.state["equity_curve"].append(
-            {"ts": datetime.now(config.UTC).isoformat(), "equity": self.equity(prices)})
+        # The benchmark is stamped onto the same curve point as the equity it will be compared
+        # against, rather than fetched later for "roughly that week". Two prices read from one
+        # `prices` dict on one cycle span exactly the same window by construction, which is the
+        # whole reason the comparison can be trusted. Absent (no quote this cycle, a book with no
+        # benchmark, every point written before this shipped) the key is simply missing, and
+        # build_recap reads it defensively — an old ledger on disk predates the field entirely.
+        point = {"ts": datetime.now(config.UTC).isoformat(), "equity": self.equity(prices)}
+        bench_px = prices.get(getattr(self.rules, "benchmark", None) or "")
+        if usable_price(bench_px):
+            point["bench"] = bench_px
+        self.state["equity_curve"].append(point)
         self.state["equity_curve"] = self.state["equity_curve"][-500:]
         return exits
 
@@ -432,6 +464,19 @@ class Portfolio:
             return True, "sell allowed"
         if kind in ("BUY", "ADD"):
             eq = self.equity(prices)
+            # Conviction first, before any bookkeeping rule. An idea the analyst is 48% sure of
+            # should be refused for being a weak idea, not for arriving on a week whose trade cap
+            # happened to be spent — and a rejection message that says the wrong thing teaches the
+            # wrong lesson to the Friday review that reads it.
+            # An action that states no number is "unrated" and passes — see RuleSet.confidence_band
+            # for why an absent claim is not a weak one.
+            band = self.rules.confidence_band(action.get("confidence"))
+            if band == "watch":
+                return False, (f"confidence {action['confidence']} — watch only, "
+                               f"{self.rules.min_confidence} required to execute")
+            if band == "below_bar":
+                return False, (f"confidence {action['confidence']} — below the "
+                               f"{self.rules.watch_confidence} floor, not a trade")
             if kind == "BUY" and ticker in self.state["positions"]:
                 return False, f"{ticker} already held (use ADD)"
             if kind == "BUY" and len(self.state["positions"]) >= self.rules.max_positions:
@@ -507,6 +552,21 @@ class Portfolio:
         # exists to stop. Wider than the band is refused; tighter than it is the model's call.
         if self.rules.is_scalp(trade_type):
             hard_stop = max(hard_stop, round_px(price * (1 + stop_pct / 100)))
+        # A long-term stop is clamped the other way — a proposal *tighter* than the band is
+        # widened to it. That inverts the scalp rule ("tighter is the model's call") on purpose,
+        # and only here. `mark_to_market` cuts a long-term position at the band percentage, not at
+        # this number, so a −7% stop attached to a two-year thesis does not shorten the ledger's
+        # exit; it only reaches Alpaca as a bracket leg and sells there instead. The two would
+        # then disagree, the broker would win, and the horizon band would be silently undone by
+        # the one field the model still controls. Same band on both sides, or it is not a band.
+        #
+        # Long side only. Both clamps here read a stop as a price *below* entry, which is the
+        # short position's mirror image and would put its stop through the fill the moment it
+        # opened. The scalp clamp above has always carried that assumption; this one states it
+        # rather than inheriting it silently.
+        elif (self.rules.is_long_term(trade_type)
+              and str(action.get("direction") or "LONG").upper() != "SHORT"):
+            hard_stop = min(hard_stop, round_px(price * (1 + stop_pct / 100)))
         now = datetime.now(config.UTC).isoformat()
         # Reasoning snapshot taken at entry — the journal grades this against the exit.
         entry_meta = {k: action.get(k) for k in ENTRY_META_FIELDS}
@@ -527,8 +587,10 @@ class Portfolio:
                 "shares": shares, "entry": price, "opened": now,
                 "sector": self.rules.sector_of(ticker), "high_water": price,
                 "hard_stop": hard_stop,
-                "trail_pct": (self.rules.scalp_trail_pct if self.rules.is_scalp(trade_type)
-                              else self.rules.trail_base_pct),
+                # `None` for a long-term entry — see RuleSet.trail_pct_for. The value is refreshed
+                # every cycle by mark_to_market anyway; what it must not do at open is claim a
+                # trailing stop the horizon does not run.
+                "trail_pct": self.rules.trail_pct_for(trade_type),
                 # Written at entry so the deadline is a fact in the ledger rather than something
                 # recomputed from whatever the rules happen to say on the day it fires.
                 "scalp_max_hold_h": (self.rules.scalp_max_hold_h
@@ -603,6 +665,7 @@ class Portfolio:
             "n_open": len(positions), "n_closed": len(closed),
             "win_rate": round(len(wins) / len(closed) * 100, 1) if closed else None,
             "new_trades_this_week": self.new_trades_this_week(),
+            "new_trades_by_type": self.new_trades_this_week_by_type(),
             "sector_fails": {k: v for k, v in self.state["sector_fails"].items() if v},
             "broker": broker.health(),
             "broker_events": self.broker_events,

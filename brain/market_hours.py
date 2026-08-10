@@ -205,6 +205,17 @@ def first_trading_day_of_week(d: date) -> date | None:
     return None
 
 
+def digest_week_ref(d: date) -> date:
+    """The week the week-ahead digest is about, as a day inside it.
+
+    On a weekday that is this week. On a Saturday or Sunday this week is spent, so the digest —
+    which now runs on the Sunday — is about the week that starts the following Monday. Without
+    this, `first_trading_day_of_week(Sunday)` walks *backwards* to the Monday just gone and the
+    digest would preview a week that has already happened.
+    """
+    return d if d.weekday() < SAT else d + timedelta(days=7 - d.weekday())
+
+
 def sessions_left_this_week(d: date) -> int:
     """Trading days remaining in this week, counting today if the exchange is open today.
 
@@ -263,7 +274,8 @@ def gate(mode: str, now: datetime | None = None) -> tuple[bool, str]:
       pre           shortly before the open, and never after it — except on the week's first
                     trading day, where the week-ahead digest is the morning's email instead
       close         at or after the *real* close (13:00 ET on half-days), same day
-      digest        before the open on the week's first trading day only
+      digest        the day before the week's first session — normally Sunday — with the
+                    morning of that session kept as a retry
       weekly        at or after the close of the week's last trading day
       research      always — Lind asked for it, so the exchange's hours are not the constraint
     """
@@ -273,21 +285,30 @@ def gate(mode: str, now: datetime | None = None) -> tuple[bool, str]:
 
     today = now.date()
     if mode == "digest":
-        # The one email that is *supposed* to arrive while the market is shut. It runs before the
-        # week's first open, so it is gated on the coming session rather than on a live one.
-        first = first_trading_day_of_week(today)
+        # The one email that is *supposed* to arrive while the market is shut. Since 2026-08-01 it
+        # arrives on the Sunday rather than the Monday morning: Lind asked for the weekend to carry
+        # the recap and the week-ahead and nothing else, and a preview he reads the night before he
+        # trades is worth more than one that lands ninety minutes before the bell.
+        #
+        # The Monday pre-open tick is kept as a *retry*, not a second email — runlog stamps the
+        # digest with the week it is about, so a Sunday run that succeeded closes the window.
+        first = first_trading_day_of_week(digest_week_ref(today))
         if first is None:
             return False, "no trading day this week"
+        eve = first - timedelta(days=1)
+        if today == eve:
+            return True, (f"the trading week starts {first.strftime('%a %b %d')} — the week-ahead "
+                          f"digest runs the day before")
         if today != first:
-            return False, (f"the week-ahead digest runs on the week's first trading day — that is "
-                           f"{first.strftime('%a %b %d')}")
+            return False, (f"the week-ahead digest runs the day before the week's first session — "
+                           f"that is {eve.strftime('%a %b %d')}")
         open_dt, _ = session_bounds(today)
         if now >= open_dt:
             return False, "the session is already open — the week-ahead digest missed its window"
         mins = (open_dt - now).total_seconds() / 60
         if mins > DIGEST_WINDOW_H * 60:
             return False, f"too early — {int(mins)} min before the week's first open"
-        return True, f"the week starts in {int(mins)} min"
+        return True, f"catching up the week-ahead digest — the week starts in {int(mins)} min"
 
     shut = closed_reason(today)
     if shut:
@@ -306,10 +327,11 @@ def gate(mode: str, now: datetime | None = None) -> tuple[bool, str]:
 
     if mode == "pre":
         if today == first_trading_day_of_week(today):
-            # Two pre-open emails on the same morning is exactly the noise Lind objected to. On
-            # the week's first day the digest is the morning brief, and the analysis resumes with
-            # the cycles once the bell rings.
-            return False, "the week-ahead digest covers this morning"
+            # The week's first morning belongs to the week-ahead digest, which now lands the
+            # evening before and keeps this morning as its retry slot. Standing aside is what
+            # stops a failed Sunday digest and a pre-market anchor arriving together; the analysis
+            # resumes with the cycles once the bell rings either way.
+            return False, "the week-ahead digest covers the start of the week"
         if now > open_dt:
             return False, "the session is already open — the pre-market anchor missed its window"
         mins = (open_dt - now).total_seconds() / 60
@@ -360,18 +382,51 @@ def _utc_hours_into_day(now: datetime) -> tuple[datetime, float]:
     return utc, utc.hour + utc.minute / 60 + utc.second / 3600
 
 
-def crypto_entries_allowed(now: datetime | None = None) -> bool:
-    """May the crypto book open new positions right now? Always — that is the whole point.
+def crypto_analysis_allowed(now: datetime | None = None) -> tuple[bool, str]:
+    """May a crypto cycle spend models on looking for *new* trades right now?
 
-    Kept as a function rather than inlined `True` so callers stay symmetrical with the equity path
-    (`entries_allowed`), and so a future restriction has one place to live.
+    This is the future restriction the note under `crypto_entries_allowed` reserved a place for,
+    and Lind asked for it on 2026-08-01: the crypto book was running Haiku plus Opus every hour of
+    every day including weekends, which is 24 news reads and up to 24 deep runs a day on a book
+    whose pace target is a handful of trades a week.
+
+    The venue is still open — that fact did not change and neither did the risk pass, which keeps
+    running hourly around the clock because a 24-hour scalp clock started at 03:00 UTC expires at
+    03:00 UTC and nothing else will close it. What is gated is only the *analysis*: reading news
+    and proposing entries now happens Mon–Fri while the US session is open.
+
+    Why the equity session on a venue that has none: Lind trades both books himself, off the same
+    screen, in the same hours. A crypto entry proposed at 04:00 ET is one he is asleep for, and the
+    tape that actually moves this book — ETF flow, the dollar, risk appetite — is set during US
+    hours anyway. Weekend crypto is thin, and the weekend runs are the recap and the week-ahead.
     """
-    return True
+    now = now or datetime.now(config.ET)
+    shut = closed_reason(now.date())
+    if shut:
+        return False, f"US session closed ({shut}) — risk-only pass, no new analysis"
+    if not is_open(now):
+        open_dt, close_dt = session_bounds(now.date())
+        return False, (f"outside the US session ({open_dt.strftime('%H:%M')}–"
+                       f"{close_dt.strftime('%H:%M')} ET) — risk-only pass, no new analysis")
+    return True, "US session open — full analysis"
+
+
+def crypto_entries_allowed(now: datetime | None = None) -> bool:
+    """May the crypto book open new positions right now?
+
+    The venue never shuts, so this was unconditionally True until 2026-08-01. It now follows the
+    analysis window: off-hours cycles manage risk and do not open anything. Kept as its own
+    function so callers stay symmetrical with the equity path (`entries_allowed`).
+    """
+    return crypto_analysis_allowed(now)[0]
 
 
 def crypto_entries_reason(now: datetime | None = None) -> str:
     """The line that ends up in the email and the log, mirroring entries_reason()."""
-    return "24/7 venue — new entries allowed at any hour, including weekends"
+    ok, why = crypto_analysis_allowed(now)
+    if ok:
+        return "24/7 venue, US session open — new entries allowed"
+    return f"24/7 venue but {why}"
 
 
 def crypto_days_left_this_week(now: datetime | None = None) -> int:
@@ -388,7 +443,8 @@ def crypto_days_left_this_week(now: datetime | None = None) -> int:
 def crypto_gate(mode: str, now: datetime | None = None) -> tuple[bool, str]:
     """May a crypto run of `mode` proceed? Returns (allowed, human-readable reason).
 
-      cycle       always — the venue never shuts
+      cycle       always — the venue never shuts, and the risk pass has to run around the clock
+      analysis    Mon–Fri while the US session is open (see crypto_analysis_allowed)
       daily       shortly after 00:00 UTC, the daily-candle boundary
       weekly      shortly after 00:00 UTC on Monday, the weekly-candle boundary
       research    always, same as the equity side
@@ -397,6 +453,9 @@ def crypto_gate(mode: str, now: datetime | None = None) -> tuple[bool, str]:
 
     if mode in ("cycle", "research"):
         return True, "24/7 venue — always open"
+
+    if mode == "analysis":
+        return crypto_analysis_allowed(now)
 
     utc, hours_in = _utc_hours_into_day(now)
 

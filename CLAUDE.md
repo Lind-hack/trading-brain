@@ -44,6 +44,18 @@ itself, a wire, mainstream reporting, or an aggregator rewriting someone else. C
 listicles are dropped outright. `thin_coverage: true` on a name means nothing good existed for it —
 that is *no news*, not quiet confirmation.
 
+It also remembers what tier 1 already **cited**. Lind's complaint was that Haiku *"is using the same
+news for the next runs"*, and none of the other scores catch that: a wire scoop twenty minutes old
+scores in the nineties, and scores the same twenty minutes after it was quoted to him. So a story
+that was cited is held back until **another outlet picks it up** — the one honest sign there is
+something new to say about it. Two things follow:
+
+- A story shown to Haiku and *not* cited is not suppressed. It was never told to Lind, and burying
+  it unread would be the same bug pointed the other way.
+- Where a name is too thin to filter to zero, the repeat comes back rather than leaving the ticker
+  blank — carrying `already_reported: true`. That is not a headline to report; it is context you
+  have already used. Materiality low, `is_fresh` false, and out of `top_stories`.
+
 `fundamentals` carries the company facts, not just a price ratio: margins, ROE/ROA, leverage,
 revenue/EPS growth, the 52-week range, `eps_beats_last_4`, `days_to_earnings`, the analyst spread
 with its one-month revision (`analysts.score_change_1m`), and `insiders` — open-market Form 4
@@ -102,6 +114,38 @@ headlines are the worst possible failure.** Only reason over what's in the DATA 
 Do not inflate a momentum pop into a LONG_TERM idea, or tag an investment thesis as a SCALP. The
 holding period must match the reasoning. A LONG_TERM call should reference `fundamentals`.
 
+### `LONG_TERM` is enforced too, in the opposite direction
+
+Until 2026-08-10 the horizon table above was a description and the exit machinery disagreed with
+it. A `LONG_TERM` position inherited the swing book's −7% hard stop and its trailing stop — 10%,
+tightening to 5% once the trade was +20%. Read that back against the row that says "months+": a
+1–3 year holding is one ordinary correction away from a hard stop for its entire life, and the
+trail means the better the thesis works the sooner it gets sold. **No holding of the kind Lind
+asked for could survive its own rules.** The empty long slot had two causes and the rulebook only
+ever named one of them.
+
+`brain/portfolio.py` now gives the long horizon its own band, exactly as it does the scalp:
+
+| | Equity book | Crypto book |
+|---|---|---|
+| Hard stop | **−20%** (vs. −7% swing) | **−35%** (vs. −15% swing) |
+| Trailing stop | **none** | **none** |
+| Time stop | none | none |
+
+Three things follow for how you write one:
+
+- **A tighter `stop` you propose is widened to the band.** This inverts the scalp rule on purpose.
+  The ledger cuts a long-term position at −20% whatever you wrote, so a −7% stop would survive
+  only as an Alpaca bracket leg — selling at the broker the position the book intended to hold.
+  Quote the band, or quote nothing and take the default.
+- **The hard stop is the disaster floor, not the exit mechanism.** What closes a long-term
+  position is a *thesis* break, and `brain/exits.py` scores that every cycle across news, macro
+  and chart. Write the thesis so that a later run can tell when it has broken — name the specific
+  fundamental or trend whose failure ends the trade, in `why`.
+- **The label is now genuinely expensive in both directions.** A momentum pop mislabelled
+  `LONG_TERM` gets −20% of room to keep going wrong and no trail to protect a gain. That is a
+  worse mistake than it was yesterday, when the mislabel was merely inaccurate.
+
 ### `SCALP` is enforced, not just labelled
 
 This is the one field where a mislabel costs money rather than accuracy points. The harness gives
@@ -156,6 +200,88 @@ operations does not change:
   who was too slow to commit.
 - Being *ahead* of pace is not a reason to stop. If a sixth setup is the best of the week, take it;
   the cap will stop you if it must.
+
+### The week has a shape, not just a count
+
+Five a week on **each** book — equities and crypto — and Lind asked for them mixed: *"some being
+scalp, some being short term and some being long term."* The target shape is **2 SCALP, 2
+SHORT_TERM, 1 LONG_TERM** per book per week (`config.WEEKLY_MIX`).
+
+`packet.pace` now carries the shape alongside the count: `by_type` is what the week has actually
+opened, `mix_target` is the shape above, `mix_gap` is what is still owed, and `long_term_open` is
+true while the long slot is unfilled. The counts come off the ledger, so a scalp opened and stopped
+out the same afternoon still spends its slot.
+
+**The long slot is the one that never gets filled.** Across 805 logged signals this book has
+produced **zero** LONG_TERM trades. Part of that was upstream — both model tiers were dead in cron
+and `deep.fallback_analysis` hardcodes SHORT_TERM — but the rest is structural and survives the fix:
+a 30-minute screener fires on 30-minute setups, so the week's budget is spent on them before
+anything with a multi-month argument is examined. The correction is an order-of-operations one.
+When `LONG_TERM` is in `mix_gap`, read `theses` and `fundamentals` **before** the trigger list and
+ask which standing thesis the tape is offering a sane entry into. The pre-market anchor is the run
+that owes this most — no trigger pulling at it, and a tape too thin to scalp anyway.
+
+Three things the gap is not:
+
+- **Not a quota.** Nothing in the harness fills a slot. An empty long slot on Friday is a fine
+  outcome and the review reads it as one.
+- **Not a lower bar.** A LONG_TERM signal still needs a `thesis_id` from the board, fundamentals
+  behind it, 65 to execute, and an entry that clears the gate. The gap changes what you *look at*,
+  never what you accept.
+- **Not a label to reach for.** Relabelling a two-day momentum idea `LONG_TERM` to close the gap is
+  the worst trade on the book: the harness sizes and stops on the horizon you declare, so the label
+  *is* the trade. `holding_period` must agree with `trade_type`.
+
+An untagged position is counted under `UNSPECIFIED` rather than assigned a horizon — it fills no
+slot and it shows up in the review as a signal that didn't say what it was.
+
+## Confidence is a gate now, not a decoration
+
+Until 2026-08-01 the number did nothing. A 54 and an 80 bought the same position at the same
+weight, so a timid number cost nothing and an honest high one bought nothing. Lind's complaint —
+*"the highest confidence percentage was 54"* — was two problems wearing one number: both model
+tiers were dead in cron for four days, so most logged signals came from `deep.fallback_analysis`,
+which hardcodes 35 (fixed upstream); and nothing anywhere said what the number was *for*.
+
+`brain/portfolio.py` now reads it before any other rule, on both books:
+
+| Band | What the harness does |
+|---|---|
+| **≥ 65** | Executes. This is the bar; a BUY or ADD below it is rejected before the position cap is even checked. |
+| **55–64** | **WATCH.** Emailed as an amber card that says it was not taken and what it needs. No position, no order. |
+| **< 55**, or missing | Not a trade. Named and counted in one line at the foot of the email, no card. |
+
+A missing or unparseable `confidence` counts as below the floor. A proposal that cannot say how
+sure it is has not cleared a bar it never stated.
+
+### What each band has to be worth
+
+The gate can only refuse. It cannot manufacture an 80 — that has to be earned, and this is the
+scale it is earned against. Lind wants 80s. The way to get there is a setup where the legs agree,
+not a bigger number on the same evidence.
+
+There are three independent legs: **chart** (a named pattern with volume confirming it), **news**
+(a tier-1 finding with real materiality that the crowd has *not* priced), and **support** (an
+analog with a meaningful sample, or fundamentals for a longer horizon).
+
+| Number | What must be true |
+|---|---|
+| **80–90** | All three legs agree, the regime is with the trade, the entry clears the gate without stretching, and no scheduled event (earnings, CPI, FOMC) lands inside the holding period. Rare — a handful a quarter, not one a session. |
+| **70–79** | Two legs are strong and the third is neutral. Nothing in the packet contradicts the thesis; the risk is a known unknown you can name. |
+| **65–69** | One strong leg, the rest neutral, and one identifiable thing that could break it. Most real trades live here. |
+| **55–64** | The idea is real but a piece is missing — breakout with no volume, a saturated story, an entry that only works above the gate. **WATCH**, and say in `why` what would move it up. |
+| **< 55** | Not a trade. Say so plainly rather than shading it up to 55 to get it seen. |
+| **> 90** | Reserved for the arithmetic-certain, which does not exist here. Don't. |
+
+What does **not** raise a number, however good it feels: a saturated headline (tier 1 scores
+`crowding` for exactly this — it is already in the price), a pattern the volume did not confirm, an
+analog with a handful of samples, a field that is missing from `fundamentals` (missing is not
+neutral and it certainly isn't positive), or the fact that the week is behind pace. Being behind
+pace lowers the bar for what you *look at*, never the honesty of the number.
+
+Inflation is not free. The journal grades a high-confidence loss harder than a low-confidence one,
+and that grading comes back to you as `strategy_lessons`. An 80 that loses costs two things: the
+trade, and the credibility of the next 80.
 
 ## Paper-portfolio rules (the harness enforces these — align your proposals to them)
 
@@ -237,8 +363,12 @@ which and why. The crypto book is therefore still stopped by the poll, not by th
 A run invoked as `--crypto-cycle` trades an eighteen-token universe against a **separate** $10,000
 ledger (`brain-memory/PORTFOLIO_CRYPTO.json`) on a venue that never closes — no bell, no weekend,
 the day rolls at 00:00 UTC. Its gates are re-derived rather than scaled: −15% hard stop, 20% trail,
-20% default weight, 25% max, ≤8 open positions, ≤8 new trades a week against a pace target of 3,
-and one position per token. Its screener thresholds are wider too (3% gap, 2× volume, RSI 78/22),
+20% default weight, 25% max, ≤8 open positions, ≤8 new trades a week against a pace target of **5**,
+and one position per token. That target was 3 on the reasoning that a four-token universe could not
+honestly produce more; at eighteen tokens across six sectors the argument is gone, and Lind asked
+for five a week on each book. The same 2/2/1 shape applies here — and a crypto LONG_TERM has no
+`fundamentals` to rest on, so it rests on the tape, the flows and the news, and has to say so in
+`why`. Its screener thresholds are wider too (3% gap, 2× volume, RSI 78/22),
 because −7% on an asset that moves 5% in an afternoon is noise, not a stop.
 
 The universe is Major (BTC, ETH), L1 (SOL, SUI), Meme (BONK, WIF, TRUMP, DOGE, PEPE), DeFi (AAVE,
@@ -275,6 +405,40 @@ Write your reasoning knowing it gets graded later. When the gates approve an act
 So an inflated confidence number or a mislabeled horizon doesn't just make one bad card — it comes
 back as a lesson you then have to trade around. Honest fields now are cheaper than corrections
 later.
+
+## Open positions are watched between your runs
+
+The three automatic exits — hard stop, trailing stop, scalp clock — all read one number: price.
+Lind asked for the other three ways a trade dies: *"if the trade is going bad because of the news of
+that ticker or global news like if Trump starts bombing Iran again and before that we were in a
+scalp trade for long ... or the chart is changing direction ... give me a sell signal when the trade
+has peaked or there is no more money to be made."*
+
+`brain/exits.py` runs on **every** cycle, including the crypto off-hours risk pass where no model
+runs at all. It is deterministic — arithmetic over data the cycle already collected plus tier 1's
+read — so it costs nothing and cannot hallucinate a reason to sell. It scores four families of
+evidence against each open position, signed by direction so a short reads the mirror image:
+
+| Family | What it looks at |
+|---|---|
+| `news` | Tier-1 sentiment pointed **against** the position, weighted by `materiality`. Stale reads don't count. |
+| `macro` | `macro_read` turning risk-off, and the VIX stretched against its own 20-day mean. Longs only. |
+| `chart` | Wrong side of MA20, MACD rolled over, daily RSI through the midline, back at the wrong end of the 20-day range. |
+| `peaked` | Half a real gain handed back from the high-water mark, `target1` printed, the trailing stop within touching distance, the scalp clock nearly out, stretched-and-profitable. |
+
+Weights add into **EXIT / TRIM / WATCH**. No single trigger reaches EXIT alone — a headline is never
+the whole case for closing a position, and neither is a chart with every reading against it. An EXIT
+is two families agreeing. The calendar can only *qualify* a card that already exists; on its own it
+would put a WATCH on every position twice a week, which is noise wearing a schedule.
+
+**Nothing here closes anything.** That was Lind's explicit call — *"email alert only, you decide"* —
+so the cards are worded as recommendations throughout ("consider closing", never "closed"), and the
+only automatic exits on this book remain the mechanical three. Repeats are suppressed for six hours
+per ticker per verdict, but an escalation (WATCH → TRIM → EXIT) always sends.
+
+What this changes for you: a position already carrying an EXIT card is one the harness has told Lind
+about. If your analysis disagrees, say so explicitly in `notes` and why — a silent contradiction
+between the card and your read is the one output he cannot act on.
 
 ## How to weigh the packet
 

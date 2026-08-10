@@ -60,14 +60,27 @@ LOGD=/root/signal-deck-logs
 45 21 * * 1-5        flock -n /tmp/brain-weekly.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --weekly-review >> $LOGD/brain-weekly.log 2>&1'
 
 # Week-ahead digest — the one email that arrives before the week starts, and the first of the two
-# weekly re-scores of the long-term thesis board. Offered every weekday morning; the gate accepts
-# only the week's FIRST trading day, which is Monday normally and Tuesday when MLK Day, Presidents'
-# Day, Memorial Day or Labor Day takes the Monday. On that morning the pre-market anchor stands
-# aside, so Lind gets one email rather than two.
+# weekly re-scores of the long-term thesis board. Since 2026-08-01 it lands the EVENING BEFORE the
+# week's first session rather than that morning: Lind asked for the weekend to carry the recap and
+# the week ahead and nothing else, and a preview read the night before is worth more than one that
+# arrives ninety minutes before the bell.
 #
-# 12:05 UTC is 08:05 ET in summer and 07:05 ET in winter — inside the gate's 5h pre-open window in
-# both regimes, so one tick would do. The 13:05 tick is a retry, not a DST pair: if the first run
-# dies the run-log has recorded nothing and the second gets its turn.
+# That first session is Monday normally, Tuesday when MLK Day, Presidents' Day, Memorial Day or
+# Labor Day takes the Monday — so the eve moves too, and the weekday ticks below cover it. The
+# gate accepts exactly one day either way. On the first session's morning the pre-market anchor
+# stands aside, so Lind gets one email rather than two.
+#
+# 21:05 UTC on a Sunday is 17:05 ET in summer and 16:05 ET in winter — still Sunday in Eastern,
+# which is the only thing the gate checks for the eve. 22:05 is a retry, not a DST pair.
+#
+# The weekday ticks are retries as well, one on the eve of a holiday-shifted week and one on the
+# first morning itself, both inside the gate's 5h pre-open window. Nothing here can double-send:
+# runlog stamps the digest with the ISO week it is ABOUT rather than the day it ran, so a Sunday
+# success closes the window for every later tick — including Monday's, which falls in a different
+# calendar day but the same target week.
+5 21 * * 0           flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest >> $LOGD/brain-digest.log 2>&1'
+5 22 * * 0           flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest >> $LOGD/brain-digest.log 2>&1'
+5 21 * * 1-5         flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest >> $LOGD/brain-digest.log 2>&1'
 5 12 * * 1-5         flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest >> $LOGD/brain-digest.log 2>&1'
 5 13 * * 1-5         flock -n /tmp/brain-digest.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --digest >> $LOGD/brain-digest.log 2>&1'
 
@@ -96,5 +109,6 @@ LOGD=/root/signal-deck-logs
 # *further* is where the warning above starts to bite, so treat hourly as the floor.
 18 * * * *        flock -n /tmp/brain-crypto.lock bash -lc '. $ENVF; cd $BRAIN && $PY market_brain.py --crypto-cycle >> $LOGD/brain-crypto.log 2>&1'
 
-# Nothing else runs overnight or at the weekend: for the equity book the market is shut, so the
-# brain is too.
+# Nothing else runs overnight or at the weekend, with one deliberate exception: the Sunday
+# week-ahead digest above. For the equity book the market is shut, so the brain is too — the
+# weekend carries the Friday recap and the Sunday preview, and nothing else.

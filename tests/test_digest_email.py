@@ -167,6 +167,41 @@ def test_a_flat_book_says_so():
     assert "Flat into the week" in html
 
 
+# ── the crypto book ────────────────────────────────────────────────────────────
+
+CSUM = {"equity": 9120.0, "total_return_pct": -8.8, "n_open": 3, "max_positions": 8,
+        "new_trades_this_week": 2, "max_new_trades_per_week": 8, "book": "crypto",
+        "open_positions": [
+            {"ticker": "SOL-USD", "trade_type": "SHORT_TERM", "pnl_pct": -4.2},
+            {"ticker": "BONK-USD", "trade_type": "SCALP", "pnl_pct": 11.6}]}
+
+
+def test_the_crypto_book_stands_beside_the_equity_one():
+    """Both books keep the same hours now, so the week opens on both or on neither."""
+    _, text, html = build(crypto_portfolio=CSUM)
+    assert "Crypto book going in" in html
+    assert "$9,120" in html and "-8.8%" in html
+    assert "SOL-USD" in html and "+11.6%" in html
+    assert "CRYPTO BOOK GOING IN" in text and "BONK-USD" in text
+
+
+def test_the_crypto_caps_come_off_the_crypto_book():
+    """The two books have never shared limits — the weekly cap is 8 here and 6 on equities."""
+    _, _, html = build(crypto_portfolio={**CSUM, "max_new_trades_per_week": 8})
+    assert "2/8" in html
+    assert f"2/{config.MAX_NEW_TRADES_PER_WEEK}" not in html
+
+
+def test_a_missing_crypto_ledger_is_a_sentence_not_a_crash():
+    _, _, html = build(crypto_portfolio=None)
+    assert "Crypto ledger unavailable" in html
+
+
+def test_a_flat_crypto_book_says_what_it_is_defending():
+    _, _, html = build(crypto_portfolio={**CSUM, "open_positions": [], "n_open": 0})
+    assert "nothing to defend overnight" in html
+
+
 def test_the_whole_email_survives_a_minimal_digest():
     """A degraded run still has to produce a sendable email."""
     subject, text, html = notify.build_digest_email({"portfolio": {"equity": 10000.0}}, NOW)

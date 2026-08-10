@@ -158,6 +158,93 @@ TRAIL_TIGHT_15 = 7.0        # tighten to 7% once +15%
 TRAIL_TIGHT_20 = 5.0        # tighten to 5% once +20%
 SECTOR_FAIL_LIMIT = 2       # stop out of a sector after 2 consecutive losers in it
 
+# ── The long horizon needs its own numbers, for the same reason the scalp does ───
+# The four constants above are swing numbers: a −7% cut, and a trail that tightens to 5% once a
+# position has made 20%. On a trade meant to live days-to-weeks that is discipline. On the 1–3
+# year holding Lind actually asked for it is a scheduled exit — every multi-year compounder there
+# has ever been spent months 15–30% below a prior high on the way up. A LONG_TERM position under
+# swing rules is sold in its first ordinary correction, whatever its thesis said, and the 5% trail
+# at +20% guarantees it: the better the idea works, the tighter the noose gets.
+#
+# So the empty long slot was never only an attention problem. WEEKLY_MIX fixed the half the
+# rulebook diagnosed — a 30-minute screener escalating on 30-minute setups, spending the week's
+# budget before anything with a multi-month argument was examined. This is the other half. Even a
+# LONG_TERM trade that *was* proposed and filled could not have survived to become one. Zero in
+# 805 signals, and the exit machinery was the second lock on the same door.
+#
+# The band mirrors the SCALP_* block exactly: one horizon, its own stop, applied by the harness
+# with no model involvement. What a long-term position exits on is a *thesis* break — the
+# fundamentals rolled over, the analog stopped working, the name no longer earns its slot — and
+# `brain/exits.py` already scores that evidence every cycle on news, macro and chart families.
+# That is the intended exit path here. The hard stop is the disaster floor underneath it, not the
+# working mechanism, which is why it sits far enough out to be reached only by a real break.
+LONG_HARD_STOP_PCT = float(os.environ.get("BRAIN_LONG_HARD_STOP_PCT", "-20"))
+# `None`, not some large percentage. A trailing stop wide enough never to fire is a number in the
+# ledger that means nothing, and both places that read `trail_pct` already branch on horizon, so
+# the absence is representable. A long-term winner is allowed to give back a run — that is what
+# holding one is.
+LONG_TRAIL_PCT = None
+
+# ── Confidence: the bar an idea has to clear to become a position ───────────────
+# Until 2026-08-01 there was no bar at all. Any proposal that cleared the mechanical gates was
+# filled at whatever confidence it carried, and Lind's complaint — "the highest confidence
+# percentage was 54" — was really two problems wearing one number:
+#
+#   1. Both model tiers were dead in cron for four days, so ~708 of 805 logged signals were
+#      `deep.fallback_analysis`, which hardcodes 35. That is fixed upstream (see brain/deep.py);
+#      no gate here would have helped, because a rules-only cycle would simply have traded nothing.
+#   2. Nothing anywhere said what a number was *for*. A 54 and an 80 bought the same position at
+#      the same weight, so there was no cost to a timid number and no reward for an honest high one.
+#
+# These two constants give the number consequences. 65 to execute, 55 to be worth reading, and a
+# `confidence_rationale` that has to justify it. What they cannot do is *manufacture* an 80 — that
+# comes from the evidence bar in CLAUDE.md and the per-run prompts, which now spell out what each
+# band requires. A gate can only refuse; the calibration has to be earned.
+MIN_CONFIDENCE = int(os.environ.get("BRAIN_MIN_CONFIDENCE", "65"))
+WATCH_CONFIDENCE = int(os.environ.get("BRAIN_WATCH_CONFIDENCE", "55"))
+
+
+# ── Horizons, and the week's intended mix ───────────────────────────────────────
+# In 805 logged signals there was not one LONG_TERM. Most of that was upstream — the deep model
+# was dead in cron and `deep.fallback_analysis` hardcodes SHORT_TERM — but the rest is structural
+# and would have survived the fix: a screener that fires on intraday triggers escalates on
+# intraday setups, every cycle, all week. Nothing ever *asked* for the months-long idea, so the
+# 30-minute cycle spent the weekly trade budget before anything with a multi-month argument was
+# considered. Lind noticed: "you havent given me long term trades".
+#
+# So the week now has an intended shape, not just a count. It is a target the packet shows the
+# analyst, never a quota the harness fills — a LONG_TERM entry taken to satisfy a number would be
+# exactly the manufactured trade the rulebook forbids. What it changes is which ideas get *looked
+# at*: a week with its scalp slots spent and its long slot empty is a week that should be reading
+# fundamentals and the thesis board, not the next VWAP reclaim.
+TRADE_HORIZONS = ("SCALP", "SHORT_TERM", "LONG_TERM")
+
+
+def normalize_trade_type(trade_type):
+    """The horizon a value names, or None if it names none of them.
+
+    The value arrives from model JSON, so it is matched leniently — `" long term "`, `"long"` and
+    `"LONG_TERM"` are one horizon. Anything unrecognised returns None rather than defaulting to a
+    horizon: an untagged position must not be counted toward a mix slot it never claimed.
+    """
+    t = str(trade_type or "").strip().upper().replace("-", "_").replace(" ", "_")
+    if not t:
+        return None
+    if t.startswith("SCALP"):
+        return "SCALP"
+    if t.startswith("LONG"):
+        return "LONG_TERM"
+    if t.startswith("SHORT") or t.startswith("SWING"):
+        return "SHORT_TERM"
+    return None
+
+
+# Five a week on each book, shaped. The equity split leans swing because that is what a
+# session-gated book can actually hold; crypto carries one more scalp because the venue never
+# shuts and the moves that resolve in a day are the ones it produces most.
+WEEKLY_MIX = {"SCALP": 2, "SHORT_TERM": 2, "LONG_TERM": 1}
+CRYPTO_WEEKLY_MIX = {"SCALP": 2, "SHORT_TERM": 2, "LONG_TERM": 1}
+
 # ── Scalps: the horizon that is enforced, not just labelled ─────────────────────
 # `trade_type: "SCALP"` already existed, but it was only ever a *label*. Nothing closed a scalp;
 # it inherited the swing book's −7% stop and 10% trail and then sat there for a week, and the
@@ -222,6 +309,42 @@ ENTRY_MAX_EXT_ATR = float(os.environ.get("BRAIN_ENTRY_MAX_EXT_ATR", "2.0"))
 ENTRY_MAX_CHASE_PCT = float(os.environ.get("BRAIN_ENTRY_MAX_CHASE_PCT", "0.25"))
 
 
+# ── Exit monitor ────────────────────────────────────────────────────────────────
+#
+# The hard stop, the trail and the scalp clock all answer the same question — "has this gone far
+# enough against me?" — and all three answer it from price alone. Lind asked for the other three
+# ways a trade dies: the story changed, the world changed, or the move is simply over.
+#
+# Nothing here closes anything. `brain/exits.py` scores an open position and the result is an
+# email; the only automatic exits on this book remain the mechanical ones in portfolio.py. That
+# was Lind's call — *"email alert only, you decide"* — and it is why these thresholds can be set
+# where they are useful rather than where they would be safe to act on unattended.
+
+# A move worth protecting. Below this the "you have handed the gain back" test says nothing: a
+# position that peaked at +3% and sits at +1% is noise, not a fading winner.
+EXIT_MIN_PEAK_PCT = float(os.environ.get("BRAIN_EXIT_MIN_PEAK_PCT", "8"))
+# How much of that peak has to be gone before the giveback counts.
+EXIT_GIVEBACK_FRAC = float(os.environ.get("BRAIN_EXIT_GIVEBACK_FRAC", "0.5"))
+# Within this much of the trailing stop, the alert says so — the trail will fire on its own, but
+# a human reading the email an hour before it does can price the exit rather than take it.
+EXIT_NEAR_STOP_PCT = float(os.environ.get("BRAIN_EXIT_NEAR_STOP_PCT", "1.5"))
+# Tier-1 sentiment against the position that counts as the story having turned.
+EXIT_NEWS_SENTIMENT = int(os.environ.get("BRAIN_EXIT_NEWS_SENTIMENT", "40"))
+# Macro sentiment that counts as a shock to the whole book rather than to one name. This is the
+# "Trump starts bombing Iran while we are long a scalp" case: nothing in the ticker's own news
+# moves, the tape moves under all of it at once.
+EXIT_MACRO_SENTIMENT = int(os.environ.get("BRAIN_EXIT_MACRO_SENTIMENT", "60"))
+# The VIX level and one-day jump that say the same thing in price rather than in words.
+EXIT_VIX_LEVEL = float(os.environ.get("BRAIN_EXIT_VIX_LEVEL", "28"))
+EXIT_VIX_JUMP_PCT = float(os.environ.get("BRAIN_EXIT_VIX_JUMP_PCT", "12"))
+# Score bands. Weights are small integers and deliberately additive: one reason is a note, two
+# agreeing reasons are worth a look, three or more are worth an exit. No single trigger can reach
+# EXIT on its own — a headline is never the whole case.
+EXIT_ALERT_SCORE = int(os.environ.get("BRAIN_EXIT_ALERT_SCORE", "5"))
+EXIT_TRIM_SCORE = int(os.environ.get("BRAIN_EXIT_TRIM_SCORE", "3"))
+EXIT_WATCH_SCORE = int(os.environ.get("BRAIN_EXIT_WATCH_SCORE", "2"))
+
+
 # ── Rule sets: one book per asset class ─────────────────────────────────────────
 # The constants above stay exactly as they were — they are the stock book's rules and half the
 # codebase reads them directly. What changes is that the *portfolio* no longer reads them from
@@ -240,8 +363,13 @@ class RuleSet:
                  sector_fail_limit, sectors, tickers, always_open,
                  scalp_max_hold_h=SCALP_MAX_HOLD_H, scalp_hard_stop_pct=SCALP_HARD_STOP_PCT,
                  scalp_trail_pct=SCALP_TRAIL_PCT, scalp_position_pct=SCALP_POSITION_PCT,
+                 long_hard_stop_pct=LONG_HARD_STOP_PCT, long_trail_pct=LONG_TRAIL_PCT,
+                 benchmark=None,
                  entry_max_range_pos=ENTRY_MAX_RANGE_POS, entry_max_ext_atr=ENTRY_MAX_EXT_ATR,
-                 entry_max_chase_pct=ENTRY_MAX_CHASE_PCT):
+                 entry_max_chase_pct=ENTRY_MAX_CHASE_PCT,
+                 min_confidence=MIN_CONFIDENCE, watch_confidence=WATCH_CONFIDENCE,
+                 weekly_mix=None,
+                 exit_min_peak_pct=EXIT_MIN_PEAK_PCT, exit_near_stop_pct=EXIT_NEAR_STOP_PCT):
         self.name = name
         self.ledger = ledger                       # filename inside MEMORY_DIR
         self.starting_cash = starting_cash
@@ -264,10 +392,67 @@ class RuleSet:
         self.scalp_hard_stop_pct = scalp_hard_stop_pct
         self.scalp_trail_pct = scalp_trail_pct
         self.scalp_position_pct = scalp_position_pct
+        # Long-horizon overrides. The mirror image of the scalp block: where a scalp replaces the
+        # swing numbers with tighter ones, a long-term position replaces them with a far-out floor
+        # and no trail at all. See the LONG_* block for the trade this exists to make possible.
+        self.long_hard_stop_pct = long_hard_stop_pct
+        self.long_trail_pct = long_trail_pct
+        # What this book is trying to beat. Absolute return is not the goal Lind stated — "the
+        # main goal is to beat the s&p500 cause that is what most traders invest in" — and a book
+        # that only ever reports its own return cannot answer that question in either direction.
+        # A +6% week reads as a good one until SPY did +9%. Priced off the ledger's own equity
+        # curve, so the comparison spans exactly the window the return does.
+        self.benchmark = benchmark
         # Entry quality. See the ENTRY_* block for the trades that bought these numbers.
         self.entry_max_range_pos = entry_max_range_pos
         self.entry_max_ext_atr = entry_max_ext_atr
         self.entry_max_chase_pct = entry_max_chase_pct
+        # Both books run the same two numbers. Crypto is the more volatile venue, but that is a
+        # reason for a wider stop, not a lower bar on conviction — a 58 on BTC is exactly as
+        # unconvinced as a 58 on NVDA, and it costs more when it is wrong.
+        self.min_confidence = min_confidence
+        self.watch_confidence = watch_confidence
+        # The week's intended shape by horizon. Advisory — see the WEEKLY_MIX block.
+        self.weekly_mix = dict(weekly_mix or WEEKLY_MIX)
+        # Exit monitor. Only the two numbers that are genuinely venue-specific live here; the rest
+        # of the EXIT_* block reads the same on both books because a story turning against a
+        # position is not a more or less serious event depending on what the position is.
+        self.exit_min_peak_pct = exit_min_peak_pct
+        self.exit_near_stop_pct = exit_near_stop_pct
+
+    def mix_gap(self, taken_by_type):
+        """How many of each horizon the week still wants, given what it has already taken.
+
+        `taken_by_type` is a horizon -> count mapping. Only shortfalls appear; a horizon already
+        at or past its slot is simply absent, because "you have taken enough scalps" is not a
+        thing the analyst needs told — the cap and the evidence bar handle over-trading.
+        """
+        return {h: n for h in TRADE_HORIZONS
+                for n in [self.weekly_mix.get(h, 0) - int((taken_by_type or {}).get(h, 0) or 0)]
+                if n > 0}
+
+    def confidence_band(self, confidence):
+        """Where a stated confidence falls: execute | watch | below_bar | unrated.
+
+        "unrated" is a missing or unreadable number, and it is deliberately *not* the same as
+        below the floor. Plenty of actions reach the gates carrying no conviction claim at all —
+        a mechanical exit, a harness-generated fill, a hand-run action from a script — and a rule
+        about how sure the analyst is has nothing to say about those. Refusing them would be the
+        confidence gate blocking trades for a reason that was never about confidence.
+
+        A model signal that states no number is a different problem: it violates the output
+        contract, the card renders "—", and the journal already grades it. That is caught where
+        contracts are, not by silently repricing an absent claim as a weak one.
+        """
+        try:
+            c = float(confidence)
+        except (TypeError, ValueError):
+            return "unrated"
+        if c != c:  # NaN — parses as a float and then loses every comparison it is given,
+            return "unrated"  # which would quietly file an unreadable claim as a weak one.
+        if c >= self.min_confidence:
+            return "execute"
+        return "watch" if c >= self.watch_confidence else "below_bar"
 
     def sector_of(self, ticker):
         return self.sectors.get(ticker, "Other")
@@ -277,9 +462,43 @@ class RuleSet:
         value arrives from model JSON and `" scalp "` must not silently become a swing trade."""
         return str(trade_type or "").strip().upper() == "SCALP"
 
+    def is_long_term(self, trade_type):
+        """Is this the multi-month horizon that runs under its own stop band?
+
+        Routed through `normalize_trade_type` rather than an equality test, because unlike
+        "SCALP" this value reaches the ledger written half a dozen ways — `"long term"`,
+        `"LONG-TERM"`, `"long"` — and a horizon that fails to match here silently gets swing
+        stops, which is the exact failure the band was added to end.
+        """
+        return normalize_trade_type(trade_type) == "LONG_TERM"
+
     def stop_pct_for(self, trade_type):
         """The hard cut this horizon runs under."""
-        return self.scalp_hard_stop_pct if self.is_scalp(trade_type) else self.hard_stop_pct
+        if self.is_scalp(trade_type):
+            return self.scalp_hard_stop_pct
+        if self.is_long_term(trade_type):
+            return self.long_hard_stop_pct
+        return self.hard_stop_pct
+
+    def trail_pct_for(self, trade_type, peak_gain=0.0):
+        """The trailing distance this horizon runs at, given how far the trade has gone.
+
+        `None` means the position has no trailing stop — only a long-term one does, and only
+        because giving back part of a run is the price of holding something for a year.
+
+        A scalp trails one flat distance start to finish: the +15%/+20% ladder exists to let a
+        multi-week winner breathe, and on a position measured in hours it hands back most of a
+        move that took minutes to make.
+        """
+        if self.is_scalp(trade_type):
+            return self.scalp_trail_pct
+        if self.is_long_term(trade_type):
+            return self.long_trail_pct
+        if peak_gain >= 20:
+            return self.trail_tight_20
+        if peak_gain >= 15:
+            return self.trail_tight_15
+        return self.trail_base_pct
 
     def default_pct_for(self, trade_type):
         """The default position weight for this horizon — scalps are sized smaller by design."""
@@ -418,6 +637,10 @@ STOCK_RULES = RuleSet(
     sectors=STOCK_SECTORS,
     tickers=None,          # set below, once FOCUS_TICKERS exists
     always_open=False,
+    weekly_mix=WEEKLY_MIX,
+    # The index this book exists to beat, and the one it is already collecting every cycle as
+    # market context — so measuring against it costs no request and no key.
+    benchmark="SPY",
 )
 
 CRYPTO_RULES = RuleSet(
@@ -440,7 +663,10 @@ CRYPTO_RULES = RuleSet(
     # A 24/7 venue offers roughly three times the equity market's decision hours, so the weekly
     # brake sits higher — but only slightly, since there are only three things to trade.
     max_new_trades_per_week=int(os.environ.get("BRAIN_CRYPTO_MAX_NEW_TRADES", "8")),
-    weekly_trade_target=int(os.environ.get("BRAIN_CRYPTO_WEEKLY_TARGET", "3")),
+    # Five, matching the equity book. It was 3 on the reasoning that a four-token universe could
+    # not honestly produce more; at eighteen tokens across six sectors that argument is gone, and
+    # Lind asked for "5 trades on the stock market and 5 trades on the crypto side every week".
+    weekly_trade_target=int(os.environ.get("BRAIN_CRYPTO_WEEKLY_TARGET", "5")),
     # The numbers that matter most. BTC's ordinary daily range swallows a −7% stop whole, so an
     # equity stop here would exit on noise and call it discipline. Widened to match the asset's
     # actual volatility, with the trail widened in proportion.
@@ -468,6 +694,20 @@ CRYPTO_RULES = RuleSet(
     entry_max_range_pos=float(os.environ.get("BRAIN_CRYPTO_ENTRY_MAX_RANGE_POS", "0.90")),
     entry_max_ext_atr=float(os.environ.get("BRAIN_CRYPTO_ENTRY_MAX_EXT_ATR", "2.5")),
     entry_max_chase_pct=float(os.environ.get("BRAIN_CRYPTO_ENTRY_MAX_CHASE_PCT", "0.5")),
+    weekly_mix=CRYPTO_WEEKLY_MIX,
+    # Both scaled by the same argument as the stops: +8% is an ordinary hour on a token, so the
+    # equity giveback test would fire on every position that ever worked, and 1.5% from a 20%
+    # trailing stop is a rounding error rather than a warning worth sending.
+    exit_min_peak_pct=float(os.environ.get("BRAIN_CRYPTO_EXIT_MIN_PEAK_PCT", "15")),
+    exit_near_stop_pct=float(os.environ.get("BRAIN_CRYPTO_EXIT_NEAR_STOP_PCT", "3")),
+    # Re-derived, not scaled: −20% is a disaster floor on a stock and an ordinary six weeks on a
+    # token. A crypto long-term hold that cannot sit through a 30% drawdown is not a long-term
+    # hold, it is a swing trade with an optimistic label.
+    long_hard_stop_pct=float(os.environ.get("BRAIN_CRYPTO_LONG_HARD_STOP_PCT", "-35")),
+    # BTC, not SPY. The question this book has to answer is whether picking eighteen tokens beat
+    # simply holding the majors — comparing a crypto ledger to the S&P measures the asset class,
+    # which was never the decision being graded. The equity book carries the S&P comparison.
+    benchmark="BTC-USD",
 )
 
 RULE_SETS = {"stock": STOCK_RULES, "crypto": CRYPTO_RULES}
@@ -561,6 +801,28 @@ CRYPTO_SCREEN_52W_PROXIMITY = 0.05     # a token 5% off its year high is "at" it
 # reading. A held name still escalates at any score: a position under stress is the one case where
 # paying for a look is always worth it.
 CRYPTO_ESCALATE_SCORE = int(os.environ.get("BRAIN_CRYPTO_ESCALATE_SCORE", "5"))
+
+# ── Deep-run rationing (brain/escalate.py) ──────────────────────────────────────
+# The equity book had no escalation bar at all and the crypto book's was clearing on the resting
+# state, so both escalated on 100% of cycles (63/63 and 118/118 in the week of 2026-07-27). The
+# score bar below is the equity counterpart of CRYPTO_ESCALATE_SCORE, but the bar alone does not
+# fix it — 28 of ~30 equity names flagged every cycle with a top score of 8–9, so any bar under 8
+# is cleared by the tape's normal condition rather than by an event.
+#
+# What actually rations the run is measuring the *change*: escalate.py keeps the evidence the last
+# deep run was given and escalates on what is new. These three numbers set how new is new enough.
+ESCALATE_SCORE = int(os.environ.get("BRAIN_ESCALATE_SCORE", "6"))
+# A flagged name has to gain this much score before the same name counts as new evidence again.
+# One point is a single extra pattern detector firing; two is the setup having actually developed.
+ESCALATE_SCORE_JUMP = int(os.environ.get("BRAIN_ESCALATE_JUMP", "2"))
+# Minutes a chart-only trigger waits behind the last deep run. Calendar and news evidence ignore
+# this — those are perishable and are the reason the deep run exists.
+DEEP_COOLDOWN_MIN = int(os.environ.get("BRAIN_DEEP_COOLDOWN_MIN", "60"))
+CRYPTO_DEEP_COOLDOWN_MIN = int(os.environ.get("BRAIN_CRYPTO_DEEP_COOLDOWN_MIN", "120"))
+# The floor: this long without a deep read escalates on its own, so a quiet tape is still looked at
+# rather than going dark for a session. 4h covers a US session in two reads plus the anchors.
+DEEP_MAX_GAP_MIN = int(os.environ.get("BRAIN_DEEP_MAX_GAP_MIN", "240"))
+CRYPTO_DEEP_MAX_GAP_MIN = int(os.environ.get("BRAIN_CRYPTO_DEEP_MAX_GAP_MIN", "240"))
 
 
 class Thresholds:

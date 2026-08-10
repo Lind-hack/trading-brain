@@ -92,17 +92,71 @@ def _insert(table, payload, headers, label):
         return False
 
 
-def push(analysis, screen_result, portfolio_summary, mode, now_et, escalated):
+_NEW_SCAN_COLS = ("model", "news_model", "news_degraded", "degraded_kind")
+
+
+def _insert_scan(payload, headers):
+    """The heartbeat row, retried without the tier columns if the migration is pending.
+
+    Same failure mode as `_post_signals`: PostgREST rejects the whole row with PGRST204 when it
+    names a column the table does not have, and losing the heartbeat is how the deck ends up
+    unable to tell "the VPS is down" from "the schema is behind". Only a column complaint gets
+    the retry — a network failure would just spend a second timeout on the same outage.
+    """
+    url = f"{config.SUPABASE_URL}/rest/v1/sd_brain_scans"
+    try:
+        r = requests.post(url, headers=headers, timeout=15, json=_jsonable(payload))
+        if r.status_code < 400:
+            return True
+        if not any(c in r.text for c in _NEW_SCAN_COLS):
+            r.raise_for_status()
+        print("[warn] sd_brain_scans is missing the model columns — run vps/brain.sql. "
+              "Pushing without them for now.", file=sys.stderr)
+        trimmed = {k: v for k, v in payload.items() if k not in _NEW_SCAN_COLS}
+        requests.post(url, headers=headers, timeout=15,
+                      json=_jsonable(trimmed)).raise_for_status()
+        return True
+    except Exception as e:  # pragma: no cover - network
+        print(f"[warn] dashboard scan push failed: {e}", file=sys.stderr)
+        return False
+
+
+def _tier_fields(analysis, intel):
+    """Which model actually ran, in the shape the deck reads.
+
+    The deck used to infer "Opus is running" from `escalated` alone, so every heartbeat — the
+    news pass, a gated-out cycle, the off-hours crypto risk sweep — advertised a deep run that
+    never happened. These four columns say it outright instead of leaving it to be guessed.
+
+      model          the deep model id; null when no deep run produced this analysis, which
+                     covers an escalation that fell back to the rules as well as a cycle that
+                     never escalated at all
+      news_model     the tier-1 id, 'keyword-fallback' when Haiku failed, 'none' when skipped
+      news_degraded  the tier-1 output did not come from the model
+      degraded_kind  why a tier fell back: auth | usage | other
+    """
+    a = analysis or {}
+    i = intel or {}
+    return {
+        "model": a.get("model"),
+        "news_model": i.get("model") or "none",
+        "news_degraded": bool(i.get("degraded")),
+        "degraded_kind": a.get("degraded_kind") or i.get("degraded_kind"),
+    }
+
+
+def push(analysis, screen_result, portfolio_summary, mode, now_et, escalated, intel=None):
     if not _enabled():
         return False
     ts = now_et.astimezone(config.UTC).isoformat()
     h = _headers()
     signals = (analysis or {}).get("signals", []) or []
-    ok = _insert("sd_brain_scans",
-                 {"ts": ts, "mode": mode, "escalated": escalated, "n_signals": len(signals),
-                  "outlook": (analysis or {}).get("market_outlook"),
-                  "screen_why": screen_result.get("why", []),
-                  "degraded": bool((analysis or {}).get("degraded"))}, h, "scan")
+    ok = _insert_scan(
+        {"ts": ts, "mode": mode, "escalated": escalated, "n_signals": len(signals),
+         "outlook": (analysis or {}).get("market_outlook"),
+         "screen_why": screen_result.get("why", []),
+         "degraded": bool((analysis or {}).get("degraded")),
+         **_tier_fields(analysis, intel)}, h)
     try:
         if signals:
             rows = []
@@ -167,11 +221,14 @@ def push_heartbeat(mode, now_et, reason):
     """
     if not _enabled():
         return False
-    return _insert("sd_brain_scans",
-                   {"ts": now_et.astimezone(config.UTC).isoformat(), "mode": mode,
-                    "escalated": False, "n_signals": 0,
-                    "outlook": f"Skipped — {reason}.", "screen_why": [f"gate: {reason}"],
-                    "degraded": False}, _headers(), "gate heartbeat")
+    return _insert_scan(
+        {"ts": now_et.astimezone(config.UTC).isoformat(), "mode": mode,
+         "escalated": False, "n_signals": 0,
+         "outlook": f"Skipped — {reason}.", "screen_why": [f"gate: {reason}"],
+         # A gated-out run read no news and woke no deep model. Saying that explicitly is the
+         # whole point of these columns: the deck used to render this row as an Opus wake-up.
+         "degraded": False, "model": None, "news_model": "none",
+         "news_degraded": False, "degraded_kind": None}, _headers())
 
 
 # ── Long-term thesis board ──────────────────────────────────────────────────────

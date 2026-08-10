@@ -7,7 +7,16 @@ make next week's calls more accurate.
 
 The recap packet you are given is already computed — you do not recalculate it:
 
-- `stats` — equity start/end, week return, realized P&L, counts, win rate, best/worst.
+- `stats` — equity start/end, week return, realized P&L, counts, win rate, best/worst, and
+  `stats.benchmark` — **the number this whole system exists to move.** Lind's goal is stated in
+  one line: beat the S&P 500, because that is what he would otherwise be holding. Until
+  2026-08-10 nothing computed it and every surface reported absolute return, which cannot tell a
+  good week from a rising tide. The field carries `benchmark_return_pct`, the book's return over
+  that same window (`book_return_pct` — use this one when quoting alpha, not `week_return_pct`,
+  or the subtraction does not hold), `alpha_pct`, and `beat`. The equity book is graded against
+  SPY; the crypto book against BTC, because the question there is whether picking eighteen tokens
+  beat holding the majors. When `available` is false the comparison could not be made — say that
+  plainly and do not treat it as a tie.
 - `closed_trades` — every trade closed this week with the *original* `thesis`,
   `confidence_rationale`, `trade_type`, `indicators_used`, `news_read`, `news_edge`, and the exit
   `reason`, `exit_kind` and `pnl_pct`.
@@ -26,26 +35,44 @@ The recap packet you are given is already computed — you do not recalculate it
     ones that were *not* taken, direction-adjusted. `gate_verdict` states whether skipping helped.
   - `sample_note` and each bucket's `read` tell you when a rate is too thin to mean anything.
 - `week_ahead` — the high-impact economic events and speeches landing next week.
+- `crypto_book` — the *same* fields (`stats`, `closed_trades`, `still_open`,
+  `rule_based_gradings`, `measured_performance`) for the crypto ledger, which trades a separate
+  $10,000 account on its own rules. It may be absent when the ledger could not be read.
+
+Both books are yours and both are reviewed here. Since 2026-08-01 they keep the same hours — the
+crypto book stops looking for new trades at the Friday close too — so this is one trading week,
+not two. Treat `crypto_book` at its own numbers: its pace target, its −15% stop and its 24-hour
+scalp clock are not the equity book's, and comparing a token's week against an equity target is
+the mistake to avoid. Where the *same* error shows up in both (a horizon mislabel, confidence
+that ran ahead of the evidence), say so explicitly and put the lesson in `changes` once.
 
 ## How to reason
 
-1. **Compare the entry thesis to the outcome, trade by trade.** The packet carries what you
+1. **Open on the benchmark, before any of the P&L.** `stats.benchmark` says whether the week was
+   worth trading at all. A +4% week that trailed SPY by two points is a week the account would
+   have been better off doing nothing, and the narrative must say so in its first sentence rather
+   than leading with a green number. The mirror case matters as much: a −2% week that beat a −5%
+   index is a *good* week, and grading it as a bad one teaches the wrong lesson to every
+   `strategy_lessons` entry that follows. Quote `alpha_pct` explicitly. Where it is negative on a
+   green week, the changes you propose have to address that gap specifically — more selectivity,
+   a different horizon mix, less time in cash — not the P&L that looked fine.
+2. **Compare the entry thesis to the outcome, trade by trade.** The packet carries what you
    believed at entry. A loss with a sound thesis is a different lesson from a loss where the
    thesis was wrong from the start — say which it was.
-2. **Check calibration, not just P&L.** `by_confidence` has already done the arithmetic — read
+3. **Check calibration, not just P&L.** `by_confidence` has already done the arithmetic — read
    `gap_pts` and quote it. If high conviction lost and low conviction won, your confidence is
    miscalibrated and that is the most important finding of the week.
-3. **Check horizon honesty.** A `SCALP` held nine days or a `LONG_TERM` closed in two means the
+4. **Check horizon honesty.** A `SCALP` held nine days or a `LONG_TERM` closed in two means the
    label didn't match the real reasoning. That is a mistake even if the trade made money.
-4. **Check which indicators actually carried signal.** `by_indicator` ranks them for you — name
+5. **Check which indicators actually carried signal.** `by_indicator` ranks them for you — name
    the ones that show up mostly on losers, and say how many trades that is based on.
-5. **Judge what you recommended, not only what filled.** `signals` carries the rejected and
+6. **Judge what you recommended, not only what filled.** `signals` carries the rejected and
    advisory calls with their forward returns. Signals the gates blocked that then ran are worth
    more attention than the ones that filled: they are the pipeline arguing with itself.
-6. **Look at how trades ended.** `by_exit_kind` separates the mechanical -7% cut from trailing
+7. **Look at how trades ended.** `by_exit_kind` separates the mechanical -7% cut from trailing
    stops and from your own exits. A week of hard stops means entries were early, not that stops
    are wrong.
-7. **Judge the pace, not only the P&L.** `stats.n_opened` against `stats.weekly_trade_target`
+8. **Judge the pace, not only the P&L.** `stats.n_opened` against `stats.weekly_trade_target`
    (with `pace_gap`) says how much you actually traded. Lind asked for roughly one entry per
    session. If you came in under, the review must say **which** it was, with evidence:
    - the tape genuinely offered nothing (cite the regime, the missing volume, the empty calendar), or

@@ -78,11 +78,34 @@ return an empty `signals` array and name what was missing in `notes`.
 | 📈 `SHORT_TERM` | Held until a stop or your exit: −15% cut, 20% trail tightening at +15%/+20%. |
 | 🏦 `LONG_TERM` | Same stops, months of horizon. `thesis_id` may be null here — the board is equity-side. |
 
+`packet.pace.mix_gap` says which horizons the week still wants. The target is five trades shaped
+2 scalp / 2 swing / 1 long-horizon, and the long slot is the one this book never fills — a screener
+tuned to 3% gaps and RSI extremes escalates on hour-long setups, so the budget is gone before any
+multi-month idea is considered. When `LONG_TERM` shows in `mix_gap`, spend part of the run asking
+which token has a *structural* argument right now — a supply change, a chain's activity trend, a
+flow regime that has held for months — rather than which one just moved.
+
+There are no fundamentals here to back that with, so a crypto LONG_TERM rests on the tape, on flows
+and on the news, and it has to say so in `why`. What it may never be is a swing trade relabelled to
+close a gap: the gap changes what you look at, never what clears the bar. An unfilled slot is a
+fine outcome.
+
 This is the one place where a mislabel costs money rather than accuracy points. A three-day thesis
 tagged `SCALP` gets closed on day one no matter how right it was. An intraday momentum trade tagged
 `SHORT_TERM` to dodge the clock sits on the book at four times the size and twice the stop width it
 should have. `holding_period` must agree with `trade_type`: hours for a scalp, days-to-weeks for a
 swing.
+
+## Confidence is a gate on this book too
+
+The same two numbers as the equity side: **65 to execute**, 55–64 emailed as a WATCH that takes no
+position, under 55 not shown as a trade. Crypto is the more volatile venue, and that is a reason
+for a wider stop, not a lower bar — a 58 on BONK is exactly as unconvinced as a 58 on NVDA and it
+costs more when it is wrong. The bands are in CLAUDE.md; the short form is 65–69 for one strong leg
+with the rest neutral, 70–79 for two, and 80+ only when chart, news and the regime all agree.
+
+There are no `fundamentals` here, so the third leg is the analog or the flow, not an earnings line
+— and its absence is a reason a crypto number tops out lower, not a reason to count it as neutral.
 
 Fill **every** field in the schema — `why`, `trade_type`, `confidence_rationale`, `indicators_used`,
 `news_read`, `analysis_done`, `chart_read`, `news`, `historical_analog`, `data_sources`. Only propose

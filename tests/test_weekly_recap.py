@@ -303,3 +303,47 @@ def test_a_recap_built_from_the_ledger_carries_the_pace_numbers(tmp_path):
     recap = journal.build_recap(pf, "2026-07-20T00:00:00", prices={})
     assert recap["stats"]["weekly_trade_target"] == config.WEEKLY_TRADE_TARGET
     assert recap["stats"]["pace_gap"] == -config.WEEKLY_TRADE_TARGET   # nothing opened
+
+
+# ── one week, two books ─────────────────────────────────────────────────────────
+
+def test_the_crypto_book_is_graded_against_its_own_pace(tmp_path):
+    """It used to read the module constant, which would have marked a crypto book that hit its
+    own target as three trades behind the equity one."""
+    from brain.portfolio import Portfolio
+    pf = Portfolio(path=tmp_path / "PORTFOLIO_CRYPTO.json", rules=config.CRYPTO_RULES)
+    recap = journal.build_recap(pf, "2026-07-20T00:00:00", prices={})
+    assert recap["book"] == config.CRYPTO_RULES.name
+    assert recap["stats"]["weekly_trade_target"] == config.CRYPTO_RULES.weekly_trade_target
+
+
+def test_the_review_packet_carries_both_ledgers():
+    """Both books keep the same hours now, so the Friday review reads one week, not two."""
+    recap = _full_recap()
+    recap["crypto"] = {**_full_recap(), "book": "crypto"}
+    packet = json.loads(journal.recap_packet(recap))
+    assert packet["crypto_book"]["book"] == "crypto"
+    assert packet["crypto_book"]["stats"]["n_closed"] == 4
+    assert "week_ahead" in packet and "week_ahead" not in packet["crypto_book"]
+
+
+def test_a_missing_crypto_ledger_leaves_the_packet_valid():
+    packet = json.loads(journal.recap_packet(_full_recap()))
+    assert "crypto_book" not in packet
+
+
+def test_the_recap_email_shows_the_crypto_week_beside_the_equity_one():
+    recap = _full_recap()
+    recap["crypto"] = {**_full_recap(), "book": "crypto",
+                       "closed": [_closed("SOL-USD", 9.0, 71, ["RSI"], "SHORT_TERM",
+                                          "target", "L1")]}
+    _, text, html = notify.build_weekly_email(recap, datetime(2026, 7, 24))
+    assert "SOL-USD" in html and "SOL-USD" in text
+    assert "Crypto book" in html
+    assert "CRYPTO BOOK" in text
+
+
+def test_the_recap_without_a_crypto_book_renders_unchanged():
+    _, text, html = notify.build_weekly_email(_full_recap(), datetime(2026, 7, 24))
+    assert "CRYPTO BOOK" not in text
+    assert "Crypto book" not in html

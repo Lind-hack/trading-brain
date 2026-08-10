@@ -379,7 +379,8 @@ def test_recap_packet_is_json(tmp_path):
     pf = _pf(tmp_path)
     week_start = (datetime.now(config.UTC) - timedelta(days=7)).isoformat()
     packet = _json.loads(journal.recap_packet(journal.build_recap(pf, week_start)))
-    assert set(packet) == {"stats", "closed_trades", "still_open", "rule_based_gradings",
+    # `book` names which ledger these numbers came from — the review reads two of them now.
+    assert set(packet) == {"book", "stats", "closed_trades", "still_open", "rule_based_gradings",
                            "measured_performance", "week_ahead"}
 
 

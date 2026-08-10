@@ -98,7 +98,9 @@ def posted(monkeypatch):
         calls.append((table, json))
         if reject_once["on"] == table:
             reject_once["on"] = None
-            return _Resp(400, "PGRST204 could not find the 'outcome' column")
+            # Names a column from both new-column sets, so one knob covers either table's
+            # migration-pending path. PostgREST really does name the offending column.
+            return _Resp(400, "PGRST204 could not find the 'outcome' / 'model' column")
         return _Resp()
 
     monkeypatch.setattr(supabase.requests, "post", fake_post)
@@ -151,6 +153,76 @@ def test_an_unmigrated_table_still_gets_the_old_columns(posted):
     assert "outcome" in first[0]
     assert not set(supabase._NEW_SIGNAL_COLS) & set(retry[0])
     assert retry[0]["ticker"] == "NVDA"
+
+
+# ── which tier actually ran ─────────────────────────────────────────────────────
+# The deck read `escalated` as "Opus is running", so a news-only cycle, a gated-out run and an
+# escalation that fell back to the rules all advertised a deep run that never happened. These
+# four columns are what let the strip say which model produced a heartbeat instead of guessing.
+
+def test_a_deep_run_names_the_model_that_produced_it(posted):
+    supabase.push({"signals": [_signal()], "model": config.CLAUDE_DEEP_MODEL},
+                  {"why": []}, None, "cycle", NOW, True,
+                  intel={"model": config.CLAUDE_LITE_MODEL, "degraded": False})
+    row = _rows(posted, "sd_brain_scans")[0]
+    assert row["model"] == config.CLAUDE_DEEP_MODEL
+    assert row["news_model"] == config.CLAUDE_LITE_MODEL
+    assert row["news_degraded"] is False
+    assert row["degraded_kind"] is None
+
+
+def test_a_news_only_cycle_is_not_reported_as_a_deep_run(posted):
+    """The exact confusion Lind reported: Haiku scans, the page says Opus woke up."""
+    supabase.push(None, {"why": ["quiet"]}, None, "cycle", NOW, False,
+                  intel={"model": config.CLAUDE_LITE_MODEL, "degraded": False})
+    row = _rows(posted, "sd_brain_scans")[0]
+    assert row["model"] is None
+    assert row["news_model"] == config.CLAUDE_LITE_MODEL
+
+
+def test_an_escalation_that_fell_back_claims_no_model(posted):
+    """`escalated` was true and no deep run happened — the row has to say the second part."""
+    supabase.push({"signals": [], "degraded": True, "degraded_kind": "usage"},
+                  {"why": []}, None, "cycle", NOW, True,
+                  intel={"model": config.CLAUDE_LITE_MODEL, "degraded": False})
+    row = _rows(posted, "sd_brain_scans")[0]
+    assert row["escalated"] is True and row["model"] is None
+    assert row["degraded_kind"] == "usage"
+
+
+def test_a_failed_news_pass_names_the_fallback(posted):
+    supabase.push(None, {"why": []}, None, "cycle", NOW, False,
+                  intel={"model": "keyword-fallback", "degraded": True, "degraded_kind": "auth"})
+    row = _rows(posted, "sd_brain_scans")[0]
+    assert row["news_model"] == "keyword-fallback"
+    assert row["news_degraded"] is True
+    assert row["degraded_kind"] == "auth"
+
+
+def test_a_run_with_no_news_pass_says_none_not_null(posted):
+    """The off-hours crypto sweep calls no model at all. 'none' distinguishes that from a gap."""
+    supabase.push(None, {"why": ["stops only"]}, None, "crypto", NOW, False)
+    row = _rows(posted, "sd_brain_scans")[0]
+    assert row["news_model"] == "none" and row["model"] is None
+
+
+def test_the_gate_heartbeat_wakes_nothing(posted):
+    assert supabase.push_heartbeat("cycle", NOW, "market closed (weekend)") is True
+    row = _rows(posted, "sd_brain_scans")[0]
+    assert row["model"] is None and row["news_model"] == "none"
+    assert row["news_degraded"] is False
+
+
+def test_an_unmigrated_scans_table_still_gets_the_heartbeat(posted):
+    """Shipping the code before the SQL must not cost the heartbeat — that row is how the deck
+    tells "the VPS is down" from "the schema is behind"."""
+    posted.reject_once["on"] = "sd_brain_scans"
+    supabase.push({"signals": [], "model": config.CLAUDE_DEEP_MODEL},
+                  {"why": []}, None, "cycle", NOW, True)
+    first, retry = _rows(posted, "sd_brain_scans")
+    assert "model" in first
+    assert not set(supabase._NEW_SCAN_COLS) & set(retry)
+    assert retry["mode"] == "cycle" and retry["escalated"] is True
 
 
 # ── the thesis board ────────────────────────────────────────────────────────────
