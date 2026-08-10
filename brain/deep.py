@@ -552,10 +552,24 @@ def fallback_analysis(screen_result, market, news_intel=None, reason=None):
                      f"{ni.get('materiality')} materiality)" if ni.get("summary") else
                      "No news read for this name this cycle.")
         signals.append({
-            "ticker": ticker, "direction": direction, "trade_type": "SHORT_TERM",
+            # `UNSPECIFIED`, not `SHORT_TERM`. The screener flags a chart condition; it does not
+            # reason about horizon, and stamping one on anyway was how 805 signals came to carry a
+            # SHORT_TERM label nothing had actually chosen. `config.normalize_trade_type` returns
+            # None for this, so `portfolio` counts it under UNSPECIFIED, it fills no slot in the
+            # weekly mix, and the review sees a signal that did not say what it was — which is the
+            # truth about it.
+            "ticker": ticker, "direction": direction, "trade_type": "UNSPECIFIED",
             "holding_period": "unclassified (rules-only)", "confidence": 35,
-            "confidence_rationale": "Capped at 35: the deterministic screener flagged the setup "
-                                    "but no deep model confirmed it, so this is a watch item.",
+            "confidence_rationale": (
+                "Capped at 35: the deterministic screener flagged the setup but no deep model "
+                "confirmed it, so this is a watch item"
+                + (f" ({reason})" if reason else "") + "."),
+            # Carried per signal, not only on the envelope. These rows outlive the email — into
+            # the ledger, the journal and the dashboard — and each of those reads one signal at a
+            # time, where an analysis-level flag is not visible. A 35 that reads as an ordinary
+            # low-conviction call is a different thing from a 35 that means nobody looked.
+            "degraded": True,
+            "degraded_reason": reason,
             "entry": price, "stop": None, "target1": None, "target2": None,
             "why": "Screener flagged this name; AI deep-analysis was unavailable this cycle.",
             "analysis_done": "deterministic chart-pattern screener only"

@@ -361,6 +361,38 @@ def _exit_alerts_text(alerts):
     return lines + [""]
 
 
+def _degraded_card(degraded_signals, reason):
+    """The block that says nobody looked, as distinct from "the analyst wasn't convinced".
+
+    Rules-only signals score 35, which puts them under the floor alongside genuinely weak ideas —
+    so before this existed they vanished into the same grey one-liner, and a day where both model
+    tiers were unreachable was indistinguishable from a quiet day with thin setups. That is
+    exactly the confusion that let the 2026-08-04 outage run to 2026-08-10 unnoticed.
+
+    Amber, named, and stating the reason. It is deliberately not styled like a WATCH card: these
+    are not setups one piece of evidence short, they are chart flags nothing has read.
+    """
+    if not degraded_signals:
+        return ""
+    names = ", ".join(
+        f'{s.get("ticker","?")} {(s.get("direction") or "").lower()}'
+        for s in degraded_signals[:10])
+    more = f" +{len(degraded_signals) - 10} more" if len(degraded_signals) > 10 else ""
+    why = f" — {reason}" if reason else ""
+    return f"""
+  <tr><td style="background:#1a1408;border:1px solid #f59e0b55;border-radius:14px;padding:16px 20px;">
+    <p style="margin:0 0 6px;font-size:12px;color:#f59e0b;text-transform:uppercase;letter-spacing:0.08em;">
+      ⚠️ Models unavailable{why}</p>
+    <p style="margin:0;font-size:13px;color:#d1d5db;">
+      No AI read the tape this cycle. The {len(degraded_signals)} name{"" if len(degraded_signals) == 1 else "s"}
+      below are raw screener flags, <b>not analysed and not executable</b>:
+      <span style="color:#9ca3af;">{names}{more}</span></p>
+    <p style="margin:8px 0 0;font-size:11px;color:#6b7280;">
+      If this repeats, run <code>vps/healthcheck.sh</code> on the box — step 9 is the auth probe.</p>
+  </td></tr>
+  <tr><td style="height:16px;"></td></tr>"""
+
+
 def _below_bar_card(dropped, rules):
     """One line for the ideas that didn't clear the floor.
 
@@ -409,6 +441,11 @@ def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=N
     trades = [s for s, b in banded if b in ("execute", "unrated")]
     watches = [s for s, b in banded if b == "watch"]
     dropped = [s for s, b in banded if b == "below_bar"]
+    # Split the two reasons a signal can sit under the floor. A rules-only flag and a genuinely
+    # unconvincing idea both score below 55, and lumping them together hides an outage inside what
+    # looks like an ordinary quiet cycle.
+    degraded_signals = [s for s in dropped if s.get("degraded")]
+    dropped = [s for s in dropped if not s.get("degraded")]
     shown = trades + watches
 
     # The crypto book gets its own subject prefix. Both books email the same inbox and the two
@@ -445,6 +482,10 @@ def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=N
         build_card(s, now_et, intel_tickers.get(s.get("ticker")),
                    watch_bar=None if s in trades else rules.min_confidence)
         for s in shown)
+    # Ahead of the below-bar line: "nobody looked" is the more important fact on the cycle, and it
+    # explains why the rest of the email is thin.
+    cards += _degraded_card(degraded_signals, analysis.get("degraded_reason")
+                            or analysis.get("degraded_kind"))
     cards += _below_bar_card(dropped, rules)
     pcard = _portfolio_card(portfolio_summary)
     mcard = _macro_card(intel)
@@ -496,6 +537,13 @@ def build_email(analysis, portfolio_summary, mode, now_et, intel=None, applied=N
         if s.get("historical_analog"):
             lines.append(f"  Analog: {s.get('historical_analog')}")
         lines.append(f"  Sources: {', '.join(s.get('data_sources', []))}")
+        lines.append("")
+    if degraded_signals:
+        # The plain-text part is what a phone notification previews, so the outage has to be
+        # legible here too rather than only in the HTML card.
+        lines.append(f"MODELS UNAVAILABLE — {len(degraded_signals)} raw screener flag(s), not "
+                     "analysed, not executable: "
+                     + ", ".join(str(s.get("ticker")) for s in degraded_signals))
         lines.append("")
     if dropped:
         lines.append(f"{len(dropped)} below the {rules.watch_confidence} confidence floor, not shown: "

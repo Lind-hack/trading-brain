@@ -112,3 +112,18 @@ LOGD=/root/signal-deck-logs
 # Nothing else runs overnight or at the weekend, with one deliberate exception: the Sunday
 # week-ahead digest above. For the equity book the market is shut, so the brain is too — the
 # weekend carries the Friday recap and the Sunday preview, and nothing else.
+
+# ── the dead-man's switch ───────────────────────────────────────────────────────
+# Every other alert this system sends is produced BY the pipeline, so when the pipeline stops the
+# alerts stop with it. That is how 2026-08-04 became 2026-08-10 before anyone noticed: six days,
+# no scans, no emails, and nothing saying why.
+#
+# This entry is deliberately unlike every other line in this file. No venv (system python3 only,
+# for SMTP), no `brain` import, its own lock — so it survives whatever killed the jobs above,
+# including a broken venv. It watches the mtime of brain-crypto.log because that is the one job
+# with no gate: --crypto-cycle runs hourly regardless of session, weekend or holiday, so a stale
+# timestamp means the scheduler stopped and needs no DST or market-hours reasoning to interpret.
+#
+# Hourly at :48, clear of the brain (:03/:18/:33) and of the signal engines (:07/:22/:37/:52).
+# It emails at most once a day and exits 0 in silence when everything is fine.
+48 * * * *        flock -n /tmp/brain-watchdog.lock bash -lc '. $ENVF; bash $BRAIN/vps/watchdog.sh >> $LOGD/brain-watchdog.log 2>&1'
