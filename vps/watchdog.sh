@@ -98,15 +98,33 @@ if [ -z "${GMAIL_USER:-}" ] || [ -z "${GMAIL_APP_PASSWORD:-}" ]; then
   exit 1
 fi
 
-python3 - "$TO" "$SUBJ" <<PY
+# The heredoc is QUOTED (<<'PY') so the Python below is literal source. It used to be unquoted,
+# which meant bash interpolated $BODY — twenty lines of log output — straight into a Python string
+# literal. Those lines carry dict reprs, quotes and backslashes, so a stray sequence broke the
+# parse, and a backtick or $(...) in a log line would have been executed by the shell. The body
+# now travels as data in the environment, where none of it is ever parsed as code.
+#
+# Credentials are passed explicitly rather than inherited, so this works whether signal.env
+# exports its variables or merely assigns them — and a missing one exits with a sentence instead
+# of a KeyError traceback, which matters for the one script whose whole job is to not fail quietly.
+WATCHDOG_BODY="$BODY" WATCHDOG_TO="$TO" WATCHDOG_SUBJ="$SUBJ" \
+GMAIL_USER="${GMAIL_USER:-}" GMAIL_APP_PASSWORD="${GMAIL_APP_PASSWORD:-}" \
+python3 - <<'PY'
 import os, smtplib, sys
 from email.mime.text import MIMEText
-to, subj = sys.argv[1], sys.argv[2]
-msg = MIMEText("""$BODY""")
-msg["Subject"], msg["From"], msg["To"] = subj, os.environ["GMAIL_USER"], to
-with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as s:
-    s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
-    s.send_message(msg)
+user = os.environ.get("GMAIL_USER")
+pw = os.environ.get("GMAIL_APP_PASSWORD")
+if not user or not pw:
+    sys.exit("GMAIL_USER / GMAIL_APP_PASSWORD not visible to python3")
+msg = MIMEText(os.environ.get("WATCHDOG_BODY", "(no body)"))
+msg["Subject"] = os.environ.get("WATCHDOG_SUBJ", "Market Brain watchdog")
+msg["From"], msg["To"] = user, os.environ["WATCHDOG_TO"]
+try:
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as s:
+        s.login(user, pw)
+        s.send_message(msg)
+except Exception as e:
+    sys.exit(f"SMTP failed: {type(e).__name__}: {e}")
 print("sent")
 PY
 rc=$?
