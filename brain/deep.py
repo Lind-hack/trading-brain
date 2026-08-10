@@ -75,6 +75,13 @@ def build_packet(mode, market, screen_result, calendar, portfolio_summary,
         "news_intel": {
             "model": intel.get("model"),
             "degraded": bool(intel.get("degraded")),
+            # A cached read is a real model read, just not one taken this minute: no new story
+            # survived the quality gate since it, so re-reading would have bought the same answer
+            # at the price of a session-limit slot. Distinct from `degraded`, which means nothing
+            # read the news at all — conflating the two would either throw away a good news leg
+            # or claim one that does not exist.
+            "cached": bool(intel.get("cached")),
+            "cache_age_min": intel.get("cache_age_min"),
             "macro_read": intel.get("macro_read"),
             "macro_sentiment": intel.get("macro_sentiment"),
             "tickers": {t: v for t, v in (intel.get("tickers") or {}).items()
@@ -173,6 +180,10 @@ def build_prompt(mode, packet):
         "findings are in packet.news_intel. Only cite headlines that appear there — anything else\n"
         "is fabrication. If news_intel.degraded is true, no AI read the news this cycle: say so\n"
         "and lower confidence accordingly.\n"
+        "If news_intel.cached is true the read is real but `cache_age_min` minutes old, kept\n"
+        "because no new story survived the quality gate since. Treat it as a valid news leg —\n"
+        "it is not degraded — but do not describe it as breaking, and if the age is long against\n"
+        "your holding period, say so in confidence_rationale.\n"
         "Each name in news_intel carries `crowding` (under-covered / mixed / saturated), a\n"
         "`source_tier`, and an `edge`. A saturated story is already in the price — it is context,\n"
         "not an entry. An under-covered story from a primary source is the one case where the news\n"

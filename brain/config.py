@@ -104,6 +104,24 @@ NEWS_ESCALATE_ABS_SENTIMENT = int(os.environ.get("BRAIN_NEWS_ESCALATE_SENTIMENT"
 # unkeyed, so the budget spent here is latency, not quota.
 NEWS_CANDIDATES_PER_TICKER = int(os.environ.get("BRAIN_NEWS_CANDIDATES", "14"))
 NEWS_MIN_NOVELTY = int(os.environ.get("BRAIN_NEWS_MIN_NOVELTY", "30"))  # 0-100, below = recycled
+
+# ── Rationing the tier-1 read ───────────────────────────────────────────────────
+# The health check on 2026-08-10 found 297 failed Claude runs and 147 cycles that had fallen back
+# to rules-only, all of them carrying "You've hit your session limit". That was not the outage —
+# it was happening while the brain was healthy. There is no ANTHROPIC_API_KEY in this project and
+# there cannot be one, so both tiers spend a single Claude Code subscription, and tier 1 was
+# spending it on a fixed clock: a Haiku pass on every 30-minute equity tick and every hourly
+# crypto tick, ~260 reads a week before a single Opus escalation.
+#
+# Most of those reads were of the same headlines. The logs show the ratio plainly — "423 scraped,
+# 65 kept, 358 filtered (250 already reported)". Scraping and scoring are free and deterministic;
+# only the model call costs. So the pass is now rationed on the same principle `escalate.py`
+# applies to Opus: spend the call when the *evidence has changed*, not when the clock says so.
+#
+# This matters far beyond the bill. A cycle that lost its Haiku pass has no news leg, and the
+# rulebook's own scale caps a two-leg signal at 70-79 — so an exhausted session limit was
+# silently making an 80 unreachable. Rationing buys back the reads that carry evidence.
+NEWS_CACHE_MAX_AGE_MIN = int(os.environ.get("BRAIN_NEWS_CACHE_MAX_AGE_MIN", "120"))
 NEWS_SEC_FILINGS = os.environ.get("BRAIN_NEWS_SEC", "1") != "0"        # EDGAR is free and primary
 NEWS_SEC_FORMS = ("8-K", "10-Q", "10-K", "SC 13D", "SC 13D/A", "425", "S-4")
 # SEC requires a declared contact in the User-Agent; it is the operator's own address.

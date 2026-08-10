@@ -38,6 +38,24 @@ scheduled anchor, or Haiku flagging material news. Tier 1's output arrives in yo
 story that isn't in the packet is fabrication, and `news_intel._sanitize()` will strip it anyway.
 If `news_intel.degraded` is true, no model read the news this cycle — say so and lower confidence.
 
+`news_intel.cached` is a different thing and must not be confused with it. Tier 1 no longer runs
+on a clock. Scraping and scoring headlines is free and deterministic, so the pass is rationed on
+the same principle `escalate.py` applies to Opus: the model call is spent when the *evidence has
+changed*, not every thirty minutes. When no new story survives the quality gate, the previous read
+is reused and arrives tagged `cached: true` with a `cache_age_min`.
+
+That read is real — a model produced it — so it is a valid news leg and does not cap your
+confidence the way `degraded` does. What it is not is *breaking*: don't describe a forty-minute-old
+read as something that just landed, and if its age is long against the horizon you are proposing,
+say so in `confidence_rationale`. A failed read is never cached, so a `cached` read is never a
+keyword fallback wearing a model's name.
+
+This exists because the 2026-08-10 health check found 297 failed Claude runs and **147 cycles that
+had fallen back to rules-only**, all carrying "You've hit your session limit" — while the brain was
+otherwise healthy. Both tiers spend one subscription. A cycle that loses its Haiku pass has no news
+leg, and the scale below caps a two-leg signal at 70–79, so an exhausted session limit was quietly
+making an 80 unreachable.
+
 Before Haiku sees them, `brain/news_quality.py` scores every headline: how many outlets have run
 the same story (`outlets` / `crowding`), how old it is, and whether the source is the SEC filing
 itself, a wire, mainstream reporting, or an aggregator rewriting someone else. Clickbait and

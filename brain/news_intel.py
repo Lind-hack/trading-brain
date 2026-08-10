@@ -17,9 +17,11 @@ keyword-scored fallback so the cycle keeps its news signal instead of losing it.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 
 from . import collect, config, deep, jsonio, news_quality
 
@@ -424,6 +426,74 @@ def news_for_ticker(intel, ticker):
     return info.get("headlines_used") or []
 
 
+def _cache_path():
+    return config.MEMORY_DIR / ".news-intel.json"
+
+
+def _fingerprint(headlines, macro):
+    """One key for "the set of stories tier 1 would be shown".
+
+    Built from `news_quality.signature`, which is wording-tolerant, so the same wire item
+    retitled by a second desk does not read as new evidence and buy another model call — the
+    exact failure this rationing exists to avoid.
+    """
+    keys = {news_quality.signature(h.get("title", "") or "")
+            for items in (headlines or {}).values() for h in items or []}
+    keys |= {news_quality.signature(h.get("title", "") or "") for h in macro or []}
+    keys.discard("")
+    return hashlib.sha1("|".join(sorted(keys)).encode("utf-8")).hexdigest()[:16]
+
+
+def _cached_intel(venue, fingerprint, now=None):
+    """The previous read, when this cycle is looking at the same stories. Otherwise None.
+
+    Two conditions, both required. The fingerprint must match — nothing new arrived — and the
+    read must be younger than `NEWS_CACHE_MAX_AGE_MIN`, so a genuinely quiet tape still gets
+    re-read a few times a session rather than the book trading all day off one morning opinion.
+    """
+    now = now or datetime.now(config.UTC)
+    try:
+        data = json.loads(_cache_path().read_text(encoding="utf-8"))
+        entry = (data or {}).get(venue) or {}
+        if entry.get("fingerprint") != fingerprint:
+            return None
+        age = (now - datetime.fromisoformat(entry["ts"])).total_seconds() / 60.0
+        if age > config.NEWS_CACHE_MAX_AGE_MIN or age < 0:
+            return None
+        intel = entry.get("intel")
+        if not isinstance(intel, dict) or not intel or intel.get("degraded"):
+            # Never serve a failed read back as a cached one: a keyword fallback replayed for two
+            # hours would look like a news leg while carrying nothing a model ever saw.
+            return None
+        intel = dict(intel)
+        intel["cached"] = True
+        intel["cache_age_min"] = round(age, 1)
+        return intel
+    except (FileNotFoundError, KeyError, ValueError, TypeError):
+        return None
+
+
+def _store_intel(venue, fingerprint, intel, now=None):
+    """Remember a successful read. Failures are not stored — see `_cached_intel`."""
+    if not intel or intel.get("degraded"):
+        return
+    now = now or datetime.now(config.UTC)
+    try:
+        try:
+            data = json.loads(_cache_path().read_text(encoding="utf-8"))
+        except (FileNotFoundError, ValueError):
+            data = {}
+        if not isinstance(data, dict):
+            data = {}
+        data[venue] = {"fingerprint": fingerprint, "ts": now.isoformat(),
+                       "intel": {k: v for k, v in intel.items() if k != "headlines"}}
+        config.MEMORY_DIR.mkdir(parents=True, exist_ok=True)
+        _cache_path().write_text(jsonio.dumps(data, indent=2), encoding="utf-8")
+    except Exception as e:  # pragma: no cover - disk
+        # Losing the marker costs one extra model call, so it must never break a working cycle.
+        print(f"[warn] news intel cache: {e}", file=sys.stderr)
+
+
 def run(tickers, calendar=None, use_claude=True, venue="stock"):
     """Convenience: scrape + analyze in one call. Returns the intel dict.
 
@@ -437,12 +507,24 @@ def run(tickers, calendar=None, use_claude=True, venue="stock"):
     stats = {}
     headlines = gather_headlines(tickers, store=store, stats=stats)
     macro = gather_macro_headlines(store=store, venue=venue)
-    intel = analyze(headlines, macro, calendar, use_claude=use_claude)
-    # Save after the read, not before it: what the pass cited is the half of the store that stops
-    # the next cycle repeating this one, and a store written before `analyze` cannot carry it.
-    n_marked = news_quality.mark_used(cited_headlines(intel), store=store)
+    # Scraping and scoring above are free and deterministic; only the model call costs. So decide
+    # whether this cycle has anything new to read *before* spending one. See NEWS_CACHE_MAX_AGE_MIN.
+    fingerprint = _fingerprint(headlines, macro)
+    intel = _cached_intel(venue, fingerprint) if use_claude else None
+    if intel is not None:
+        print(f"[news] reusing tier-1 read from {intel['cache_age_min']:.0f}m ago — "
+              f"no new stories survived the quality gate", file=sys.stderr)
+        stats["cited"] = 0
+    else:
+        intel = analyze(headlines, macro, calendar, use_claude=use_claude)
+        _store_intel(venue, fingerprint, intel)
+        # Save after the read, not before it: what the pass cited is the half of the store that
+        # stops the next cycle repeating this one, and a store written before `analyze` cannot
+        # carry it. A cached read cites nothing new, so it must not re-mark — doing so would
+        # suppress the same stories a second time for a read that never happened.
+        n_marked = news_quality.mark_used(cited_headlines(intel), store=store)
+        stats["cited"] = n_marked
     news_quality.save_store(store)
-    stats["cited"] = n_marked
     intel["news_quality"] = stats
     # The scraped, scored, ranked headlines — kept so the caller can attach them to the market
     # snapshots instead of scraping the same names a second time. Superset of headlines_used:
