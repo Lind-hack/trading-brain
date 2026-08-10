@@ -36,22 +36,32 @@ detail=""
 stale=0
 
 check() {   # name -> appends to $detail, sets $stale when past the limit
-  local name="$1" limit="$2" p="$LOGD/$name.log"
+  # Three statements, not one. Bash expands every word on a command line before `local` assigns
+  # any of them, so `local name="$1" p="$LOGD/$name.log"` expands $name while it is still unset —
+  # which under `set -u` aborts the script on line one of its only real function.
+  local name="$1"
+  local limit="$2"
+  # Only the decisive log can raise the alarm. The others are printed for context, and a missing
+  # or rotated context log must never be the reason an alert fires — a false page from the
+  # watchdog costs more than it sounds, because the first one you ignore is the one that was real.
+  local decisive="${3:-0}"
+  local p="$LOGD/$name.log"
   if [ ! -f "$p" ]; then
     detail="${detail}  ${name}.log: MISSING"$'\n'
-    stale=1
-    return
+    [ "$decisive" = "1" ] && stale=1
+    return 0
   fi
   local age=$(( (now - $(stat -c %Y "$p")) / 60 ))
   detail="${detail}  ${name}.log: ${age}m old ($(stat -c %y "$p" | cut -d. -f1))"$'\n'
-  [ "$age" -gt "$limit" ] && stale=1
+  [ "$decisive" = "1" ] && [ "$age" -gt "$limit" ] && stale=1
+  return 0
 }
 
 # The crypto log is the ungated one and carries the verdict. The others are reported for context
 # only — a stale brain-cycle.log at the weekend is correct behaviour, not a fault.
-check brain-crypto "$MAX_MIN"
-check brain-cycle 100000
-check brain-anchor 100000
+check brain-crypto "$MAX_MIN" 1
+check brain-cycle 0 0
+check brain-anchor 0 0
 
 if [ "$stale" -eq 0 ] && [ "$TEST_MODE" -eq 0 ]; then
   exit 0
