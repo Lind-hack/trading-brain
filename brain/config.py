@@ -203,6 +203,32 @@ LONG_HARD_STOP_PCT = float(os.environ.get("BRAIN_LONG_HARD_STOP_PCT", "-20"))
 # holding one is.
 LONG_TRAIL_PCT = None
 
+# ── Two brakes above the level of a single trade ────────────────────────────────
+# Every gate written before these asks about one position: is this stop wide enough, is this entry
+# chased, has this sector lost twice. None of them can see the two ways a long book actually loses
+# to the index it is trying to beat.
+#
+# The first is regime. A book stays fully invested through the stretch where participation narrows
+# — the index still rises on five mega-caps while the average stock rolls over — and gives back a
+# year of alpha without a single bad decision at the trade level. `brain/regime.py` measures that;
+# these numbers say what to do about it. Not a halt: under CONTRACTION new buys need real
+# conviction and come on at half weight. Being wrong about the regime should cost a smaller
+# position, not a missed year.
+REGIME_CONTRACTION_WEIGHT_MULT = float(os.environ.get("BRAIN_REGIME_WEIGHT_MULT", "0.5"))
+REGIME_CONTRACTION_MIN_CONFIDENCE = int(os.environ.get("BRAIN_REGIME_MIN_CONFIDENCE", "75"))
+
+# The second is the equity curve itself. Sector lockout catches two losers in one sector; nothing
+# catches six losers spread across six. A book down badly from its own high-water mark is a book
+# whose read of the tape is currently wrong, and the cheapest response is to stop adding to it
+# until the curve says otherwise.
+#
+# Halts BUYs only. Exits, trims and the exit monitor keep running — a breaker that blocked selling
+# would be the exact opposite of risk control.
+CIRCUIT_BREAKER_PCT = float(os.environ.get("BRAIN_CIRCUIT_BREAKER_PCT", "-8"))
+# Resuming at the same level it halts at makes the breaker flap across the boundary, tripping and
+# clearing every other cycle. It re-arms only once the book has recovered meaningfully.
+CIRCUIT_BREAKER_RESUME_PCT = float(os.environ.get("BRAIN_CIRCUIT_BREAKER_RESUME_PCT", "-4"))
+
 # ── Confidence: the bar an idea has to clear to become a position ───────────────
 # Until 2026-08-01 there was no bar at all. Any proposal that cleared the mechanical gates was
 # filled at whatever confidence it carried, and Lind's complaint — "the highest confidence
@@ -383,6 +409,10 @@ class RuleSet:
                  scalp_trail_pct=SCALP_TRAIL_PCT, scalp_position_pct=SCALP_POSITION_PCT,
                  long_hard_stop_pct=LONG_HARD_STOP_PCT, long_trail_pct=LONG_TRAIL_PCT,
                  benchmark=None,
+                 regime_weight_mult=REGIME_CONTRACTION_WEIGHT_MULT,
+                 regime_min_confidence=REGIME_CONTRACTION_MIN_CONFIDENCE,
+                 circuit_breaker_pct=CIRCUIT_BREAKER_PCT,
+                 circuit_breaker_resume_pct=CIRCUIT_BREAKER_RESUME_PCT,
                  entry_max_range_pos=ENTRY_MAX_RANGE_POS, entry_max_ext_atr=ENTRY_MAX_EXT_ATR,
                  entry_max_chase_pct=ENTRY_MAX_CHASE_PCT,
                  min_confidence=MIN_CONFIDENCE, watch_confidence=WATCH_CONFIDENCE,
@@ -421,6 +451,13 @@ class RuleSet:
         # A +6% week reads as a good one until SPY did +9%. Priced off the ledger's own equity
         # curve, so the comparison spans exactly the window the return does.
         self.benchmark = benchmark
+        # The two book-level brakes. See the REGIME_* and CIRCUIT_BREAKER_* block for what each
+        # protects against; they live on the RuleSet so the crypto book can re-derive its own
+        # numbers rather than inherit equity ones that mean something different on that venue.
+        self.regime_weight_mult = regime_weight_mult
+        self.regime_min_confidence = regime_min_confidence
+        self.circuit_breaker_pct = circuit_breaker_pct
+        self.circuit_breaker_resume_pct = circuit_breaker_resume_pct
         # Entry quality. See the ENTRY_* block for the trades that bought these numbers.
         self.entry_max_range_pos = entry_max_range_pos
         self.entry_max_ext_atr = entry_max_ext_atr
@@ -722,6 +759,12 @@ CRYPTO_RULES = RuleSet(
     # token. A crypto long-term hold that cannot sit through a 30% drawdown is not a long-term
     # hold, it is a swing trade with an optimistic label.
     long_hard_stop_pct=float(os.environ.get("BRAIN_CRYPTO_LONG_HARD_STOP_PCT", "-35")),
+    # Re-derived, like every other number on this book. −8% is a bad fortnight on equities and an
+    # ordinary Tuesday on a token book that runs a −15% hard stop; a breaker set there would spend
+    # the year tripped, which is the same as having no book. The resume gap is widened in
+    # proportion so the hysteresis still means something.
+    circuit_breaker_pct=float(os.environ.get("BRAIN_CRYPTO_CIRCUIT_BREAKER_PCT", "-18")),
+    circuit_breaker_resume_pct=float(os.environ.get("BRAIN_CRYPTO_CIRCUIT_BREAKER_RESUME_PCT", "-9")),
     # BTC, not SPY. The question this book has to answer is whether picking eighteen tokens beat
     # simply holding the majors — comparing a crypto ledger to the S&P measures the asset class,
     # which was never the decision being graded. The equity book carries the S&P comparison.
@@ -745,7 +788,17 @@ def rules_for(name):
 # ── Focus list — liquid, news-active names the brain watches every cycle ────────
 # Deliberately a curated subset (not the full 194-ticker BingX scan) so free-data pulls
 # stay fast and the deep-run packet stays legible. Market context tickers lead.
-MARKET_CONTEXT = ["SPY", "QQQ", "^VIX", "ES=F", "NQ=F", "DX-Y.NYB", "^TNX"]
+# The last four are new, and they are the only members of this list that are not about the index.
+# SPY/QQQ/VIX/futures/DXY/TNX all answer "what did the market do"; RSP, IWM, HYG and LQD answer
+# "how many came with it" — equal weight against cap weight for concentration, small caps for size
+# appetite, high yield against investment grade for credit. See brain/regime.py for why that is the
+# question that decides whether a long book beats the index or gives a year back to it.
+#
+# Membership here is also what keeps them out of the book: screen.py:93 and market_brain.py:76/700
+# exclude MARKET_CONTEXT names from candidates and from the news read, so adding a symbol here can
+# never turn it into something the brain proposes a trade in.
+MARKET_CONTEXT = ["SPY", "QQQ", "^VIX", "ES=F", "NQ=F", "DX-Y.NYB", "^TNX",
+                  "RSP", "IWM", "HYG", "LQD"]
 FOCUS_TICKERS = [
     "AAPL", "MSFT", "NVDA", "AMD", "TSLA", "AMZN", "META", "GOOGL", "NFLX",
     "AVGO", "TSM", "MU", "SMCI", "PLTR", "COIN", "HOOD", "MSTR", "MARA",

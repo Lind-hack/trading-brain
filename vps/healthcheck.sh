@@ -138,7 +138,11 @@ else
   pass "$ENVF present"
   # shellcheck disable=SC1090
   . "$ENVF" 2>/dev/null
-  for k in GMAIL_USER GMAIL_APP_PASSWORD ALPACA_API_KEY LIND_BRAIN; do
+  # The Alpaca names matter: broker.py:48 enables the paper mirror only when BOTH
+  # ALPACA_PAPER_KEY_ID and ALPACA_PAPER_SECRET_KEY are set. This check used to probe
+  # ALPACA_API_KEY, a name that appears nowhere else in the project, and so reported a missing
+  # key on a box where the mirror was working.
+  for k in GMAIL_USER GMAIL_APP_PASSWORD ALPACA_PAPER_KEY_ID ALPACA_PAPER_SECRET_KEY LIND_BRAIN; do
     if [ -n "${!k:-}" ]; then printf '        %-22s set\n' "$k"; else warn "$k is EMPTY or unset"; fi
   done
 fi

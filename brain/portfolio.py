@@ -19,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import broker, config, entry
+from . import regime as regime_mod
 from .jsonio import dumps as _dumps
 
 
@@ -102,6 +103,13 @@ def _default_state(rules=None):
         "sector_fails": {},       # sector -> consecutive-loss count
         "week_trades": {},        # ISO "YYYY-Www" -> count of NEW buys opened
         "equity_curve": [],       # [{ts, equity}]
+        # Book-level risk state. `equity_high_water` is kept here rather than derived from the
+        # curve above, which is trimmed to 500 points and would lose an older peak exactly when
+        # the drawdown mattered most. `breaker_tripped` is persisted because the brake has
+        # hysteresis: whether it is currently engaged is a fact about the past, not something the
+        # present drawdown alone can answer.
+        "equity_high_water": None,
+        "breaker_tripped": False,
         # Entries the broker never filled, backed out of the ledger. Deliberately NOT in
         # closed_trades: a limit that never traded is not a trade, and counting it would put a
         # 0.0% row into every win-rate, exit-mix and P&L number the recap computes.
@@ -146,6 +154,66 @@ class Portfolio:
         self.path.write_text(_dumps(self.state, indent=2), encoding="utf-8")
 
     # ── valuation ────────────────────────────────────────────────────────────
+    def _target_pct(self, action, trade_type, market=None):
+        """The weight this entry actually gets, after the horizon cap and the regime brake.
+
+        One helper because `validate_action` previews the size and `apply_action` applies it; two
+        copies of this arithmetic would eventually disagree, and the message would then promise a
+        weight the ledger did not take.
+
+        A contracting tape halves the position rather than refusing it. Being wrong about the
+        regime should cost a smaller size, not a missed year — the confidence bar in
+        validate_action is what refuses the trade outright.
+        """
+        pct = min(action.get("target_weight_pct", self.rules.default_pct_for(trade_type)),
+                  self.rules.weight_cap_for(trade_type))
+        if regime_mod.is_hostile(self._regime(market)):
+            pct *= self.rules.regime_weight_mult
+        return pct
+
+    def drawdown_pct(self, prices=None):
+        """How far the book is below its own high-water mark, in percent.
+
+        `None` until a mark has actually been taken. The peak has to be *observed* — falling back
+        to `starting_cash` would invent one, and any caller that had not yet marked the book would
+        measure a drawdown against a number nothing ever reached. In production `mark_to_market`
+        runs on every cycle, so the mark exists long before any action is proposed.
+        """
+        hw = self.state.get("equity_high_water")
+        if not hw:
+            return None
+        return (self.equity(prices) - hw) / hw * 100
+
+    def _breaker_tripped(self, dd):
+        """Is the drawdown brake engaged? Stateful on purpose — this is the hysteresis.
+
+        Halting at −8% and re-arming at −8% makes the brake flap: one cycle refuses a buy, the
+        next allows it, on a book oscillating across the boundary by a tenth of a percent. It
+        trips at the halt level and only clears once the book has genuinely recovered, so the
+        question "is it engaged" cannot be answered from today's number alone.
+        """
+        tripped = bool(self.state.get("breaker_tripped"))
+        if not tripped and dd <= self.rules.circuit_breaker_pct:
+            tripped = True
+        elif tripped and dd > self.rules.circuit_breaker_resume_pct:
+            tripped = False
+        self.state["breaker_tripped"] = tripped
+        return tripped
+
+    def _regime(self, market):
+        """This cycle's regime read, computed once per market snapshot.
+
+        Pure arithmetic over data already collected, so recomputing is cheap — but validate_action
+        runs per proposed action and a dozen identical passes over thirty tickers is noise in the
+        logs and in the profile. Keyed by the snapshot's identity: a new cycle brings a new dict.
+        """
+        if market is None:
+            return None
+        if getattr(self, "_regime_key", None) is not id(market):
+            self._regime_key = id(market)
+            self._regime_val = regime_mod.assess(market, universe=self.rules.tickers)
+        return self._regime_val
+
     def equity(self, prices=None):
         prices = prices or {}
         total = self.state["cash"]
@@ -259,7 +327,22 @@ class Portfolio:
         # whole reason the comparison can be trusted. Absent (no quote this cycle, a book with no
         # benchmark, every point written before this shipped) the key is simply missing, and
         # build_recap reads it defensively — an old ledger on disk predates the field entirely.
-        point = {"ts": datetime.now(config.UTC).isoformat(), "equity": self.equity(prices)}
+        eq_now = self.equity(prices)
+        # The book's own high-water mark, kept in state rather than derived from `equity_curve`:
+        # the curve is trimmed to the last 500 points (~13 days at this cadence), so a peak set
+        # three weeks ago would silently fall off the end and hand the circuit breaker a fresh
+        # high exactly when the drawdown it exists to catch was deepest.
+        self.state["equity_high_water"] = max(
+            self.state.get("equity_high_water") or self.rules.starting_cash, eq_now)
+        # Evaluated here, every cycle, and not only when a buy happens to be proposed. The trough
+        # is what trips the brake, and the trough is frequently reached on a cycle where nothing
+        # was proposed at all — a book that bottoms at −12% overnight and is back to −6% by the
+        # time an idea arrives would otherwise never have tripped, which is precisely the run of
+        # losses the brake exists to interrupt.
+        hw = self.state["equity_high_water"]
+        if hw:
+            self._breaker_tripped((eq_now - hw) / hw * 100)
+        point = {"ts": datetime.now(config.UTC).isoformat(), "equity": eq_now}
         bench_px = prices.get(getattr(self.rules, "benchmark", None) or "")
         if usable_price(bench_px):
             point["bench"] = bench_px
@@ -477,6 +560,25 @@ class Portfolio:
             if band == "below_bar":
                 return False, (f"confidence {action['confidence']} — below the "
                                f"{self.rules.watch_confidence} floor, not a trade")
+            # ── the two book-level brakes ────────────────────────────────────────────────
+            # Both refuse *new risk only*. Neither can touch a SELL: the branches above return
+            # before here, and the exit monitor never routes through validate_action at all. A
+            # brake that could block an exit would be the opposite of risk control.
+            dd = self.drawdown_pct(prices)
+            if dd is not None and self._breaker_tripped(dd):
+                return False, (f"circuit breaker: book is {dd:.1f}% off its high-water mark "
+                               f"(halts at {self.rules.circuit_breaker_pct:.0f}%, re-arms above "
+                               f"{self.rules.circuit_breaker_resume_pct:.0f}%) — managing existing "
+                               f"positions only")
+            if regime_mod.is_hostile(self._regime(market)):
+                conf = action.get("confidence")
+                # `unrated` still passes the ordinary gate above, but not this one: taking a
+                # position with no stated conviction into a contracting tape is the trade this
+                # brake exists to refuse.
+                if not isinstance(conf, (int, float)) or conf < self.rules.regime_min_confidence:
+                    return False, (f"regime is contracting — new entries need "
+                                   f"{self.rules.regime_min_confidence}+ confidence "
+                                   f"(this one: {conf if conf is not None else '—'})")
             if kind == "BUY" and ticker in self.state["positions"]:
                 return False, f"{ticker} already held (use ADD)"
             if kind == "BUY" and len(self.state["positions"]) >= self.rules.max_positions:
@@ -501,8 +603,7 @@ class Portfolio:
                 at = f"; wait for {config.format_price(level)}" if level else ""
                 return False, f"{why}{at}"
             tt = action.get("trade_type")
-            target_pct = min(action.get("target_weight_pct", self.rules.default_pct_for(tt)),
-                         self.rules.weight_cap_for(tt))
+            target_pct = self._target_pct(action, tt, market)
             target_usd = eq * target_pct / 100
             if kind == "ADD":
                 cur = self.state["positions"].get(ticker)
@@ -538,8 +639,7 @@ class Portfolio:
         price = action.get("entry") or prices.get(ticker)
         eq = self.equity(prices)
         trade_type = action.get("trade_type")
-        target_pct = min(action.get("target_weight_pct", self.rules.default_pct_for(trade_type)),
-                         self.rules.weight_cap_for(trade_type))
+        target_pct = self._target_pct(action, trade_type, market)
         target_usd = min(eq * target_pct / 100, self.state["cash"])
         shares = round(target_usd / price, 4)
         if shares <= 0:

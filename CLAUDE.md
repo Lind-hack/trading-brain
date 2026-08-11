@@ -253,6 +253,47 @@ Three things the gap is not:
 An untagged position is counted under `UNSPECIFIED` rather than assigned a horizon — it fills no
 slot and it shows up in the review as a signal that didn't say what it was.
 
+## Two brakes that sit above any single trade
+
+Every other gate in this rulebook asks about one position. These two ask whether the book should
+be taking new risk at all, and both are **enforced in `brain/portfolio.py`, not advisory**.
+
+### `regime` — how many names came with the index
+
+`market_context` tells you what SPY did. It cannot tell you that the index rose on five mega-caps
+while the average holding rolled over, and that gap is where a long book gives a year back to the
+index it is trying to beat. `packet.regime` (from `brain/regime.py`, deterministic, present on
+every cycle including the off-hours passes) measures participation two ways:
+
+- **Internal breadth**, free, over this book's own universe: the share above the 20- and 50-day
+  means, and how many sit at 20-day highs against 20-day lows.
+- **Cross-asset ratios**: RSP against SPY (concentration — is the average stock participating),
+  IWM against SPY (size appetite), HYG against LQD (credit). Each measured as distance above its
+  own 20-day mean, so no history is stored.
+
+The verdict is `EXPANSION` / `NEUTRAL` / `CONTRACTION`, with `reasons` carrying the actual
+readings — cite those numbers, not the label. Under **CONTRACTION** the harness requires **75+
+confidence** for any new entry and **halves the position size**. Note what that is not: it is not
+a halt, and it is not a reason to stop looking. Being wrong about the regime should cost a smaller
+position, not a missed year. A `degraded` regime read (too few components computable) is treated
+as NEUTRAL — a brake that engaged whenever the collector struggled would fire on exactly the days
+its evidence was worst.
+
+### The drawdown circuit breaker
+
+Sector lockout catches two losers in one sector. Nothing caught six losers spread across six. When
+the book is **8% below its own high-water mark** (18% on crypto, re-derived for a venue that runs
+a −15% hard stop), new BUYs stop until it recovers past −4%. The gap between those two numbers is
+deliberate: halting and re-arming at the same level makes the brake flap on a book oscillating
+across the boundary.
+
+It halts **buying only**. Exits, trims and `brain/exits.py` keep running throughout — a brake that
+could block a sell would be a trap rather than risk control.
+
+Both refusals arrive as readable rejection reasons, so a quiet day is explainable rather than
+mysterious. If you propose into either of them, the slot is spent for nothing — read
+`packet.regime` and the portfolio's drawdown before writing the signal, not after.
+
 ## Confidence is a gate now, not a decoration
 
 Until 2026-08-01 the number did nothing. A 54 and an 80 bought the same position at the same

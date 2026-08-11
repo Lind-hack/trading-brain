@@ -19,6 +19,12 @@
       "skillPath": "skills/canslim-screener/SKILL.md",
       "computedHash": "65df3eecb26977c26a3f20c669d5c6b9209aba0b0f0975d244d730aa8b54f0df"
     },
+    "drawdown-circuit-breaker": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/drawdown-circuit-breaker/SKILL.md",
+      "computedHash": "99a73120cf66f72165b81eab6cf7fa1d9bd64d03f0b7c2b0149ab5f927178471"
+    },
     "exposure-coach": {
       "source": "tradermonty/claude-trading-skills",
       "sourceType": "github",
@@ -48,6 +54,12 @@
       "sourceType": "github",
       "skillPath": "skills/market-breadth-analyzer/SKILL.md",
       "computedHash": "55629fbebc2782f9543063b89b3dd84dac3d3856b048cff6d6f1cce3d7ff2675"
+    },
+    "market-top-detector": {
+      "source": "tradermonty/claude-trading-skills",
+      "sourceType": "github",
+      "skillPath": "skills/market-top-detector/SKILL.md",
+      "computedHash": "9064cb189a337727564b7fc5349c012f1b39bedaf0634ea5c8039b47d76a4cb7"
     },
     "position-sizer": {
       "source": "tradermonty/claude-trading-skills",

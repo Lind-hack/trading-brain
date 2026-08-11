@@ -19,7 +19,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from . import config, market_hours
+from . import config, market_hours, regime
 from .jsonio import dumps, json_safe   # noqa: F401 — re-exported for the packet builders
 
 
@@ -102,6 +102,13 @@ def build_packet(mode, market, screen_result, calendar, portfolio_summary,
             "triggers": screen_result.get("triggers", [])[:12],
         },
         "market_context": {t: market.get(t, {}).get("indicators", {}) for t in config.MARKET_CONTEXT},
+        # How many names came with the index, not just what the index did. `market_context` above
+        # can be green on five mega-caps while the average holding rolls over, and that gap is
+        # where a long book gives a year back. Deterministic, so it is present on every cycle —
+        # including the off-hours passes where no model runs at all. Enforced, not advisory: see
+        # portfolio.validate_action.
+        "regime": regime.assess(
+            market, universe=config.rules_for("crypto" if mode == "crypto" else "stock").tickers),
         "focus": {t: slim_market.get(t, {}) for t in focus},
         "calendar": {
             "imminent": calendar.get("imminent", []),
