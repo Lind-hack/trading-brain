@@ -40,7 +40,7 @@ from datetime import datetime, timedelta, timezone
 
 from brain import (config, collect, dedupe, escalate, exits as exit_monitor, screen as screener,
                    deep, journal, market_hours, memory, runlog, news_intel, notify, obsidian,
-                   supabase, thesis)
+                   regime, supabase, thesis)
 from brain.portfolio import ENTRY_META_FIELDS, Portfolio, usable_price
 
 
@@ -365,6 +365,31 @@ def run_analysis(mode, market, screen_result, calendar, portfolio, args, focus=N
         return out
 
 
+def _log_risk(portfolio, market, prices):
+    """One line for the two brakes that can refuse a trade without any signal being wrong.
+
+    `[screen]` says what the tape offered and `[deep]` says whether it was worth a model. Neither
+    says whether the book was *allowed* to act, and both brakes added in b8a7106 can silently
+    turn a good setup into no trade. A refusal nobody can see in the log is the same failure this
+    whole week has been about — the pipeline was dead for six days precisely because nothing said
+    so. So the regime verdict and the drawdown print every cycle, engaged or not.
+    """
+    try:
+        r = regime.assess(market, universe=portfolio.rules.tickers)
+        dd = portfolio.drawdown_pct(prices)
+        bits = [f"regime={r['verdict']}({r['score']:+d}/{r['components']})"]
+        if r.get("degraded"):
+            bits.append("degraded — too few components to read")
+        elif r["reasons"]:
+            bits.append("; ".join(r["reasons"][:2]))
+        if dd is not None:
+            state = "TRIPPED" if portfolio.state.get("breaker_tripped") else "armed"
+            bits.append(f"drawdown {dd:+.1f}% (breaker {state})")
+        print(f"[risk] {' :: '.join(bits)}")
+    except Exception as e:  # pragma: no cover - never let observability break a cycle
+        print(f"[warn] risk log: {e}", file=sys.stderr)
+
+
 def mark_exits(portfolio, prices, persist=True):
     """Mechanical stops, run once per cycle before anything else looks at the book.
 
@@ -490,6 +515,7 @@ def do_cycle(args, mode="cycle", force=False):
     escalated = escalated and bool(screen_result["escalate"] or news_reasons or force)
     print(f"[screen] escalate={escalated} :: {'; '.join(screen_result['why']) or 'quiet'}")
     print(f"[deep] {'; '.join(why_deep)}")
+    _log_risk(portfolio, market, prices)
 
     analysis = None
     applied, opened = [], []
@@ -608,6 +634,7 @@ def do_crypto_cycle(args, force=False):
     escalated = escalated and bool(screen_result["escalate"] or news_reasons or force)
     print(f"[screen] escalate={escalated} :: {'; '.join(screen_result['why']) or 'quiet'}")
     print(f"[deep] {'; '.join(why_deep)}")
+    _log_risk(portfolio, market, prices)
 
     analysis = None
     applied, opened = [], []
